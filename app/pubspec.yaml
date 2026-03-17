@@ -1,0 +1,40 @@
+name: jobpet
+description: "职宠小窝 - 轻拟人电子宠物求职陪伴APP"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  provider: ^6.1.1
+  sqflite: ^2.3.2
+  path: ^1.9.0
+  dio: ^5.4.0
+  lottie: ^3.1.0
+  shared_preferences: ^2.2.2
+  sensors_plus: ^4.0.2
+  cached_network_image: ^3.3.1
+  path_provider: ^2.1.2
+  intl: ^0.19.0
+  logger: ^2.0.2
+  fl_chart: ^0.66.0
+  flutter_svg: ^2.0.9
+  flutter_animate: ^4.3.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/animations/
+    - assets/images/

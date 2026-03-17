@@ -3,7 +3,7 @@ import { Layout } from "./components/Layout";
 import { HomeScreen } from "./components/HomeScreen";
 import { StatsScreen } from "./components/StatsScreen";
 import { ParkScreen } from "./components/ParkScreen";
-import { JobsScreen } from "./components/JobsScreen";
+import { KnowledgeScreen } from "./components/KnowledgeScreen";
 
 export const router = createBrowserRouter([
   {
@@ -13,7 +13,7 @@ export const router = createBrowserRouter([
       { index: true, Component: HomeScreen },
       { path: "stats", Component: StatsScreen },
       { path: "park", Component: ParkScreen },
-      { path: "jobs", Component: JobsScreen },
+      { path: "knowledge", Component: KnowledgeScreen },
     ],
   },
 ]);

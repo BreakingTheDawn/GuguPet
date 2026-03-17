@@ -1,11 +1,11 @@
 import { Outlet, NavLink } from "react-router";
-import { Home, BarChart2, TreePine, Briefcase } from "lucide-react";
+import { Home, BarChart2, TreePine, BookOpen } from "lucide-react";
 
 const navItems = [
   { to: "/", icon: Home, label: "倾诉室" },
   { to: "/stats", icon: BarChart2, label: "看板" },
   { to: "/park", icon: TreePine, label: "公园" },
-  { to: "/jobs", icon: Briefcase, label: "岗位" },
+  { to: "/knowledge", icon: BookOpen, label: "专栏" },
 ];
 
 export function Layout() {
