@@ -1,0 +1,32 @@
+{
+  "animation": {
+    "idleDuration": 4000,
+    "happyDuration": 1800,
+    "messageShowDuration": 2500,
+    "responseDelay": 500
+  },
+  "layout": {
+    "headerPaddingTop": 24,
+    "headerPaddingHorizontal": 20,
+    "cardPadding": 20,
+    "cardBorderRadius": 16,
+    "messageMaxWidth": "70%",
+    "avatarSize": 32,
+    "inputHeight": 36,
+    "sendBtnWidth": 60
+  },
+  "spacing": {
+    "xs": 4,
+    "sm": 8,
+    "md": 16,
+    "lg": 24,
+    "xl": 32
+  },
+  "borderRadius": {
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 20,
+    "full": 9999
+  }
+}

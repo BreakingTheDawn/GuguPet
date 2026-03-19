@@ -1,0 +1,8 @@
+{
+  "defaultCountdowns": [
+    { "id": "1", "title": "春招结束", "date": "2026-04-30", "color": "pink" },
+    { "id": "2", "title": "毕业答辩", "date": "2026-05-15", "color": "blue" },
+    { "id": "3", "title": "入职第一天", "date": "2026-07-01", "color": "green" }
+  ],
+  "colorTypes": ["pink", "blue", "green", "purple"]
+}

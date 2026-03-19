@@ -9,7 +9,6 @@ const RESPONSES: { pattern: RegExp; text: string }[] = [
   { pattern: /开心|高兴|棒|好消息|发|拿到|通过|过了/, text: "太好了！咕咕也为你感到超级开心~ 🎉🎊" },
   { pattern: /不知道|迷茫|迷失|找不到|方向/, text: "迷茫也没关系，每一步都算数的，我一直陪着你 🌟" },
 ];
-
 const DEFAULT_RESPONSES = [
   "嗯嗯，我都听到了，说出来感觉好一点了吗？ 🐧",
   "你已经很棒了，不管怎样咕咕都支持你 ✨",
@@ -49,43 +48,33 @@ export function HomeScreen() {
 
   return (
     <div
-      className="relative w-full h-full flex flex-col"
+      className="relative flex flex-col"
       style={{
         minHeight: "100%",
-        background: "linear-gradient(175deg, #FFF8EF 0%, #EEF2FF 45%, #F0EBFF 100%)",
+        background: "linear-gradient(175deg, #FFF8EF 0%, #EEF2FF 48%, #F0EBFF 100%)",
       }}
     >
-      {/* Top bar */}
-      <div className="flex items-center justify-between px-6 pt-10 pb-2">
-        <div className="w-full text-center">
-          <motion.p
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="text-gray-400 tracking-[0.2em]"
-            style={{ fontSize: "12px" }}
-          >
-            职宠小窝
-          </motion.p>
-        </div>
-      </div>
-
-      {/* Decorative stars */}
+      {/* Decorative floating stars */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {[
-          { left: "12%", top: "15%", delay: 0 },
-          { left: "82%", top: "12%", delay: 0.5 },
-          { left: "88%", top: "35%", delay: 1 },
-          { left: "8%", top: "40%", delay: 1.5 },
-          { left: "92%", top: "55%", delay: 0.8 },
-          { left: "5%", top: "60%", delay: 1.2 },
+          { left: "10%", top: "8%", delay: 0, size: 8 },
+          { left: "84%", top: "6%", delay: 0.6, size: 6 },
+          { left: "90%", top: "28%", delay: 1.1, size: 8 },
+          { left: "6%", top: "35%", delay: 1.7, size: 6 },
+          { left: "88%", top: "52%", delay: 0.9, size: 7 },
+          { left: "4%", top: "60%", delay: 1.4, size: 6 },
         ].map((star, i) => (
           <motion.div
             key={i}
-            className="absolute text-indigo-200"
-            style={{ left: star.left, top: star.top, fontSize: "10px" }}
-            animate={{ opacity: [0.3, 0.9, 0.3], scale: [0.8, 1.2, 0.8] }}
-            transition={{ duration: 3, repeat: Infinity, delay: star.delay }}
+            className="absolute"
+            style={{
+              left: star.left,
+              top: star.top,
+              fontSize: `${star.size}px`,
+              color: "#c8b8e8",
+            }}
+            animate={{ opacity: [0.25, 0.85, 0.25], scale: [0.8, 1.3, 0.8] }}
+            transition={{ duration: 3.5, repeat: Infinity, delay: star.delay }}
           >
             ✦
           </motion.div>
@@ -93,28 +82,25 @@ export function HomeScreen() {
       </div>
 
       {/* Main content area */}
-      <div
-        className="flex-1 flex flex-col items-center justify-center relative"
-        style={{ paddingBottom: "20px" }}
-      >
+      <div className="flex-1 flex flex-col items-center justify-center relative" style={{ paddingBottom: "16px" }}>
         {/* Response bubble */}
         <AnimatePresence>
           {showResponse && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.85, y: 12 }}
+              initial={{ opacity: 0, scale: 0.82, y: 14 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: -8 }}
-              transition={{ type: "spring", stiffness: 400, damping: 28 }}
+              transition={{ type: "spring", stiffness: 420, damping: 30 }}
               className="mb-5 px-5 py-4 rounded-3xl text-center"
               style={{
-                background: "rgba(255,255,255,0.82)",
-                backdropFilter: "blur(16px)",
-                border: "1px solid rgba(255,255,255,0.9)",
-                boxShadow: "0 8px 32px rgba(100,80,200,0.1)",
-                maxWidth: "280px",
+                background: "rgba(255,255,255,0.85)",
+                backdropFilter: "blur(18px)",
+                border: "1.5px solid rgba(255,255,255,0.95)",
+                boxShadow: "0 8px 32px rgba(100,80,200,0.12)",
+                maxWidth: "282px",
                 fontSize: "14px",
                 color: "#5a5a7a",
-                lineHeight: "1.7",
+                lineHeight: "1.75",
               }}
             >
               {response}
@@ -122,57 +108,100 @@ export function HomeScreen() {
           )}
         </AnimatePresence>
 
-        {/* Bird + bubble */}
-        <div className="relative flex items-start">
-          {/* Bird image with animation */}
+        {/* ── Pseudo-3D Bird ── */}
+        <div className="relative flex items-start" style={{ perspective: "700px" }}>
+          {/* Ground shadow */}
+          <motion.div
+            animate={
+              isHappy
+                ? { scaleX: [1, 1.3, 0.75, 1.1, 1], opacity: [0.45, 0.55, 0.2, 0.45, 0.45], x: [0, 12, -10, 6, 0] }
+                : { scaleX: [0.95, 0.62, 0.95], opacity: [0.4, 0.18, 0.4], x: [-8, 8, -8] }
+            }
+            transition={
+              isHappy
+                ? { duration: 1.8, ease: "easeInOut" }
+                : { duration: 4, repeat: Infinity, ease: "easeInOut" }
+            }
+            style={{
+              position: "absolute",
+              bottom: "-14px",
+              left: "50%",
+              translateX: "-50%",
+              width: "130px",
+              height: "18px",
+              borderRadius: "50%",
+              background: "rgba(100,80,160,0.14)",
+              filter: "blur(9px)",
+            }}
+          />
+
+          {/* 3D Bird */}
           <motion.div
             animate={
               isHappy
                 ? {
-                    y: [0, -22, -8, -18, 0],
-                    rotate: [-2, 3, -3, 2, 0],
+                    y: [0, -26, -10, -20, 0],
+                    rotateY: [0, 22, -16, 12, 0],
+                    rotateX: [-2, 6, -5, 4, 0],
+                    filter: [
+                      "brightness(1) drop-shadow(0 18px 28px rgba(100,80,200,0.18))",
+                      "brightness(1.1) drop-shadow(10px 14px 28px rgba(100,80,200,0.1))",
+                      "brightness(0.93) drop-shadow(-10px 20px 32px rgba(100,80,200,0.24))",
+                      "brightness(1.06) drop-shadow(6px 14px 22px rgba(100,80,200,0.14))",
+                      "brightness(1) drop-shadow(0 18px 28px rgba(100,80,200,0.18))",
+                    ],
                   }
                 : {
                     y: [0, -10, 0],
-                    rotate: [-1.5, 1.5, -1.5],
+                    rotateY: [-13, 13, -13],
+                    rotateX: [5, -5, 5],
+                    filter: [
+                      "brightness(0.96) drop-shadow(-5px 18px 28px rgba(100,80,200,0.22))",
+                      "brightness(1.05) drop-shadow(5px 18px 28px rgba(100,80,200,0.14))",
+                      "brightness(0.96) drop-shadow(-5px 18px 28px rgba(100,80,200,0.22))",
+                    ],
                   }
             }
             transition={
               isHappy
                 ? { duration: 1.8, ease: "easeInOut" }
-                : { duration: 3.5, repeat: Infinity, ease: "easeInOut" }
+                : { duration: 4, repeat: Infinity, ease: "easeInOut" }
             }
-            style={{ filter: "drop-shadow(0 12px 28px rgba(100,80,200,0.18))" }}
+            style={{ transformStyle: "preserve-3d" }}
           >
             <img
               src={birdImg}
               alt="咕咕鸟"
-              style={{ width: "210px", height: "auto" }}
+              style={{ width: "215px", height: "auto", display: "block" }}
             />
           </motion.div>
 
-          {/* Side bubble */}
+          {/* Floating side bubble */}
           <motion.div
-            animate={{ scale: [1, 1.08, 1], rotate: [-3, 3, -3] }}
-            transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute flex items-center justify-center rounded-2xl"
+            animate={{ scale: [1, 1.09, 1], rotate: [-4, 4, -4] }}
+            transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
             style={{
-              right: "-18px",
-              top: "28px",
-              width: "44px",
-              height: "44px",
-              background: "rgba(255,255,255,0.75)",
+              position: "absolute",
+              right: "-20px",
+              top: "30px",
+              width: "46px",
+              height: "46px",
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "20px",
+              background: "rgba(255,255,255,0.78)",
               backdropFilter: "blur(12px)",
               border: "1.5px solid rgba(255,255,255,0.95)",
-              boxShadow: "0 4px 16px rgba(100,80,200,0.15)",
-              fontSize: "20px",
+              boxShadow: "0 4px 18px rgba(100,80,200,0.16)",
             }}
           >
             {isHappy ? "🥰" : "🫂"}
           </motion.div>
         </div>
 
-        {/* Subtle waiting hint */}
+        {/* Hint text */}
         <AnimatePresence mode="wait">
           {!showResponse && (
             <motion.p
@@ -180,9 +209,13 @@ export function HomeScreen() {
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
-              transition={{ delay: 0.4 }}
-              className="mt-4 text-center"
-              style={{ fontSize: "12px", color: "#bbb0d0" }}
+              transition={{ delay: 0.3 }}
+              style={{
+                marginTop: "22px",
+                fontSize: "12px",
+                color: "#c8b8e0",
+                textAlign: "center",
+              }}
             >
               {messageCount === 0 ? "咕咕在等你倾诉..." : `已倾诉 ${messageCount} 次，咕咕一直在 ♡`}
             </motion.p>
@@ -191,13 +224,18 @@ export function HomeScreen() {
       </div>
 
       {/* Input area */}
-      <div className="px-5 pb-5">
+      <div style={{ padding: "0 18px 20px" }}>
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          className="text-center mb-2"
-          style={{ fontSize: "12px", color: "#b8b0d0", letterSpacing: "0.05em" }}
+          transition={{ delay: 0.5 }}
+          style={{
+            textAlign: "center",
+            marginBottom: "8px",
+            fontSize: "11px",
+            color: "#c0b0d8",
+            letterSpacing: "0.05em",
+          }}
         >
           此刻想对咕咕说点什么？
         </motion.p>
@@ -205,12 +243,16 @@ export function HomeScreen() {
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7, type: "spring", stiffness: 300 }}
-          className="flex items-center gap-3 rounded-3xl px-5 py-4"
+          transition={{ delay: 0.65, type: "spring", stiffness: 280 }}
           style={{
-            background: "rgba(255,255,255,0.65)",
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            borderRadius: "28px",
+            padding: "14px 20px",
+            background: "rgba(255,255,255,0.66)",
             backdropFilter: "blur(24px)",
-            border: "1.5px solid rgba(255,255,255,0.88)",
+            border: "1.5px solid rgba(255,255,255,0.9)",
             boxShadow: "0 8px 32px rgba(100,80,200,0.1), 0 2px 8px rgba(0,0,0,0.05)",
           }}
         >
@@ -219,8 +261,11 @@ export function HomeScreen() {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
             placeholder="今天又投了5份简历，有点累了..."
-            className="flex-1 bg-transparent outline-none"
             style={{
+              flex: 1,
+              background: "transparent",
+              outline: "none",
+              border: "none",
               color: "#5a5a7a",
               fontSize: "14px",
             }}
@@ -232,9 +277,8 @@ export function HomeScreen() {
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0, opacity: 0 }}
                 onClick={handleSubmit}
-                className="flex-shrink-0"
-                style={{ fontSize: "20px" }}
-                whileTap={{ scale: 0.85 }}
+                style={{ fontSize: "22px", flexShrink: 0 }}
+                whileTap={{ scale: 0.82 }}
               >
                 🕊️
               </motion.button>

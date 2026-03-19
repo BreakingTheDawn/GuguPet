@@ -1,0 +1,112 @@
+.bird-container {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bird-wrapper {
+  position: relative;
+  z-index: 2;
+  transform-style: preserve-3d;
+}
+
+.bird-emoji {
+  font-size: 80px;
+  line-height: 1;
+}
+
+.bird-shadow {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 20px;
+  background: radial-gradient(ellipse, rgba(108, 92, 231, 0.3) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: shadow-pulse 4s ease-in-out infinite;
+}
+
+.shadow-happy {
+  animation: shadow-happy 1.8s ease-in-out;
+}
+
+@keyframes shadow-pulse {
+  0%, 100% {
+    transform: translateX(-50%) scaleX(0.95) translateX(-8px);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translateX(-50%) scaleX(0.62) translateX(8px);
+    opacity: 0.18;
+  }
+}
+
+@keyframes shadow-happy {
+  0% {
+    transform: translateX(-50%) scaleX(0.95);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translateX(-50%) scaleX(0.5);
+    opacity: 0.2;
+  }
+  100% {
+    transform: translateX(-50%) scaleX(0.95);
+    opacity: 0.4;
+  }
+}
+
+.bird-idle {
+  animation: bird-float 4s ease-in-out infinite;
+}
+
+.bird-happy {
+  animation: bird-happy 1.8s ease-in-out;
+}
+
+@keyframes bird-float {
+  0%, 100% {
+    transform: translateY(0) rotateY(-13deg) rotateX(5deg);
+  }
+  50% {
+    transform: translateY(-10px) rotateY(13deg) rotateX(-5deg);
+  }
+}
+
+@keyframes bird-happy {
+  0% {
+    transform: translateY(0) rotateY(0) rotateX(-2deg);
+  }
+  25% {
+    transform: translateY(-26px) rotateY(22deg) rotateX(6deg);
+  }
+  50% {
+    transform: translateY(-10px) rotateY(-16deg) rotateX(-5deg);
+  }
+  75% {
+    transform: translateY(-20px) rotateY(12deg) rotateX(4deg);
+  }
+  100% {
+    transform: translateY(0) rotateY(0) rotateX(0);
+  }
+}
+
+.side-bubble {
+  position: absolute;
+  right: -10px;
+  top: 40px;
+  width: 36px;
+  height: 36px;
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  box-shadow: 0 2px 8px rgba(100, 80, 200, 0.15);
+  z-index: 3;
+}

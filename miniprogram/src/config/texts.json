@@ -1,0 +1,46 @@
+{
+  "app": {
+    "name": "职宠小窝",
+    "version": "1.0.0"
+  },
+  "home": {
+    "title": "倾诉室",
+    "subtitle": "有任何心事都可以跟咕咕说~",
+    "emptyText": "你好呀！我是咕咕~",
+    "emptySubtext": "有什么想说的都可以告诉我",
+    "inputPlaceholder": "倾诉你的心事..."
+  },
+  "profile": {
+    "title": "我的",
+    "defaultUserName": "求职小伙伴",
+    "defaultUserStatus": "春招进行中",
+    "statsLabels": {
+      "days": "求职天数",
+      "applications": "已投递",
+      "interviews": "面试中"
+    },
+    "progressLabels": {
+      "interview": "面试中",
+      "offer": "已Offer",
+      "rejected": "已拒绝"
+    }
+  },
+  "pet": {
+    "name": "咕咕",
+    "messages": [
+      "主人最棒了！💪",
+      "今天也要加油哦~ ✨",
+      "咕咕会一直陪着你 🐧",
+      "辛苦啦，抱抱~ 🤗"
+    ]
+  },
+  "knowledge": {
+    "title": "档案馆",
+    "subtitle": "精选求职干货，助你一臂之力",
+    "emptyText": "暂无专栏内容"
+  },
+  "stats": {
+    "title": "求职看板",
+    "subtitle": "记录你的求职旅程"
+  }
+}

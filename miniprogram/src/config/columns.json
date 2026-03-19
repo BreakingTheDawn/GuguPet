@@ -1,0 +1,44 @@
+{
+  "columns": [
+    {
+      "id": "1",
+      "title": "前端面试必考点合集",
+      "description": "从基础到进阶，全面覆盖面试高频考点",
+      "price": 29,
+      "author": "资深面试官",
+      "readCount": 2340,
+      "image": ""
+    },
+    {
+      "id": "2",
+      "title": "简历写作避坑指南",
+      "description": "让你的简历在HR眼中脱颖而出",
+      "price": 19,
+      "author": "HR总监",
+      "readCount": 1856,
+      "image": ""
+    },
+    {
+      "id": "3",
+      "title": "大厂算法题精讲",
+      "description": "掌握这些算法，面试不再慌",
+      "price": 49,
+      "author": "算法专家",
+      "readCount": 3421,
+      "image": ""
+    },
+    {
+      "id": "4",
+      "title": "职场沟通技巧",
+      "description": "从入职到晋升的沟通之道",
+      "price": 15,
+      "author": "职业教练",
+      "readCount": 987,
+      "image": ""
+    }
+  ],
+  "banner": {
+    "title": "新人专享",
+    "description": "首单立减10元"
+  }
+}

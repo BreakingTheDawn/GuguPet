@@ -1,0 +1,54 @@
+{
+  "primary": "#6C5CE7",
+  "primaryLight": "#A084E8",
+  "primaryDark": "#5040A0",
+  "textPrimary": "#2a1a4a",
+  "textSecondary": "#B0A0C8",
+  "textMuted": "#D0C8E0",
+  "background": {
+    "primary": "#FFF8EF",
+    "secondary": "#EEF2FF",
+    "tertiary": "#F0EBFF"
+  },
+  "card": {
+    "bg": "rgba(255,255,255,0.88)",
+    "border": "rgba(255,255,255,0.9)",
+    "shadow": "rgba(100,80,200,0.1)"
+  },
+  "countdown": {
+    "pink": {
+      "bg": "#FFE2EE",
+      "text": "#C05A78",
+      "name": "春招"
+    },
+    "blue": {
+      "bg": "#E2EEFF",
+      "text": "#4A68C8",
+      "name": "答辩"
+    },
+    "green": {
+      "bg": "#E2FFE8",
+      "text": "#3A8A50",
+      "name": "入职"
+    },
+    "purple": {
+      "bg": "#F0E8FF",
+      "text": "#7040C0",
+      "name": "毕业"
+    }
+  },
+  "progress": {
+    "interview": {
+      "bg": "#EEF2FF",
+      "fill": "#6C5CE7"
+    },
+    "offer": {
+      "bg": "#E8FFF0",
+      "fill": "#5ABE8A"
+    },
+    "rejected": {
+      "bg": "#F5F5F5",
+      "fill": "#B0A0C8"
+    }
+  }
+}

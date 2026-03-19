@@ -1,0 +1,74 @@
+.knowledge-page {
+  min-height: 100vh;
+  background: linear-gradient(175deg, #FFF8EF 0%, #EEF2FF 48%, #F0EBFF 100%);
+  padding: 24px 20px 100px;
+}
+
+.knowledge-header {
+  margin-bottom: 24px;
+}
+
+.knowledge-title {
+  display: block;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.knowledge-subtitle {
+  display: block;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.banner-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, #6C5CE7 0%, #A084E8 100%);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 32px;
+}
+
+.banner-content {
+  flex: 1;
+}
+
+.banner-title {
+  display: block;
+  font-size: 24px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 8px;
+}
+
+.banner-desc {
+  display: block;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.banner-bird {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.section-header {
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.columns-list {
+  display: flex;
+  flex-direction: column;
+}

@@ -1,0 +1,562 @@
+/* 看板页面 - 完全重现 suchAs 设计 - 响应式优化 */
+.stats-page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #F8F5FF 0%, #F4F0FF 100%);
+  padding-bottom: 200rpx;
+}
+
+/* 拖拽手柄 */
+.drag-handle {
+  padding: 20rpx 0 8rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.drag-line {
+  width: 72rpx;
+  height: 8rpx;
+  border-radius: 4rpx;
+  background: #D8D0F0;
+}
+
+.collapse-btn {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  background: rgba(180, 160, 220, 0.12);
+}
+
+.collapse-icon {
+  font-size: 24rpx;
+}
+
+.collapse-text {
+  font-size: 20rpx;
+  color: #A090C8;
+}
+
+/* 收起状态 - 紧凑条 */
+.compact-strip {
+  padding: 20rpx 32rpx;
+}
+
+.compact-content {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px);
+  border-radius: 40rpx;
+  padding: 24rpx 32rpx;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 8rpx 40rpx rgba(100, 80, 200, 0.1);
+  border: 2rpx solid rgba(255, 255, 255, 0.9);
+}
+
+.compact-item {
+  flex: 1;
+  text-align: center;
+}
+
+.compact-emoji {
+  font-size: 20rpx;
+}
+
+.compact-days {
+  font-size: 44rpx;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.compact-label {
+  display: block;
+  font-size: 18rpx;
+  color: #aaa;
+  margin-top: 2rpx;
+}
+
+.expand-btn {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  font-size: 22rpx;
+  color: #6C5CE7;
+  font-weight: 600;
+  padding: 12rpx 20rpx;
+  background: #F0EEFF;
+  border-radius: 24rpx;
+  flex-shrink: 0;
+}
+
+.expand-icon {
+  font-size: 28rpx;
+}
+
+.expand-text {
+  font-size: 22rpx;
+}
+
+/* 展开状态 - 完整面板 */
+.full-panel {
+  padding: 8rpx 32rpx 40rpx;
+}
+
+/* 区块头部 */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+
+.section-title-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #2a1a4a;
+}
+
+.section-subtitle {
+  font-size: 20rpx;
+  color: #B0A0D0;
+  margin-top: 2rpx;
+}
+
+/* 添加按钮 */
+.add-btn {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 24rpx;
+  background: #6C5CE7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 24rpx rgba(108, 92, 231, 0.35);
+}
+
+.add-icon {
+  color: white;
+  font-size: 32rpx;
+  font-weight: bold;
+}
+
+/* 倒计时卡片区域 */
+.countdown-section {
+  margin-bottom: 36rpx;
+}
+
+.countdown-cards {
+  display: flex;
+  gap: 20rpx;
+  overflow-x: auto;
+  padding-bottom: 8rpx;
+}
+
+.countdown-card {
+  flex-shrink: 0;
+  width: 230rpx;
+  border-radius: 44rpx;
+  padding: 32rpx 28rpx;
+  backdrop-filter: blur(8px);
+  border: 3rpx solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8rpx 40rpx rgba(0, 0, 0, 0.07);
+  position: relative;
+  overflow: hidden;
+}
+
+.remove-btn {
+  position: absolute;
+  top: 16rpx;
+  right: 16rpx;
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-icon {
+  font-size: 20rpx;
+  color: #888;
+}
+
+.card-emoji {
+  font-size: 44rpx;
+}
+
+.card-days {
+  font-size: 84rpx;
+  font-weight: 800;
+  line-height: 1.1;
+  margin-top: 12rpx;
+}
+
+.card-unit {
+  display: block;
+  font-size: 22rpx;
+  color: #888;
+  margin-top: 4rpx;
+}
+
+.card-label {
+  display: block;
+  font-size: 22rpx;
+  font-weight: 600;
+  color: #444;
+  margin-top: 12rpx;
+}
+
+.card-date {
+  display: block;
+  font-size: 18rpx;
+  color: #bbb;
+  margin-top: 4rpx;
+}
+
+.urgent-badge {
+  position: absolute;
+  bottom: 20rpx;
+  right: 20rpx;
+  font-size: 16rpx;
+  font-weight: 700;
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+}
+
+/* 添加占位 */
+.add-placeholder {
+  flex-shrink: 0;
+  width: 160rpx;
+  border-radius: 44rpx;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
+  border: 4rpx dashed rgba(108, 92, 231, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  padding: 40rpx 0;
+}
+
+.placeholder-icon {
+  font-size: 40rpx;
+  color: #A090D8;
+}
+
+.placeholder-text {
+  font-size: 20rpx;
+  color: #A090D8;
+}
+
+/* 高频待办 */
+.quick-section {
+  margin-bottom: 36rpx;
+}
+
+.quick-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20rpx;
+}
+
+.quick-card {
+  border-radius: 40rpx;
+  padding: 32rpx;
+  text-align: left;
+  border: 2rpx solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 6rpx 28rpx rgba(0, 0, 0, 0.06);
+  position: relative;
+}
+
+.quick-emoji {
+  font-size: 56rpx;
+  display: block;
+  margin-bottom: 16rpx;
+}
+
+.quick-title {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #2a2a3a;
+}
+
+.quick-sub {
+  display: block;
+  font-size: 20rpx;
+  color: #999;
+  margin-top: 4rpx;
+}
+
+.quick-arrow {
+  position: absolute;
+  bottom: 20rpx;
+  right: 24rpx;
+  font-size: 28rpx;
+}
+
+/* 智能推荐 */
+.recommend-section {
+  margin-bottom: 36rpx;
+}
+
+.section-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+
+.recommend-hint {
+  font-size: 20rpx;
+  color: #6C5CE7;
+  font-weight: 600;
+}
+
+.recommend-cards {
+  display: flex;
+  gap: 24rpx;
+  overflow-x: auto;
+  padding-bottom: 16rpx;
+}
+
+.recommend-card {
+  flex-shrink: 0;
+  width: 240rpx;
+  border-radius: 40rpx;
+  padding: 32rpx 24rpx;
+  border: 2rpx solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.06);
+}
+
+.recommend-emoji {
+  font-size: 60rpx;
+  display: block;
+  margin-bottom: 16rpx;
+}
+
+.recommend-title {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #2a2a3a;
+  line-height: 1.45;
+  white-space: pre-line;
+}
+
+.recommend-tag {
+  margin-top: 20rpx;
+  font-size: 18rpx;
+  padding: 6rpx 14rpx;
+  border-radius: 16rpx;
+  display: inline-block;
+  font-weight: 600;
+  border: 2rpx solid;
+}
+
+/* 咕咕提示 */
+.tip-section {
+  display: flex;
+  align-items: flex-end;
+  gap: 20rpx;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(16px);
+  border-radius: 48rpx;
+  padding: 24rpx 32rpx;
+  border: 2rpx solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8rpx 40rpx rgba(100, 80, 200, 0.08);
+}
+
+.tip-bird {
+  flex-shrink: 0;
+  width: 104rpx;
+  height: 104rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tip-bird-emoji {
+  font-size: 80rpx;
+}
+
+.tip-content {
+  flex: 1;
+  position: relative;
+}
+
+.tip-bubble {
+  background: linear-gradient(135deg, #EEE8FF, #E8E0FF);
+  border-radius: 32rpx;
+  padding: 20rpx 28rpx;
+  position: relative;
+}
+
+.tip-text {
+  font-size: 24rpx;
+  color: #5040A0;
+  line-height: 1.65;
+  font-weight: 500;
+}
+
+.tip-hint {
+  display: block;
+  font-size: 18rpx;
+  color: #C0B8D8;
+  margin-top: 10rpx;
+  padding-left: 8rpx;
+}
+
+/* Toast 提示 */
+.toast {
+  position: fixed;
+  bottom: 160rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(42, 30, 80, 0.88);
+  backdrop-filter: blur(12px);
+  border-radius: 40rpx;
+  padding: 20rpx 40rpx;
+  z-index: 50;
+}
+
+.toast-text {
+  font-size: 24rpx;
+  color: white;
+  white-space: nowrap;
+}
+
+/* 添加弹窗 */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(6px);
+  z-index: 40;
+  display: flex;
+  align-items: flex-end;
+}
+
+.modal-content {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 56rpx 56rpx 0 0;
+  background: #FDFAFF;
+  padding: 0 40rpx 64rpx;
+  z-index: 50;
+}
+
+.modal-handle {
+  width: 72rpx;
+  height: 8rpx;
+  border-radius: 4rpx;
+  background: #D8D0F0;
+  margin: 24rpx auto 8rpx;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32rpx;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #2a1a4a;
+}
+
+.modal-close {
+  font-size: 40rpx;
+  color: #C0B8D8;
+}
+
+.modal-label {
+  display: block;
+  font-size: 22rpx;
+  color: #A090C8;
+  margin-bottom: 16rpx;
+  font-weight: 600;
+}
+
+.preset-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  margin-bottom: 32rpx;
+}
+
+.preset-item {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  background: rgba(108, 92, 231, 0.07);
+  border-radius: 32rpx;
+  padding: 24rpx 32rpx;
+}
+
+.preset-emoji {
+  font-size: 44rpx;
+}
+
+.preset-info {
+  flex: 1;
+}
+
+.preset-name {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #2a1a4a;
+}
+
+.preset-date {
+  display: block;
+  font-size: 20rpx;
+  color: #999;
+  margin-top: 2rpx;
+}
+
+.preset-arrow {
+  font-size: 28rpx;
+  color: #A090D8;
+}
+
+.custom-input {
+  width: 100%;
+  background: rgba(108, 92, 231, 0.06);
+  border-radius: 28rpx;
+  padding: 24rpx 32rpx;
+  margin-bottom: 16rpx;
+}
+
+.input-placeholder {
+  font-size: 26rpx;
+  color: #A090C8;
+}
+
+.confirm-btn {
+  width: 100%;
+  padding: 28rpx;
+  border-radius: 36rpx;
+  background: linear-gradient(135deg, #6C5CE7, #A084E8);
+  text-align: center;
+  margin-top: 32rpx;
+}
+
+.confirm-text {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: white;
+}
