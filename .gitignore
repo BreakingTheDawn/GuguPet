@@ -32,3 +32,7 @@ logs/
 # Temp
 tmp/
 temp/
+
+# Documentation
+docs/
+suchAs/
