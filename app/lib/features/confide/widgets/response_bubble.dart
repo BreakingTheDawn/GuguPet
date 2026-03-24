@@ -23,9 +23,9 @@ class ResponseBubble extends StatelessWidget {
           constraints: const BoxConstraints(maxWidth: 280),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.82),
+            color: Colors.white.withValues(alpha: 0.82),
             borderRadius: BorderRadius.circular(AppSpacing.radius2xl),
-            border: Border.all(color: Colors.white.withOpacity(0.9), width: 1),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.9), width: 1),
             boxShadow: AppShadows.bubble,
           ),
           child: Text(

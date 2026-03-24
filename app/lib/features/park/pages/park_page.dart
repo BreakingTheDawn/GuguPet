@@ -45,10 +45,10 @@ class _ParkPageState extends State<ParkPage> {
       child: Container(
         padding: const EdgeInsets.fromLTRB(20, 48, 20, 16),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.88),
+          color: Colors.white.withValues(alpha: 0.88),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withValues(alpha: 0.06),
               blurRadius: 8,
               offset: const Offset(0, 1),
             ),
@@ -194,7 +194,7 @@ class _ParkPageState extends State<ParkPage> {
             margin: const EdgeInsets.only(top: 4),
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.35),
+              color: Colors.black.withValues(alpha: 0.35),
               borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
             ),
             child: Text(

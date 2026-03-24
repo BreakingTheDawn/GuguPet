@@ -61,6 +61,16 @@ class UserProfile {
       onboardingReport: json['onboardingReport'] as String?,
     );
   }
+
+  factory UserProfile.createDefault(String userId, String userName) {
+    return UserProfile(
+      userId: userId,
+      userName: userName,
+      isOnboarded: false,
+      vipStatus: false,
+      petMemory: [],
+    );
+  }
 }
 
 class PetMemory {

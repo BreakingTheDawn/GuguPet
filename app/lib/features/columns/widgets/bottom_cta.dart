@@ -43,7 +43,7 @@ class _BottomCTAState extends State<BottomCTA>
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            const Color(0xFFF7F4EF).withOpacity(0),
+            const Color(0xFFF7F4EF).withValues(alpha: 0),
             const Color(0xFFF7F4EF),
           ],
           stops: const [0.0, 0.6],
@@ -71,12 +71,12 @@ class _BottomCTAState extends State<BottomCTA>
               borderRadius: BorderRadius.circular(28),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF5A3218).withOpacity(0.4),
+                  color: const Color(0xFF5A3218).withValues(alpha: 0.4),
                   blurRadius: 28,
                   offset: const Offset(0, 8),
                 ),
                 BoxShadow(
-                  color: const Color(0xFF5A3218).withOpacity(0.2),
+                  color: const Color(0xFF5A3218).withValues(alpha: 0.2),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -119,7 +119,7 @@ class _BottomCTAState extends State<BottomCTA>
                       gradient: LinearGradient(
                         colors: [
                           Colors.transparent,
-                          const Color(0xFFFFF0D0).withOpacity(0.28),
+                          const Color(0xFFFFF0D0).withValues(alpha: 0.28),
                           Colors.transparent,
                         ],
                       ),
@@ -159,7 +159,7 @@ class _BottomCTAState extends State<BottomCTA>
               '8册合集 · 原价 ${ColumnData.originalPrice} · 现仅 ${ColumnData.bundlePrice}',
               style: TextStyle(
                 fontSize: 11,
-                color: const Color(0xFFFFDCB4).withOpacity(0.85),
+                color: const Color(0xFFFFDCB4).withValues(alpha: 0.85),
               ),
             ),
           ],

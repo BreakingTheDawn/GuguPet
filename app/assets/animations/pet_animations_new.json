@@ -1,0 +1,90 @@
+{
+  "version": "1.0",
+  "format": "RGBA8888",
+  "animations": {
+    "idle": {
+      "spritesheet": "assets/images/pet/pet_idle_spritesheet.png",
+      "frames": 18,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "columns": 18,
+      "rows": 1,
+      "fps": 12,
+      "loop": true,
+      "description": "宠物待机动画 - 轻微浮动呼吸效果"
+    },
+    "happy": {
+      "spritesheet": "assets/images/pet/pet_happy_spritesheet.png",
+      "frames": 24,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "columns": 24,
+      "rows": 1,
+      "fps": 12,
+      "loop": true,
+      "description": "宠物高兴动画 - 欢快跳跃效果"
+    },
+    "move": {
+      "spritesheet": "assets/images/pet/pet_move_spritesheet.png",
+      "frames": 46,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "columns": 46,
+      "rows": 1,
+      "fps": 8,
+      "loop": false,
+      "description": "宠物移动动画 - 完整往返循环",
+      "segments": {
+        "turn_to_side": {
+          "name": "转身到侧身",
+          "startFrame": 0,
+          "endFrame": 11,
+          "frameCount": 12,
+          "loop": false
+        },
+        "walk_to_side": {
+          "name": "走到侧边",
+          "startFrame": 12,
+          "endFrame": 23,
+          "frameCount": 12,
+          "loop": false
+        },
+        "walk_back": {
+          "name": "走回来",
+          "startFrame": 24,
+          "endFrame": 34,
+          "frameCount": 11,
+          "loop": false
+        },
+        "turn_to_front": {
+          "name": "转回正身",
+          "startFrame": 35,
+          "endFrame": 45,
+          "frameCount": 11,
+          "loop": false
+        },
+        "move_to_side": {
+          "name": "移动到侧边",
+          "startFrame": 0,
+          "endFrame": 23,
+          "frameCount": 24,
+          "loop": false
+        },
+        "return_to_center": {
+          "name": "返回中心",
+          "startFrame": 24,
+          "endFrame": 45,
+          "frameCount": 22,
+          "loop": false
+        },
+        "full_cycle": {
+          "name": "完整往返循环",
+          "startFrame": 0,
+          "endFrame": 45,
+          "frameCount": 46,
+          "loop": true
+        }
+      }
+    }
+  }
+}

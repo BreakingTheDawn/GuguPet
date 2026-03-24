@@ -1,258 +1,198 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/theme.dart';
-import '../widgets/stat_card.dart';
+import '../../../shared/widgets/widgets.dart';
 import '../widgets/weekly_chart.dart';
+import '../widgets/stat_card.dart';
 
-class StatsPage extends StatelessWidget {
+class StatsPage extends StatefulWidget {
   const StatsPage({super.key});
 
-  static const _weekData = [
-    {'day': '周一', 'submissions': 8, 'interviews': 1},
-    {'day': '周二', 'submissions': 12, 'interviews': 2},
-    {'day': '周三', 'submissions': 5, 'interviews': 0},
-    {'day': '周四', 'submissions': 15, 'interviews': 3},
-    {'day': '周五', 'submissions': 9, 'interviews': 1},
-    {'day': '周六', 'submissions': 3, 'interviews': 0},
-    {'day': '周日', 'submissions': 12, 'interviews': 2},
+  @override
+  State<StatsPage> createState() => _StatsPageState();
+}
+
+class _StatsPageState extends State<StatsPage>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
+
+  static const _weeklyData = [
+    {'day': '周一', 'submissions': 3},
+    {'day': '周二', 'submissions': 5},
+    {'day': '周三', 'submissions': 2},
+    {'day': '周四', 'submissions': 7},
+    {'day': '周五', 'submissions': 4},
+    {'day': '周六', 'submissions': 1},
+    {'day': '周日', 'submissions': 2},
   ];
 
   static const _badges = [
-    {'name': '百折不挠', 'desc': '累计投递100份', 'emoji': '💪', 'unlocked': true},
-    {'name': '面试达人', 'desc': '完成10次面试', 'emoji': '🎯', 'unlocked': true},
-    {'name': '社交蝴蝶', 'desc': '公园结交5位好友', 'emoji': '🦋', 'unlocked': false},
-    {'name': 'Offer猎手', 'desc': '斩获3个Offer', 'emoji': '🏆', 'unlocked': false},
+    {'emoji': '🌱', 'name': '初出茅庐', 'desc': '投递第1份简历', 'unlocked': true},
+    {'emoji': '🌿', 'name': '稳步成长', 'desc': '累计投递10份', 'unlocked': true},
+    {'emoji': '🌳', 'name': '枝繁叶茂', 'desc': '累计投递50份', 'unlocked': false},
+    {'emoji': '🔥', 'name': '投递达人', 'desc': '单日投递5份', 'unlocked': true},
+    {'emoji': '💎', 'name': '坚持不懈', 'desc': '连续7天投递', 'unlocked': false},
+    {'emoji': '🏆', 'name': '终获offer', 'desc': '拿到心仪offer', 'unlocked': false},
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _fadeAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFFF7F8FC),
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildHeader(),
-            const SizedBox(height: 16),
-            _buildChartCard(),
-            const SizedBox(height: 16),
-            _buildProgressCard(),
-            const SizedBox(height: 16),
-            _buildBadgeWall(),
-            const SizedBox(height: 32),
-          ],
+      color: const Color(0xFFF8F7FC),
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 48, 20, 100),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHeader(),
+              const SizedBox(height: 24),
+              _buildStatsGrid(),
+              const SizedBox(height: 24),
+              _buildWeeklyChart(),
+              const SizedBox(height: 24),
+              _buildBadgesSection(),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 48, 20, 24),
-      decoration: const BoxDecoration(gradient: AppColors.statsHeaderGradient),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '今日战报',
-            style: AppTypography.labelSmall.copyWith(
-              color: Colors.white70,
-              letterSpacing: 0.1,
-            ),
-          ),
-          const SizedBox(height: 4),
-          const Text(
-            '坚持就是胜利 ✨',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: StatCard(
-                  label: '投递数',
-                  value: 128,
-                  unit: '份',
-                  backgroundColor: const Color(0xFFFFB478).withOpacity(0.25),
-                  borderColor: const Color(0xFFFFA050).withOpacity(0.4),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: StatCard(
-                  label: '面试数',
-                  value: 14,
-                  unit: '次',
-                  backgroundColor: const Color(0xFFA0D2F0).withOpacity(0.25),
-                  borderColor: const Color(0xFF78BEE6).withOpacity(0.4),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: StatCard(
-                  label: 'Offer数',
-                  value: 2,
-                  unit: '个',
-                  backgroundColor: const Color(0xFFA0DCA0).withOpacity(0.25),
-                  borderColor: const Color(0xFF78C878).withOpacity(0.4),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildChartCard() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppSpacing.radius2xl),
-        boxShadow: AppShadows.card,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    '本周行动轨迹',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                  ),
-                  Text(
-                    '持续输出，好运自来',
-                    style: AppTypography.caption.copyWith(color: AppColors.mutedForeground),
-                  ),
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEEF2FF),
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-                ),
-                child: Text(
-                  '近7天',
-                  style: AppTypography.labelSmall.copyWith(color: AppColors.indigo500),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          WeeklyChart(data: _weekData),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProgressCard() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppSpacing.radius2xl),
-        boxShadow: AppShadows.card,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('阶段进度', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 16),
-          _buildProgressBar('简历投递', 128, 200, const Color(0xFFF5A87A)),
-          const SizedBox(height: 12),
-          _buildProgressBar('面试通过', 14, 20, const Color(0xFF7AB8E8)),
-          const SizedBox(height: 12),
-          _buildProgressBar('Offer目标', 2, 3, const Color(0xFF7ACA7A)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProgressBar(String label, int current, int target, Color color) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(label, style: AppTypography.bodySmall),
-            Text('$current / $target', style: AppTypography.caption.copyWith(color: AppColors.mutedForeground)),
-          ],
-        ),
-        const SizedBox(height: 6),
-        Container(
-          height: 8,
-          decoration: BoxDecoration(
-            color: const Color(0xFFF0F0F6),
-            borderRadius: BorderRadius.circular(4),
+        Text(
+          '求职数据',
+          style: AppTypography.headingSmall.copyWith(
+            color: const Color(0xFF3A3A5A),
           ),
-          child: FractionallySizedBox(
-            alignment: Alignment.centerLeft,
-            widthFactor: (current / target).clamp(0.0, 1.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          '本周已投递 24 份简历',
+          style: AppTypography.bodyMedium.copyWith(
+            color: AppColors.mutedForeground,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildBadgeWall() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
+  Widget _buildStatsGrid() {
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      mainAxisSpacing: 16,
+      crossAxisSpacing: 16,
+      childAspectRatio: 1.35,
+      children: const [
+        StatCard(
+          icon: Icons.send_outlined,
+          label: '本周投递',
+          value: 24,
+          change: '+12%',
+          color: Color(0xFF6450C8),
+        ),
+        StatCard(
+          icon: Icons.visibility_outlined,
+          label: '被查看',
+          value: 8,
+          change: '+25%',
+          color: Color(0xFF50A0C8),
+        ),
+        StatCard(
+          icon: Icons.favorite_outline,
+          label: '感兴趣',
+          value: 3,
+          change: '持平',
+          color: Color(0xFFC85078),
+        ),
+        StatCard(
+          icon: Icons.chat_bubble_outline,
+          label: '面试邀约',
+          value: 1,
+          change: '新增',
+          color: Color(0xFF50C880),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWeeklyChart() {
+    return GlassContainer(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppSpacing.radius2xl),
-        boxShadow: AppShadows.card,
-      ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('我的勋章墙', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-              Text('2/4 已解锁', style: AppTypography.caption.copyWith(color: AppColors.mutedForeground)),
-            ],
+          Text(
+            '本周投递趋势',
+            style: AppTypography.labelMedium.copyWith(
+              color: const Color(0xFF3A3A5A),
+            ),
           ),
           const SizedBox(height: 16),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 1.3,
-            ),
-            itemCount: _badges.length,
-            itemBuilder: (context, index) => _buildBadgeCard(_badges[index]),
-          ),
+          WeeklyChart(data: _weeklyData),
         ],
       ),
+    );
+  }
+
+  Widget _buildBadgesSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '成就徽章',
+          style: AppTypography.labelMedium.copyWith(
+            color: const Color(0xFF3A3A5A),
+          ),
+        ),
+        const SizedBox(height: 12),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: 0.9,
+          ),
+          itemCount: _badges.length,
+          itemBuilder: (context, index) {
+            return _buildBadgeCard(_badges[index]);
+          },
+        ),
+      ],
     );
   }
 
   Widget _buildBadgeCard(Map<String, dynamic> badge) {
     final unlocked = badge['unlocked'] as bool;
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: unlocked ? const Color(0xFFF5C5A0).withOpacity(0.2) : const Color(0xFFF5F5F8),
+        color: unlocked ? const Color(0xFFF5C5A0).withValues(alpha: 0.2) : const Color(0xFFF5F5F8),
         borderRadius: BorderRadius.circular(AppSpacing.radius2xl),
         border: Border.all(
           color: unlocked ? const Color(0xFFF5C5A0) : Colors.transparent,
@@ -261,9 +201,10 @@ class StatsPage extends StatelessWidget {
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(badge['emoji'], style: const TextStyle(fontSize: 32)),
-          const SizedBox(height: 8),
+          Text(badge['emoji'], style: const TextStyle(fontSize: 28)),
+          const SizedBox(height: 4),
           Text(
             badge['name'],
             style: AppTypography.labelMedium.copyWith(
@@ -273,6 +214,7 @@ class StatsPage extends StatelessWidget {
           Text(
             badge['desc'],
             style: AppTypography.caption.copyWith(color: AppColors.mutedForeground),
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

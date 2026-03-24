@@ -40,18 +40,18 @@ class ColumnCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF644614).withOpacity(0.15),
+              color: const Color(0xFF644614).withValues(alpha: 0.15),
               blurRadius: 16,
               offset: const Offset(0, 4),
             ),
             BoxShadow(
-              color: Colors.white.withOpacity(0.4),
+              color: Colors.white.withValues(alpha: 0.4),
               blurRadius: 0,
               offset: const Offset(0, 1),
             ),
           ],
           border: Border.all(
-            color: const Color(0xFFB4823C).withOpacity(0.22),
+            color: const Color(0xFFB4823C).withValues(alpha: 0.22),
             width: 1,
           ),
         ),
@@ -79,7 +79,7 @@ class ColumnCard extends StatelessWidget {
       child: Container(
         width: 6,
         decoration: BoxDecoration(
-          color: const Color(0xFF785014).withOpacity(0.12),
+          color: const Color(0xFF785014).withValues(alpha: 0.12),
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(16),
             bottomLeft: Radius.circular(16),
@@ -185,10 +185,10 @@ class ColumnCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: const Color(0xFF785014).withOpacity(0.07),
+          color: const Color(0xFF785014).withValues(alpha: 0.07),
           border: Border(
             top: BorderSide(
-              color: const Color(0xFF785014).withOpacity(0.1),
+              color: const Color(0xFF785014).withValues(alpha: 0.1),
               width: 1,
             ),
           ),
@@ -211,10 +211,10 @@ class ColumnCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.55),
+          color: Colors.white.withValues(alpha: 0.55),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: const Color(0xFF785014).withOpacity(0.2),
+            color: const Color(0xFF785014).withValues(alpha: 0.2),
             width: 1,
           ),
         ),
@@ -259,7 +259,7 @@ class _FoldCornerPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFF785014).withOpacity(0.18)
+      ..color = const Color(0xFF785014).withValues(alpha: 0.18)
       ..style = PaintingStyle.fill;
 
     final path = Path()

@@ -30,17 +30,17 @@ class AppBottomNavBar extends StatelessWidget {
     return Container(
       height: AppSpacing.navBarHeight,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.85),
+        color: Colors.white.withValues(alpha: 0.85),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, -1),
           ),
         ],
         border: Border(
           top: BorderSide(
-            color: Colors.black.withOpacity(0.07),
+            color: Colors.black.withValues(alpha: 0.07),
             width: 1,
           ),
         ),

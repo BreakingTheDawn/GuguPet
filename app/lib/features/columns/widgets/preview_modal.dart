@@ -22,7 +22,7 @@ class PreviewModal extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: Container(
-          color: Colors.black.withOpacity(0.45),
+          color: Colors.black.withValues(alpha: 0.45),
           child: Align(
             alignment: Alignment.bottomCenter,
             child: GestureDetector(
@@ -87,7 +87,7 @@ class PreviewModal extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
-            color: const Color(0xFFA0783C).withOpacity(0.15),
+            color: const Color(0xFFA0783C).withValues(alpha: 0.15),
             width: 1,
           ),
         ),
@@ -202,7 +202,7 @@ class PreviewModal extends StatelessWidget {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      const Color(0xFFFDFAF4).withOpacity(0),
+                      const Color(0xFFFDFAF4).withValues(alpha: 0),
                       const Color(0xFFFDFAF4),
                     ],
                   ),
@@ -305,7 +305,7 @@ class _ShimmerButtonState extends State<_ShimmerButton>
                               gradient: LinearGradient(
                                 colors: [
                                   Colors.transparent,
-                                  Colors.white.withOpacity(0.22),
+                                  Colors.white.withValues(alpha: 0.22),
                                   Colors.transparent,
                                 ],
                               ),

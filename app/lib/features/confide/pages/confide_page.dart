@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/theme/theme.dart';
 import '../../../shared/widgets/widgets.dart';
+import '../../pet/providers/pet_provider.dart';
+import '../../pet/widgets/pet_interaction_bar.dart';
+import '../../pet/widgets/pet_status_indicator.dart';
 import '../widgets/pet_avatar.dart';
 import '../widgets/response_bubble.dart';
 import '../widgets/input_area.dart';
@@ -37,6 +41,8 @@ class _ConfidePageState extends State<ConfidePage>
     super.dispose();
   }
 
+  /// 处理用户倾诉提交
+  /// 同时更新宠物情感状态和羁绊值
   void _handleSubmit(String input) {
     setState(() {
       _response = _responseService.getResponse(input);
@@ -45,6 +51,26 @@ class _ConfidePageState extends State<ConfidePage>
       _messageCount++;
     });
     _responseController.forward(from: 0);
+
+    // 调用 PetProvider 记录倾诉互动
+    final petProvider = context.read<PetProvider>();
+    petProvider.onConfide(
+      content: input,
+      actionType: 'confide',
+      emotionType: 'positive',
+    );
+
+    // 生成宠物个性化回复
+    petProvider.generateResponse(
+      scene: 'confide',
+      userMessage: input,
+    ).then((petResponse) {
+      if (mounted && petResponse.isNotEmpty) {
+        setState(() {
+          _response = petResponse;
+        });
+      }
+    });
 
     Future.delayed(const Duration(milliseconds: 5500), () {
       if (mounted) {
@@ -66,7 +92,11 @@ class _ConfidePageState extends State<ConfidePage>
           SafeArea(
             child: Column(
               children: [
-                _buildHeader(),
+                // 宠物状态指示器（上移，透明背景）
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                  child: PetStatusIndicator(),
+                ),
                 Expanded(
                   child: _buildContent(),
                 ),
@@ -77,22 +107,13 @@ class _ConfidePageState extends State<ConfidePage>
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 40, 24, 8),
-      child: Center(
-        child: Text(
-          '职宠小窝',
-          style: AppTypography.labelSmall.copyWith(
-            color: AppColors.mutedForeground,
-            letterSpacing: 0.2,
+          // 侧边互动栏
+          Positioned(
+            right: 12,
+            top: MediaQuery.of(context).size.height * 0.30,
+            child: const PetInteractionBar(),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -101,6 +122,7 @@ class _ConfidePageState extends State<ConfidePage>
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
+        // 宠物话语气泡（统一位置显示）
         if (_showResponse)
           Padding(
             padding: const EdgeInsets.only(bottom: 20),
@@ -109,19 +131,13 @@ class _ConfidePageState extends State<ConfidePage>
               animation: _responseController,
             ),
           ),
-        Stack(
-          clipBehavior: Clip.none,
-          children: [
-            PetAvatar(state: _petState),
-            Positioned(
-              right: -18,
-              top: 28,
-              child: _buildSideBubble(),
-            ),
-          ],
+        // 宠物可点击区域
+        PetAvatar(
+          state: _petState,
+          onTap: _onPetTap,
         ),
         const SizedBox(height: 16),
-        if (!_showResponse)
+        if (!_showResponse && _petState != PetState.teasing)
           Text(
             _messageCount == 0
                 ? '咕咕在等你倾诉...'
@@ -134,49 +150,48 @@ class _ConfidePageState extends State<ConfidePage>
     );
   }
 
-  Widget _buildSideBubble() {
-    return Container(
-      width: 44,
-      height: 44,
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.75),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withOpacity(0.95), width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF6450C8).withOpacity(0.15),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Center(
-        child: Text(
-          _petState == PetState.happy ? '🥰' : '🫂',
-          style: const TextStyle(fontSize: 20),
-        ),
-      ),
+  /// 点击宠物触发搞怪动作
+  void _onPetTap() {
+    // 如果正在显示回复，不处理点击
+    if (_showResponse) return;
+    
+    // 触发搞怪动画
+    setState(() {
+      _petState = PetState.teasing;
+      _response = '嘻嘻~好痒！';
+      _showResponse = true;
+    });
+    _responseController.forward(from: 0);
+
+    // 调用状态机记录互动
+    final petProvider = context.read<PetProvider>();
+    petProvider.onConfide(
+      content: '点击宠物互动',
+      actionType: 'touchPet',
+      emotionType: 'positive',
     );
+
+    // 2秒后恢复idle状态
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          _petState = PetState.idle;
+          _showResponse = false;
+        });
+      }
+    });
   }
 
   List<Widget> _buildStars() {
-    return const [
-      AnimatedStar(left: 0.12, top: 0.08, delay: Duration.zero),
-      AnimatedStar(left: 0.82, top: 0.06, delay: Duration(milliseconds: 500)),
-      AnimatedStar(left: 0.88, top: 0.18, delay: Duration(seconds: 1)),
-      AnimatedStar(left: 0.08, top: 0.22, delay: Duration(milliseconds: 1500)),
-      AnimatedStar(left: 0.92, top: 0.30, delay: Duration(milliseconds: 800)),
-      AnimatedStar(left: 0.05, top: 0.35, delay: Duration(milliseconds: 1200)),
-    ].map((star) {
-      return Positioned(
-        left: star.left * MediaQuery.of(context).size.width,
-        top: star.top * MediaQuery.of(context).size.height,
-        child: AnimatedStar(
-          left: 0,
-          top: 0,
-          delay: star.delay,
-        ),
-      );
-    }).toList();
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
+    return [
+      AnimatedStar(left: 0.12 * width, top: 0.08 * height, delay: Duration.zero),
+      AnimatedStar(left: 0.82 * width, top: 0.06 * height, delay: const Duration(milliseconds: 500)),
+      AnimatedStar(left: 0.88 * width, top: 0.18 * height, delay: const Duration(seconds: 1)),
+      AnimatedStar(left: 0.08 * width, top: 0.22 * height, delay: const Duration(milliseconds: 1500)),
+      AnimatedStar(left: 0.92 * width, top: 0.30 * height, delay: const Duration(milliseconds: 800)),
+      AnimatedStar(left: 0.05 * width, top: 0.35 * height, delay: const Duration(milliseconds: 1200)),
+    ];
   }
 }

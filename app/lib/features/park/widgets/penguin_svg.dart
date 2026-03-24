@@ -86,7 +86,7 @@ class _PenguinPainter extends CustomPainter {
     canvas.drawPath(beakPath, paint);
 
     // Blush
-    paint.color = const Color(0xFFFFB3C6).withOpacity(0.5);
+    paint.color = const Color(0xFFFFB3C6).withValues(alpha: 0.5);
     canvas.drawOval(const Rect.fromLTWH(16, 20.5, 8, 5), paint);
     canvas.drawOval(const Rect.fromLTWH(36, 20.5, 8, 5), paint);
 

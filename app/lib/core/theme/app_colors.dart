@@ -32,10 +32,12 @@ class AppColors {
   static const Color cardBackground = Color(0xFFFFFFFF);
   static const Color divider = Color(0x0F000000);
 
-  static const Color indigo500 = Color(0xFF667EEA);
-  static const Color purple500 = Color(0xFF764BA2);
+  static const Color indigo50 = Color(0xFFE8E8F8);
   static const Color indigo200 = Color(0xFFB8B8E8);
+  static const Color indigo400 = Color(0xFF7C8AE8);
+  static const Color indigo500 = Color(0xFF667EEA);
   static const Color purple200 = Color(0xFFC8C0E8);
+  static const Color purple500 = Color(0xFF764BA2);
 
   static const LinearGradient primaryGradient = LinearGradient(
     begin: Alignment.topLeft,

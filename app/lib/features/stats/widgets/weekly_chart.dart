@@ -62,8 +62,8 @@ class WeeklyChart extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    AppColors.indigo500.withOpacity(0.35),
-                    AppColors.indigo500.withOpacity(0),
+                    AppColors.indigo500.withValues(alpha: 0.35),
+                    AppColors.indigo500.withValues(alpha: 0),
                   ],
                 ),
               ),

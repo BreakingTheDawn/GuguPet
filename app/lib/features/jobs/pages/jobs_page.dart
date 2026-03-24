@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/theme/theme.dart';
 import '../widgets/job_card.dart';
+import '../widgets/job_filter_bottom_sheet.dart';
+import '../providers/job_filter_provider.dart';
 
 class JobsPage extends StatefulWidget {
   const JobsPage({super.key});
@@ -13,6 +16,9 @@ class _JobsPageState extends State<JobsPage> {
   final _searchController = TextEditingController();
   String _searchText = '';
   int _selectedCategory = 0;
+
+  /// 筛选状态Provider
+  late final JobFilterProvider _filterProvider;
 
   static const _categories = ['全部', '设计', '技术', '产品', '运营', '数据'];
 
@@ -50,31 +56,56 @@ class _JobsPageState extends State<JobsPage> {
   ];
 
   List<Map<String, dynamic>> get _filteredJobs {
-    if (_searchText.isEmpty) return _jobs;
-    return _jobs.where((job) {
-      return job['title'].toString().contains(_searchText) ||
-          job['company'].toString().contains(_searchText) ||
-          (job['tags'] as List).any((tag) => tag.toString().contains(_searchText));
-    }).toList();
+    var jobs = _jobs;
+    
+    // 应用搜索过滤
+    if (_searchText.isNotEmpty) {
+      jobs = jobs.where((job) {
+        return job['title'].toString().contains(_searchText) ||
+            job['company'].toString().contains(_searchText) ||
+            (job['tags'] as List).any((tag) => tag.toString().contains(_searchText));
+      }).toList();
+    }
+    
+    // 应用高级筛选
+    jobs = jobs.where((job) => _filterProvider.matchesFilter(job)).toList();
+    
+    return jobs;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _filterProvider = JobFilterProvider();
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _filterProvider.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: const Color(0xFFF5F5F8),
-      child: Column(
-        children: [
-          _buildHeader(),
-          _buildSearchBar(),
-          _buildCategories(),
-          Expanded(child: _buildJobList()),
-        ],
+    return ChangeNotifierProvider.value(
+      value: _filterProvider,
+      child: Consumer<JobFilterProvider>(
+        builder: (context, filter, child) {
+          return Container(
+            color: const Color(0xFFF5F5F8),
+            child: Column(
+              children: [
+                _buildHeader(),
+                _buildSearchBar(),
+                _buildCategories(),
+                // 显示筛选标签
+                if (filter.hasAnyFilter) _buildFilterTags(filter),
+                Expanded(child: _buildJobList()),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -83,7 +114,7 @@ class _JobsPageState extends State<JobsPage> {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 48, 20, 16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F8).withOpacity(0.92),
+        color: const Color(0xFFF5F5F8).withValues(alpha: 0.92),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -98,85 +129,261 @@ class _JobsPageState extends State<JobsPage> {
                   letterSpacing: 0.15,
                 ),
               ),
-              const SizedBox(height: 2),
-              const Text(
-                '岗位聚合馆 🔍',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Color(0xFF1A1A2E)),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Text(
+                    '今日新上',
+                    style: AppTypography.headingSmall.copyWith(
+                      color: const Color(0xFF3A3A5A),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF6450C8).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                    ),
+                    child: Text(
+                      '${_jobs.where((j) => j['isNew'] == true).length} 个',
+                      style: AppTypography.caption.copyWith(
+                        color: const Color(0xFF6450C8),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
           Container(
-            width: 40,
-            height: 40,
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
               boxShadow: AppShadows.button,
             ),
-            child: const Icon(Icons.tune, color: AppColors.indigo500, size: 18),
+            child: const Icon(
+              Icons.notifications_outlined,
+              size: 20,
+              color: Color(0xFF5A5A7A),
+            ),
           ),
         ],
       ),
     );
   }
 
+  /// 构建搜索栏（带筛选按钮）
   Widget _buildSearchBar() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        boxShadow: AppShadows.input,
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: Row(
         children: [
-          const Icon(Icons.search, color: Colors.grey, size: 18),
-          const SizedBox(width: 12),
+          // 搜索输入框
           Expanded(
-            child: TextField(
-              controller: _searchController,
-              onChanged: (value) => setState(() => _searchText = value),
-              decoration: InputDecoration(
-                hintText: '搜索岗位、公司或标签...',
-                hintStyle: AppTypography.bodySmall.copyWith(color: Colors.grey),
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.zero,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                boxShadow: AppShadows.input,
+              ),
+              child: TextField(
+                controller: _searchController,
+                onChanged: (value) => setState(() => _searchText = value),
+                decoration: InputDecoration(
+                  hintText: '搜索职位、公司、标签...',
+                  hintStyle: AppTypography.bodyMedium.copyWith(
+                    color: const Color(0xFFC0C0D0),
+                  ),
+                  prefixIcon: const Icon(Icons.search, color: Color(0xFFC0C0D0)),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          // 筛选按钮
+          GestureDetector(
+            onTap: _showFilterSheet,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: _filterProvider.hasAnyFilter 
+                    ? AppColors.indigo500 
+                    : Colors.white,
+                borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                boxShadow: AppShadows.button,
+              ),
+              child: Stack(
+                children: [
+                  Icon(
+                    Icons.tune,
+                    size: 20,
+                    color: _filterProvider.hasAnyFilter 
+                        ? Colors.white 
+                        : const Color(0xFF5A5A7A),
+                  ),
+                  // 筛选数量指示器
+                  if (_filterProvider.filterCount > 0)
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: _filterProvider.hasAnyFilter 
+                              ? Colors.white 
+                              : AppColors.indigo500,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        child: Text(
+                          '${_filterProvider.filterCount}',
+                          style: AppTypography.caption.copyWith(
+                            color: _filterProvider.hasAnyFilter 
+                                ? AppColors.indigo500 
+                                : Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  /// 构建筛选标签区域
+  Widget _buildFilterTags(JobFilterProvider filter) {
+    return Container(
+      height: 40,
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        itemCount: filter.activeFilterTags.length + 1, // +1 为清除全部按钮
+        itemBuilder: (context, index) {
+          // 清除全部按钮
+          if (index == filter.activeFilterTags.length) {
+            return GestureDetector(
+              onTap: () => setState(() => filter.resetAll()),
+              child: Container(
+                margin: const EdgeInsets.only(left: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.muted,
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.close,
+                      size: 14,
+                      color: AppColors.mutedForeground,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '清除全部',
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.mutedForeground,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+          
+          // 筛选标签
+          final tag = filter.activeFilterTags[index];
+          return GestureDetector(
+            onTap: () => setState(() => filter.removeFilterTag(tag)),
+            child: Container(
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.indigo500.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                border: Border.all(
+                  color: AppColors.indigo500.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    tag,
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.indigo500,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.close,
+                    size: 14,
+                    color: AppColors.indigo500,
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  /// 显示筛选弹窗
+  void _showFilterSheet() {
+    JobFilterBottomSheet.show(
+      context: context,
+      filterProvider: _filterProvider,
+      onConfirm: () {
+        setState(() {});
+      },
     );
   }
 
   Widget _buildCategories() {
     return Container(
       height: 44,
-      margin: const EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         itemCount: _categories.length,
         itemBuilder: (context, index) {
           final isSelected = index == _selectedCategory;
           return GestureDetector(
             onTap: () => setState(() => _selectedCategory = index),
-            child: Container(
-              margin: const EdgeInsets.only(right: 8),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              margin: const EdgeInsets.only(right: 10),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                gradient: isSelected ? AppColors.primaryGradient : null,
-                color: isSelected ? null : Colors.white,
+                color: isSelected ? const Color(0xFF6450C8) : Colors.white,
                 borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-                boxShadow: AppShadows.button,
+                boxShadow: isSelected ? AppShadows.button : null,
               ),
               child: Text(
                 _categories[index],
-                style: TextStyle(
-                  fontSize: 12,
+                style: AppTypography.labelSmall.copyWith(
+                  color: isSelected ? Colors.white : const Color(0xFF5A5A7A),
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                  color: isSelected ? Colors.white : AppColors.mutedForeground,
                 ),
               ),
             ),
@@ -188,19 +395,10 @@ class _JobsPageState extends State<JobsPage> {
 
   Widget _buildJobList() {
     return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 100),
-      itemCount: _filteredJobs.length + 1,
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+      itemCount: _filteredJobs.length,
       itemBuilder: (context, index) {
-        if (index == 0) {
-          return Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-            child: Text(
-              '共找到 ${_filteredJobs.length} 个岗位',
-              style: AppTypography.caption.copyWith(color: AppColors.mutedForeground),
-            ),
-          );
-        }
-        final job = _filteredJobs[index - 1];
+        final job = _filteredJobs[index];
         return JobCard(
           job: job,
           onTap: () => _showJobDetail(job),
@@ -216,8 +414,8 @@ class _JobsPageState extends State<JobsPage> {
       backgroundColor: Colors.transparent,
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.75,
-        maxChildSize: 0.9,
         minChildSize: 0.5,
+        maxChildSize: 0.9,
         builder: (context, scrollController) {
           return Container(
             decoration: const BoxDecoration(
@@ -230,63 +428,95 @@ class _JobsPageState extends State<JobsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(job['title'], style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
-                          const SizedBox(height: 4),
-                          Text(
-                            job['salary'],
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: job['salaryColor'],
-                            ),
-                          ),
-                        ],
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.close, color: Colors.grey),
-                        onPressed: () => Navigator.pop(context),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          job['title'] as String,
+                          style: AppTypography.headingSmall,
+                        ),
+                      ),
+                      Text(
+                        job['salary'] as String,
+                        style: AppTypography.headingSmall.copyWith(
+                          color: job['salaryColor'] as Color,
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8F8FC),
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(job['company'], style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600)),
-                        const SizedBox(height: 4),
-                        Text(job['location'], style: AppTypography.caption),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text('职位描述', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
                   Text(
-                    job['desc'],
-                    style: AppTypography.bodySmall.copyWith(color: AppColors.mutedForeground, height: 1.8),
+                    job['company'] as String,
+                    style: AppTypography.bodyMedium.copyWith(
+                      color: AppColors.mutedForeground,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: (job['tags'] as List).map<Widget>((tag) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF5F5F8),
+                          borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                        ),
+                        child: Text(
+                          tag as String,
+                          style: AppTypography.caption,
+                        ),
+                      );
+                    }).toList(),
                   ),
                   const SizedBox(height: 24),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                  Text(
+                    '职位描述',
+                    style: AppTypography.labelMedium.copyWith(
+                      color: const Color(0xFF3A3A5A),
                     ),
-                    child: const Center(
-                      child: Text('立即投递 🚀', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    job['desc'] as String,
+                    style: AppTypography.bodyMedium.copyWith(
+                      color: AppColors.mutedForeground,
+                      height: 1.6,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('已投递 ${job['title']}'),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF6450C8),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                        ),
+                      ),
+                      child: const Text('立即投递'),
                     ),
                   ),
                 ],

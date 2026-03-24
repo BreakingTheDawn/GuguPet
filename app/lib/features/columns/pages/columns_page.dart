@@ -148,7 +148,7 @@ class _ColumnsPageState extends State<ColumnsPage>
                   width: size,
                   height: size,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFDCA0).withOpacity(0.2),
+                    color: const Color(0xFFFFDCA0).withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -204,10 +204,10 @@ class _ColumnsPageState extends State<ColumnsPage>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFDCA0).withOpacity(0.2),
+        color: const Color(0xFFFFDCA0).withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: const Color(0xFFFFDCA0).withOpacity(0.3),
+          color: const Color(0xFFFFDCA0).withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -249,7 +249,7 @@ class _ColumnsPageState extends State<ColumnsPage>
       '${ColumnData.columns.length} 份干货手册 · 陪你迈过每道坎',
       style: TextStyle(
         fontSize: 11,
-        color: const Color(0xFFFFDCA0).withOpacity(0.8),
+        color: const Color(0xFFFFDCA0).withValues(alpha: 0.8),
       ),
     );
   }
@@ -333,7 +333,7 @@ class _ColumnsPageState extends State<ColumnsPage>
                 decoration: BoxDecoration(
                   color: isSelected
                       ? const Color(0xFF8B5A2A)
-                      : const Color(0xFFB4823C).withOpacity(0.12),
+                      : const Color(0xFFB4823C).withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Text(

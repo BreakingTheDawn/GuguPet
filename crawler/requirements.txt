@@ -1,0 +1,15 @@
+# 核心依赖
+DrissionPage>=4.0.0
+fake-useragent>=1.4.0
+python-dateutil>=2.8.0
+
+# 安全相关（可选，用于Cookie加密）
+cryptography>=41.0.0
+
+# HTTP请求（可选，用于代理测试和Webhook通知）
+requests>=2.28.0
+
+# 注意：
+# 1. cryptography用于Cookie加密存储，如不需要可注释掉
+# 2. requests用于代理验证和Webhook通知，如不需要可注释掉
+# 3. 请确保使用合法合规的方式使用这些库

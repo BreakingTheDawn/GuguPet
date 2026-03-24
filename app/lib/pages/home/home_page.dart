@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../shared/widgets/widgets.dart';
 import '../../features/confide/pages/confide_page.dart';
 import '../../features/stats/pages/stats_page.dart';
 import '../../features/park/pages/park_page.dart';
 import '../../features/columns/pages/columns_page.dart';
+import '../../features/profile/pages/profile_page.dart';
+import '../../features/profile/providers/profile_provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -15,12 +18,15 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = const [
-    ConfidePage(),
-    StatsPage(),
-    ParkPage(),
-    ColumnsPage(),
-    ProfilePage(),
+  late final List<Widget> _pages = [
+    const ConfidePage(),
+    const StatsPage(),
+    const ParkPage(),
+    const ColumnsPage(),
+    ChangeNotifierProvider(
+      create: (_) => ProfileProvider(),
+      child: const ProfilePage(),
+    ),
   ];
 
   final List<NavItem> _navItems = const [
@@ -47,13 +53,4 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class ProfilePage extends StatelessWidget {
-  const ProfilePage({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text('个人中心 - 开发中'),
-    );
-  }
-}

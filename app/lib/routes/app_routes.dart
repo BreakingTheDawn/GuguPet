@@ -5,4 +5,5 @@ abstract class AppRoutes {
   static const String park = '/park';
   static const String jobs = '/jobs';
   static const String profile = '/profile';
+  static const String favoriteJobs = '/favorite-jobs';
 }
