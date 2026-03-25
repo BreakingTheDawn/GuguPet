@@ -32,7 +32,26 @@ logs/
 # Temp
 tmp/
 temp/
+.worktrees/
 
 # Documentation
 docs/
 suchAs/
+tools/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+*.egg
+
+# Crawler specific
+crawler/logs/
+crawler/cookies/
+crawler/cache/
+crawler/output/*.db
+crawler/*.db
