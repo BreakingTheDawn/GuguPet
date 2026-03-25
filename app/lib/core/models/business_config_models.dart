@@ -79,16 +79,19 @@ class PetResponsesConfig {
 class PetActionResponses {
   final List<String> happy;
   final List<String> normal;
+  final List<String>? excited;
   
   PetActionResponses({
     required this.happy,
     required this.normal,
+    this.excited,
   });
   
   factory PetActionResponses.fromJson(Map<String, dynamic> json) {
     return PetActionResponses(
       happy: List<String>.from(json['happy'] as List),
       normal: List<String>.from(json['normal'] as List),
+      excited: json['excited'] != null ? List<String>.from(json['excited'] as List) : null,
     );
   }
 }
