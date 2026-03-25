@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/theme.dart';
+import '../../../core/services/app_strings.dart';
 import '../providers/profile_provider.dart';
 import '../widgets/user_info_card.dart';
 import '../widgets/stat_summary_card.dart';
@@ -76,7 +77,7 @@ class _ProfilePageState extends State<ProfilePage> {
       backgroundColor: const Color(0xFFF8F7FC),
       flexibleSpace: FlexibleSpaceBar(
         title: Text(
-          '个人中心',
+          AppStrings().profile.title,
           style: AppTypography.headingSmall.copyWith(
             color: AppColors.primary,
           ),
@@ -161,7 +162,7 @@ class _ProfilePageState extends State<ProfilePage> {
     return [
       MenuItem(
         icon: Icons.work_outline,
-        title: '求职意向',
+        title: AppStrings().profile.jobIntention,
         subtitle: provider.jobStatusTag,
         onTap: () => _handleNavigateToJobIntention(),
       ),

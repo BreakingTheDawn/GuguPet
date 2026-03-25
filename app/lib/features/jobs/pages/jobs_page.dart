@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/theme.dart';
+import '../../../core/services/app_strings.dart';
 import '../../../data/models/job.dart';
 import '../widgets/job_card.dart';
 import '../widgets/job_filter_bottom_sheet.dart';
@@ -406,9 +407,9 @@ class _JobsPageState extends State<JobsPage> {
         children: [
           Icon(Icons.error_outline, size: 64, color: AppColors.mutedForeground),
           const SizedBox(height: 16),
-          Text('加载失败', style: AppTypography.bodyMedium.copyWith(color: AppColors.mutedForeground)),
+          Text(AppStrings().common.loadFailed, style: AppTypography.bodyMedium.copyWith(color: AppColors.mutedForeground)),
           const SizedBox(height: 8),
-          TextButton(onPressed: _loadJobs, child: const Text('重试')),
+          TextButton(onPressed: _loadJobs, child: Text(AppStrings().common.retry)),
         ],
       ),
     );
@@ -422,7 +423,7 @@ class _JobsPageState extends State<JobsPage> {
         children: [
           Icon(Icons.work_off_outlined, size: 64, color: AppColors.mutedForeground),
           const SizedBox(height: 16),
-          Text('暂无职位', style: AppTypography.bodyMedium.copyWith(color: AppColors.mutedForeground)),
+          Text(AppStrings().jobs.noJobs, style: AppTypography.bodyMedium.copyWith(color: AppColors.mutedForeground)),
         ],
       ),
     );
@@ -573,7 +574,7 @@ class _JobsPageState extends State<JobsPage> {
                               borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
                             ),
                           ),
-                          child: const Text('立即投递'),
+                          child: Text(AppStrings().jobs.applyNow),
                         ),
                       ),
                     ],

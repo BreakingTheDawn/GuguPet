@@ -4,6 +4,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'dart:io' show Platform;
 import 'core/theme/theme.dart';
 import 'core/services/test_user_initializer.dart';
+import 'core/services/app_strings.dart';
 import 'routes/app_routes.dart';
 import 'routes/route_generator.dart';
 import 'features/pet/providers/pet_provider.dart';
@@ -21,6 +22,9 @@ void main() async {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }
+  
+  // 初始化配置服务
+  await AppStrings.initialize();
   
   // 初始化测试用户
   await TestUserInitializer.initialize();

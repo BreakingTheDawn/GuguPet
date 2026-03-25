@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/theme.dart';
+import '../../../core/services/app_strings.dart';
 import '../../../shared/widgets/widgets.dart';
 
 /// 设置页面
@@ -99,7 +100,7 @@ class _SettingsPageState extends State<SettingsPage> {
         onPressed: () => Navigator.pop(context),
       ),
       title: Text(
-        '设置',
+        AppStrings().settings.title,
         style: AppTypography.headingSmall.copyWith(
           color: AppColors.primary,
         ),
@@ -526,13 +527,13 @@ class _SettingsPageState extends State<SettingsPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('清除数据'),
-        content: const Text('确定要清除本地缓存和浏览记录吗？此操作不可恢复。'),
+        title: Text(AppStrings().settings.clearData),
+        content: Text(AppStrings().settings.clearDataConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              '取消',
+              AppStrings().common.cancel,
               style: TextStyle(color: AppColors.mutedForeground),
             ),
           ),
@@ -545,7 +546,7 @@ class _SettingsPageState extends State<SettingsPage> {
               );
             },
             child: Text(
-              '确定',
+              AppStrings().common.confirm,
               style: TextStyle(color: AppColors.destructive),
             ),
           ),
@@ -577,13 +578,13 @@ class _SettingsPageState extends State<SettingsPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('退出登录'),
-        content: const Text('确定要退出当前账号吗？'),
+        title: Text(AppStrings().settings.logout),
+        content: Text(AppStrings().settings.logoutConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              '取消',
+              AppStrings().common.cancel,
               style: TextStyle(color: AppColors.mutedForeground),
             ),
           ),
@@ -595,7 +596,7 @@ class _SettingsPageState extends State<SettingsPage> {
               Navigator.of(context).popUntil((route) => route.isFirst);
             },
             child: Text(
-              '确定',
+              AppStrings().common.confirm,
               style: TextStyle(color: AppColors.indigo500),
             ),
           ),
@@ -609,13 +610,13 @@ class _SettingsPageState extends State<SettingsPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('注销账号'),
-        content: const Text('注销后您的所有数据将被永久删除且无法恢复，确定要注销账号吗？'),
+        title: Text(AppStrings().settings.deleteAccount),
+        content: Text(AppStrings().settings.deleteAccountConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              '取消',
+              AppStrings().common.cancel,
               style: TextStyle(color: AppColors.mutedForeground),
             ),
           ),
@@ -626,7 +627,7 @@ class _SettingsPageState extends State<SettingsPage> {
               Navigator.of(context).popUntil((route) => route.isFirst);
             },
             child: Text(
-              '确定注销',
+              AppStrings().common.confirm,
               style: TextStyle(color: AppColors.destructive),
             ),
           ),
