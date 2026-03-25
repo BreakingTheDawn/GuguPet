@@ -10,7 +10,8 @@
 GuguPet/
 ├── app/                 # Flutter应用端代码
 ├── crawler/             # Python职位爬虫系统
-└── miniprogram/         # 微信小程序代码
+├── miniprogram/         # 微信小程序代码
+└── images/				 # REAMDE.md中的一些展示图片
 ```
 
 ### 核心目录说明

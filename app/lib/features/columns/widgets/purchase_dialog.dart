@@ -5,7 +5,7 @@ import '../../../core/theme/app_colors.dart';
 /// 购买确认弹窗组件
 /// 用于确认专栏购买，支持VIP用户免费阅读和普通用户付费购买
 // ═══════════════════════════════════════════════════════════════════════════════
-class PurchaseDialog extends StatelessWidget {
+class PurchaseDialog extends StatefulWidget {
   // ────────────────────────────────────────────────────────────────────────────
   // 组件属性
   // ────────────────────────────────────────────────────────────────────────────
@@ -79,6 +79,11 @@ class PurchaseDialog extends StatelessWidget {
     );
   }
 
+  @override
+  State<PurchaseDialog> createState() => _PurchaseDialogState();
+}
+
+class _PurchaseDialogState extends State<PurchaseDialog> {
   // ────────────────────────────────────────────────────────────────────────────
   // 构建UI
   // ────────────────────────────────────────────────────────────────────────────
@@ -197,13 +202,13 @@ class PurchaseDialog extends StatelessWidget {
           _buildPriceCard(),
 
           // VIP提示（非VIP用户显示）
-          if (!isVipUser) ...[
+          if (!widget.isVipUser) ...[
             const SizedBox(height: 16),
             _buildVipCard(context),
           ],
 
           // VIP免费提示（VIP用户显示）
-          if (isVipUser) ...[
+          if (widget.isVipUser) ...[
             const SizedBox(height: 16),
             _buildVipFreeHint(),
           ],
@@ -234,7 +239,7 @@ class PurchaseDialog extends StatelessWidget {
         // 标题文本
         Expanded(
           child: Text(
-            columnTitle,
+            widget.columnTitle,
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -297,7 +302,7 @@ class PurchaseDialog extends StatelessWidget {
           ),
           // 价格数值
           Text(
-            _formatPrice(price),
+            _formatPrice(widget.price),
             style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
@@ -377,7 +382,7 @@ class PurchaseDialog extends StatelessWidget {
           GestureDetector(
             onTap: () {
               Navigator.of(context).pop(false);
-              onOpenVip?.call();
+              widget.onOpenVip?.call();
             },
             child: Container(
               width: double.infinity,
@@ -502,7 +507,7 @@ class PurchaseDialog extends StatelessWidget {
   /// 构建确认按钮
   Widget _buildConfirmButton(BuildContext context) {
     return _ShimmerPurchaseButton(
-      text: isVipUser ? '立即阅读' : '确认购买',
+      text: widget.isVipUser ? '立即阅读' : '确认购买',
       onTap: () => _handlePurchase(context),
     );
   }
@@ -518,7 +523,7 @@ class PurchaseDialog extends StatelessWidget {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const Center(
+        builder: (ctx) => const Center(
           child: CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(AppColors.archiveAccent),
           ),
@@ -528,13 +533,16 @@ class PurchaseDialog extends StatelessWidget {
       // 模拟网络延迟
       await Future.delayed(const Duration(milliseconds: 800));
 
+      // 检查组件是否仍然挂载
+      if (!mounted) return;
+
       // 关闭加载提示
       Navigator.of(context).pop();
 
       // VIP用户直接成功
-      if (isVipUser) {
+      if (widget.isVipUser) {
         Navigator.of(context).pop(true);
-        onPurchaseSuccess?.call();
+        widget.onPurchaseSuccess?.call();
         return;
       }
 
@@ -543,11 +551,14 @@ class PurchaseDialog extends StatelessWidget {
       // 目前模拟购买成功
       final success = await _simulatePurchase();
 
+      // 检查组件是否仍然挂载
+      if (!mounted) return;
+
       if (success) {
         // 关闭弹窗并返回成功
         Navigator.of(context).pop(true);
         // 触发成功回调
-        onPurchaseSuccess?.call();
+        widget.onPurchaseSuccess?.call();
         // 显示成功提示
         _showSuccessToast(context);
       } else {
@@ -557,6 +568,9 @@ class PurchaseDialog extends StatelessWidget {
         _showErrorToast(context);
       }
     } catch (e) {
+      // 检查组件是否仍然挂载
+      if (!mounted) return;
+      
       // 关闭可能存在的加载提示
       if (Navigator.of(context).canPop()) {
         Navigator.of(context).pop();

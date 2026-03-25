@@ -1,6 +1,7 @@
 import '../datasources/local/notification_local_datasource.dart';
 import '../../features/notifications/data/models/notification.dart';
 import '../../features/notifications/data/models/notification_settings.dart';
+import '../../core/utils/logger_service.dart';
 import 'notification_repository.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -30,7 +31,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
     try {
       return await _localDatasource.getNotification(id);
     } catch (e) {
-      print('[NotificationRepositoryImpl] 获取通知消息失败: $e');
+      AppLogger.error('[NotificationRepositoryImpl] 获取通知消息失败: $e');
       rethrow;
     }
   }
@@ -48,7 +49,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
         isRead: isRead,
       );
     } catch (e) {
-      print('[NotificationRepositoryImpl] 获取通知列表失败: $e');
+      AppLogger.error('[NotificationRepositoryImpl] 获取通知列表失败: $e');
       rethrow;
     }
   }
@@ -58,7 +59,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
     try {
       await _localDatasource.saveNotification(notification);
     } catch (e) {
-      print('[NotificationRepositoryImpl] 创建通知消息失败: $e');
+      AppLogger.error('[NotificationRepositoryImpl] 创建通知消息失败: $e');
       rethrow;
     }
   }
@@ -68,7 +69,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
     try {
       await _localDatasource.markAsRead(id);
     } catch (e) {
-      print('[NotificationRepositoryImpl] 标记通知已读失败: $e');
+      AppLogger.error('[NotificationRepositoryImpl] 标记通知已读失败: $e');
       rethrow;
     }
   }
@@ -78,7 +79,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
     try {
       await _localDatasource.markAllAsRead(userId);
     } catch (e) {
-      print('[NotificationRepositoryImpl] 标记所有通知已读失败: $e');
+      AppLogger.error('[NotificationRepositoryImpl] 标记所有通知已读失败: $e');
       rethrow;
     }
   }
@@ -88,7 +89,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
     try {
       return await _localDatasource.getUnreadCount(userId);
     } catch (e) {
-      print('[NotificationRepositoryImpl] 获取未读数量失败: $e');
+      AppLogger.error('[NotificationRepositoryImpl] 获取未读数量失败: $e');
       rethrow;
     }
   }
@@ -98,7 +99,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
     try {
       await _localDatasource.deleteNotification(id);
     } catch (e) {
-      print('[NotificationRepositoryImpl] 删除通知消息失败: $e');
+      AppLogger.error('[NotificationRepositoryImpl] 删除通知消息失败: $e');
       rethrow;
     }
   }
@@ -114,7 +115,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
       // 如果不存在则创建默认设置
       return await _localDatasource.getOrCreateSettings(userId);
     } catch (e) {
-      print('[NotificationRepositoryImpl] 获取通知设置失败: $e');
+      AppLogger.error('[NotificationRepositoryImpl] 获取通知设置失败: $e');
       rethrow;
     }
   }
@@ -129,7 +130,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
 
       await _localDatasource.saveSettings(updatedSettings);
     } catch (e) {
-      print('[NotificationRepositoryImpl] 更新通知设置失败: $e');
+      AppLogger.error('[NotificationRepositoryImpl] 更新通知设置失败: $e');
       rethrow;
     }
   }

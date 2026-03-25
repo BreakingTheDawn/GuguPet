@@ -80,7 +80,7 @@ class ParkUser {
       'title': title,
       'zoneId': zoneId,
       'lastActiveAt': lastActiveAt?.toIso8601String(),
-      'petColor': petColor.value,
+      'petColor': petColor.toARGB32(),
       'petAccessory': petAccessory,
     };
   }
@@ -94,7 +94,7 @@ class ParkUser {
       'title': title,
       'zone_id': zoneId,
       'last_active_at': lastActiveAt?.toIso8601String(),
-      'pet_color': petColor.value,
+      'pet_color': petColor.toARGB32(),
       'pet_accessory': petAccessory,
     };
   }

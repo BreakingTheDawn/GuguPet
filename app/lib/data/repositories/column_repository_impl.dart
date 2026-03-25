@@ -4,6 +4,7 @@ import '../../features/columns/data/models/column_content.dart';
 import '../../features/columns/data/models/purchased_column.dart';
 import '../../features/columns/data/models/favorite_column.dart';
 import '../../features/columns/data/column_data.dart';
+import '../../core/utils/logger_service.dart';
 import 'column_repository.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -60,7 +61,7 @@ class ColumnRepositoryImpl implements ColumnRepository {
         isFavorite: isFavorite, // 从数据源查询的收藏状态
       );
     } catch (e) {
-      print('[ColumnRepositoryImpl] 获取专栏内容失败: $e');
+      AppLogger.error('[ColumnRepositoryImpl] 获取专栏内容失败: $e');
       rethrow;
     }
   }
@@ -74,7 +75,7 @@ class ColumnRepositoryImpl implements ColumnRepository {
     try {
       return await _localDatasource.getPurchasedColumns(userId);
     } catch (e) {
-      print('[ColumnRepositoryImpl] 获取已购专栏列表失败: $e');
+      AppLogger.error('[ColumnRepositoryImpl] 获取已购专栏列表失败: $e');
       rethrow;
     }
   }
@@ -84,7 +85,7 @@ class ColumnRepositoryImpl implements ColumnRepository {
     try {
       await _localDatasource.savePurchaseRecord(record);
     } catch (e) {
-      print('[ColumnRepositoryImpl] 购买专栏失败: $e');
+      AppLogger.error('[ColumnRepositoryImpl] 购买专栏失败: $e');
       rethrow;
     }
   }
@@ -94,7 +95,7 @@ class ColumnRepositoryImpl implements ColumnRepository {
     try {
       return await _localDatasource.isColumnPurchased(userId, columnId);
     } catch (e) {
-      print('[ColumnRepositoryImpl] 检查购买状态失败: $e');
+      AppLogger.error('[ColumnRepositoryImpl] 检查购买状态失败: $e');
       rethrow;
     }
   }
@@ -108,7 +109,7 @@ class ColumnRepositoryImpl implements ColumnRepository {
     try {
       return await _localDatasource.getFavoriteColumns(userId);
     } catch (e) {
-      print('[ColumnRepositoryImpl] 获取收藏专栏列表失败: $e');
+      AppLogger.error('[ColumnRepositoryImpl] 获取收藏专栏列表失败: $e');
       rethrow;
     }
   }
@@ -118,7 +119,7 @@ class ColumnRepositoryImpl implements ColumnRepository {
     try {
       await _localDatasource.saveFavoriteRecord(record);
     } catch (e) {
-      print('[ColumnRepositoryImpl] 添加收藏失败: $e');
+      AppLogger.error('[ColumnRepositoryImpl] 添加收藏失败: $e');
       rethrow;
     }
   }
@@ -128,7 +129,7 @@ class ColumnRepositoryImpl implements ColumnRepository {
     try {
       await _localDatasource.removeFavoriteRecord(userId, columnId);
     } catch (e) {
-      print('[ColumnRepositoryImpl] 移除收藏失败: $e');
+      AppLogger.error('[ColumnRepositoryImpl] 移除收藏失败: $e');
       rethrow;
     }
   }
@@ -138,7 +139,7 @@ class ColumnRepositoryImpl implements ColumnRepository {
     try {
       return await _localDatasource.isColumnFavorited(userId, columnId);
     } catch (e) {
-      print('[ColumnRepositoryImpl] 检查收藏状态失败: $e');
+      AppLogger.error('[ColumnRepositoryImpl] 检查收藏状态失败: $e');
       rethrow;
     }
   }
@@ -158,7 +159,7 @@ class ColumnRepositoryImpl implements ColumnRepository {
   /// 用于存储颜色值
   String _colorToHex(Color color) {
     // 使用 ARGB 格式转换，忽略 alpha 通道
-    final hex = color.value.toRadixString(16).padLeft(8, '0');
+    final hex = color.toARGB32().toRadixString(16).padLeft(8, '0');
     // 取后6位（RGB），忽略前2位（Alpha）
     return '#${hex.substring(2).toUpperCase()}';
   }
@@ -171,7 +172,7 @@ class ColumnRepositoryImpl implements ColumnRepository {
       final cleanStr = priceStr.replaceAll(RegExp(r'[¥￥\s]'), '');
       return double.parse(cleanStr);
     } catch (e) {
-      print('[ColumnRepositoryImpl] 解析价格失败: $priceStr, 错误: $e');
+      AppLogger.error('[ColumnRepositoryImpl] 解析价格失败: $priceStr, 错误: $e');
       return 0.0;
     }
   }

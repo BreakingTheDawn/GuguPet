@@ -187,7 +187,7 @@ class _FavoriteButtonState extends State<FavoriteButton>
             currentIcon,
             size: widget.size,
             color: widget.isDisabled
-                ? currentColor.withOpacity(0.5)
+                ? currentColor.withValues(alpha: 0.5)
                 : currentColor,
           ),
           // 文字标签
@@ -199,7 +199,7 @@ class _FavoriteButtonState extends State<FavoriteButton>
                 fontSize: widget.size * 0.6,
                 fontWeight: FontWeight.w600,
                 color: widget.isDisabled
-                    ? currentColor.withOpacity(0.5)
+                    ? currentColor.withValues(alpha: 0.5)
                     : currentColor,
               ),
             ),

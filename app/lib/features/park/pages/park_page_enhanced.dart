@@ -26,7 +26,7 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
   // 状态变量
   // ────────────────────────────────────────────────────────────────────────────
 
-  int _selectedZone = 0;
+  final int _selectedZone = 0;
   bool _showZoneMenu = false;
 
   // 区域配置
@@ -101,8 +101,8 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
           end: Alignment.bottomCenter,
           stops: const [0, 0.45, 0.45, 1],
           colors: [
-            zoneColor.withOpacity(0.3),
-            zoneColor.withOpacity(0.1),
+            zoneColor.withValues(alpha: 0.3),
+            zoneColor.withValues(alpha: 0.1),
             Colors.green.shade100,
             Colors.green.shade50,
           ],
@@ -120,10 +120,10 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
       child: Container(
         padding: const EdgeInsets.fromLTRB(20, 48, 20, 16),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.9),
+          color: Colors.white.withValues(alpha: 0.9),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 2),
             ),
@@ -309,97 +309,6 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
           ),
         ],
       ),
-    );
-  }
-
-  /// 构建底部导航栏
-  Widget _buildBottomBar() {
-    return Positioned(
-      bottom: 0,
-      left: 0,
-      right: 0,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildBottomNavItem(
-              icon: Icons.park,
-              label: '公园',
-              isSelected: true,
-            ),
-            _buildBottomNavItem(
-              icon: Icons.chat_bubble_outline,
-              label: '消息',
-              badge: 3,
-            ),
-            _buildBottomNavItem(
-              icon: Icons.person_outline,
-              label: '我的',
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// 构建底部导航项
-  Widget _buildBottomNavItem({
-    required IconData icon,
-    required String label,
-    bool isSelected = false,
-    int? badge,
-  }) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Stack(
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? Colors.blue : Colors.grey,
-              size: 24,
-            ),
-            if (badge != null && badge > 0)
-              Positioned(
-                right: -4,
-                top: -4,
-                child: Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: const BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Text(
-                    badge > 9 ? '9+' : badge.toString(),
-                    style: const TextStyle(
-                      fontSize: 8,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 10,
-            color: isSelected ? Colors.blue : Colors.grey,
-          ),
-        ),
-      ],
     );
   }
 

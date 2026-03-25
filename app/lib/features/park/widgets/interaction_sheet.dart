@@ -180,7 +180,7 @@ class InteractionSheet extends StatelessWidget {
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: targetUser.petColor.withOpacity(0.2),
+              color: targetUser.petColor.withValues(alpha: 0.2),
               shape: BoxShape.circle,
               border: Border.all(
                 color: targetUser.petColor,

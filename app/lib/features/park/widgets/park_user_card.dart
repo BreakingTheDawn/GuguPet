@@ -97,7 +97,7 @@ class ParkUserCard extends StatelessWidget {
           width: 60,
           height: 60,
           decoration: BoxDecoration(
-            color: user.petColor.withOpacity(0.2),
+            color: user.petColor.withValues(alpha: 0.2),
             shape: BoxShape.circle,
             border: Border.all(
               color: user.petColor,

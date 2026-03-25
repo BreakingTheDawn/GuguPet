@@ -37,7 +37,7 @@ class NotificationItem extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               offset: const Offset(0, 2),
               blurRadius: 8,
             ),
@@ -155,7 +155,7 @@ class NotificationItem extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         decoration: BoxDecoration(
-          color: AppColors.muted.withOpacity(0.3),
+          color: AppColors.muted.withValues(alpha: 0.3),
           borderRadius: BorderRadius.circular(4),
         ),
         child: Row(
@@ -181,7 +181,7 @@ class NotificationItem extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         decoration: BoxDecoration(
-          color: AppColors.destructive.withOpacity(0.1),
+          color: AppColors.destructive.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(4),
         ),
         child: Row(
@@ -250,17 +250,17 @@ class NotificationItem extends StatelessWidget {
   Color _getIconBackgroundColor() {
     switch (notification.type) {
       case model.NotificationType.interview:
-        return AppColors.info.withOpacity(0.1);
+        return AppColors.info.withValues(alpha: 0.1);
       case model.NotificationType.jobStatus:
-        return AppColors.indigo500.withOpacity(0.1);
+        return AppColors.indigo500.withValues(alpha: 0.1);
       case model.NotificationType.columnUpdate:
-        return AppColors.warning.withOpacity(0.1);
+        return AppColors.warning.withValues(alpha: 0.1);
       case model.NotificationType.vipExpire:
-        return AppColors.purple500.withOpacity(0.1);
+        return AppColors.purple500.withValues(alpha: 0.1);
       case model.NotificationType.activity:
-        return AppColors.success.withOpacity(0.1);
+        return AppColors.success.withValues(alpha: 0.1);
       case model.NotificationType.system:
-        return AppColors.muted.withOpacity(0.3);
+        return AppColors.muted.withValues(alpha: 0.3);
     }
   }
 

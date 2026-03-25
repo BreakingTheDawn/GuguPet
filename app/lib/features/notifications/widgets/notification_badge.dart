@@ -55,7 +55,7 @@ class NotificationBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(size / 2),
         boxShadow: [
           BoxShadow(
-            color: AppColors.destructive.withOpacity(0.3),
+            color: AppColors.destructive.withValues(alpha: 0.3),
             offset: const Offset(0, 1),
             blurRadius: 4,
           ),

@@ -1,8 +1,9 @@
-import 'package:sqflite/sqflite.dart';
+import 'dart:async';
+import 'dart:io';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-import 'dart:io';
-import 'dart:async';
+import 'package:sqflite/sqflite.dart';
+import '../../../core/utils/logger_service.dart';
 import 'database_migration.dart';
 
 /// SQLite数据库帮助类
@@ -60,7 +61,7 @@ class DatabaseHelper {
       // 拼接数据库完整路径
       final String path = join(documentsDirectory.path, _databaseName);
       
-      print('[DatabaseHelper] 初始化数据库: $path');
+      AppLogger.debug('[DatabaseHelper] 初始化数据库: $path');
       
       // 打开数据库，如果不存在则创建
       final db = await openDatabase(
@@ -71,11 +72,11 @@ class DatabaseHelper {
         onConfigure: _onConfigure,
       );
       
-      print('[DatabaseHelper] 数据库初始化成功，版本: $_databaseVersion');
+      AppLogger.info('[DatabaseHelper] 数据库初始化成功，版本: $_databaseVersion');
       return db;
     } catch (e, stackTrace) {
-      print('[DatabaseHelper] 数据库初始化失败: $e');
-      print('[DatabaseHelper] 堆栈跟踪: $stackTrace');
+      AppLogger.error('[DatabaseHelper] 数据库初始化失败: $e');
+      AppLogger.error('[DatabaseHelper] 堆栈跟踪: $stackTrace');
       rethrow;
     }
   }
@@ -85,9 +86,9 @@ class DatabaseHelper {
   Future<void> _onConfigure(Database db) async {
     try {
       await db.execute('PRAGMA foreign_keys = ON');
-      print('[DatabaseHelper] 外键约束已启用');
+      AppLogger.info('[DatabaseHelper] 外键约束已启用');
     } catch (e) {
-      print('[DatabaseHelper] 启用外键约束失败: $e');
+      AppLogger.error('[DatabaseHelper] 启用外键约束失败: $e');
       rethrow;
     }
   }
@@ -96,7 +97,7 @@ class DatabaseHelper {
   /// 执行所有版本的迁移脚本
   /// 使用事务确保迁移的原子性
   Future<void> _onCreate(Database db, int version) async {
-    print('[DatabaseHelper] 创建数据库，目标版本: $version');
+    AppLogger.debug('[DatabaseHelper] 创建数据库，目标版本: $version');
     
     try {
       // 使用事务包装所有迁移脚本，确保原子性
@@ -105,7 +106,7 @@ class DatabaseHelper {
         for (int i = 1; i <= version; i++) {
           final migration = DatabaseMigration.getMigration(i);
           if (migration != null) {
-            print('[DatabaseHelper] 执行迁移脚本 v$i，共 ${migration.length} 条SQL');
+            AppLogger.debug('[DatabaseHelper] 执行迁移脚本 v$i，共 ${migration.length} 条SQL');
             for (final sql in migration) {
               await txn.execute(sql);
             }
@@ -113,10 +114,10 @@ class DatabaseHelper {
         }
       });
       
-      print('[DatabaseHelper] 数据库创建成功');
+      AppLogger.info('[DatabaseHelper] 数据库创建成功');
     } catch (e, stackTrace) {
-      print('[DatabaseHelper] 数据库创建失败: $e');
-      print('[DatabaseHelper] 堆栈跟踪: $stackTrace');
+      AppLogger.error('[DatabaseHelper] 数据库创建失败: $e');
+      AppLogger.error('[DatabaseHelper] 堆栈跟踪: $stackTrace');
       rethrow;
     }
   }
@@ -125,7 +126,7 @@ class DatabaseHelper {
   /// 执行从旧版本到新版本的迁移
   /// 使用事务确保迁移的原子性
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    print('[DatabaseHelper] 升级数据库: v$oldVersion -> v$newVersion');
+    AppLogger.debug('[DatabaseHelper] 升级数据库: v$oldVersion -> v$newVersion');
     
     try {
       // 使用事务包装所有迁移脚本，确保原子性
@@ -134,7 +135,7 @@ class DatabaseHelper {
         for (int i = oldVersion + 1; i <= newVersion; i++) {
           final migration = DatabaseMigration.getMigration(i);
           if (migration != null) {
-            print('[DatabaseHelper] 执行迁移脚本 v$i，共 ${migration.length} 条SQL');
+            AppLogger.debug('[DatabaseHelper] 执行迁移脚本 v$i，共 ${migration.length} 条SQL');
             for (final sql in migration) {
               await txn.execute(sql);
             }
@@ -142,10 +143,10 @@ class DatabaseHelper {
         }
       });
       
-      print('[DatabaseHelper] 数据库升级成功');
+      AppLogger.info('[DatabaseHelper] 数据库升级成功');
     } catch (e, stackTrace) {
-      print('[DatabaseHelper] 数据库升级失败: $e');
-      print('[DatabaseHelper] 堆栈跟踪: $stackTrace');
+      AppLogger.error('[DatabaseHelper] 数据库升级失败: $e');
+      AppLogger.error('[DatabaseHelper] 堆栈跟踪: $stackTrace');
       rethrow;
     }
   }
@@ -157,9 +158,9 @@ class DatabaseHelper {
         await _database!.close();
         _database = null;
         _completer = null; // 重置 Completer
-        print('[DatabaseHelper] 数据库连接已关闭');
+        AppLogger.info('[DatabaseHelper] 数据库连接已关闭');
       } catch (e) {
-        print('[DatabaseHelper] 关闭数据库连接失败: $e');
+        AppLogger.error('[DatabaseHelper] 关闭数据库连接失败: $e');
         rethrow;
       }
     }
@@ -172,7 +173,7 @@ class DatabaseHelper {
       final Directory documentsDirectory = await getApplicationDocumentsDirectory();
       final String path = join(documentsDirectory.path, _databaseName);
       
-      print('[DatabaseHelper] 开始重置数据库: $path');
+      AppLogger.debug('[DatabaseHelper] 开始重置数据库: $path');
       
       // 先关闭连接
       await close();
@@ -181,13 +182,13 @@ class DatabaseHelper {
       final file = File(path);
       if (await file.exists()) {
         await file.delete();
-        print('[DatabaseHelper] 数据库文件已删除');
+        AppLogger.info('[DatabaseHelper] 数据库文件已删除');
       }
       
-      print('[DatabaseHelper] 数据库重置成功');
+      AppLogger.info('[DatabaseHelper] 数据库重置成功');
     } catch (e, stackTrace) {
-      print('[DatabaseHelper] 重置数据库失败: $e');
-      print('[DatabaseHelper] 堆栈跟踪: $stackTrace');
+      AppLogger.error('[DatabaseHelper] 重置数据库失败: $e');
+      AppLogger.error('[DatabaseHelper] 堆栈跟踪: $stackTrace');
       rethrow;
     }
   }
