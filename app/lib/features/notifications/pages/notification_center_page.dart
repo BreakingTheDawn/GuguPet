@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/theme.dart';
+import '../../../core/services/app_strings.dart';
 import '../providers/notification_provider.dart';
 import '../data/models/notification.dart' as model;
 import '../widgets/notification_item.dart';
@@ -117,22 +118,22 @@ class _NotificationCenterPageState extends State<NotificationCenterPage>
     
     // 检查是否有未读通知
     if (provider.unreadCount == 0) {
-      _showSnackBar('没有未读通知');
+      _showSnackBar(AppStrings().notifications.noUnreadNotifications);
       return;
     }
 
     // 显示确认对话框
     final confirmed = await _showConfirmDialog(
-      '标记已读',
-      '确定将所有通知标记为已读吗？',
+      AppStrings().notifications.markAllRead,
+      AppStrings().notifications.markAllReadConfirm,
     );
 
     if (confirmed == true) {
       try {
         await provider.markAllAsRead();
-        _showSnackBar('已全部标记为已读');
+        _showSnackBar(AppStrings().notifications.markedAllRead);
       } catch (e) {
-        _showSnackBar('操作失败，请重试');
+        _showSnackBar(AppStrings().notifications.operationFailed);
       }
     }
   }
@@ -218,7 +219,7 @@ class _NotificationCenterPageState extends State<NotificationCenterPage>
         
       case model.NotificationType.activity:
         // 跳转到活动页面（TODO: 实现活动页面）
-        _showSnackBar('活动页面开发中...');
+        _showSnackBar(AppStrings().notifications.activityDeveloping);
         break;
         
       case model.NotificationType.system:
@@ -240,7 +241,7 @@ class _NotificationCenterPageState extends State<NotificationCenterPage>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('知道了'),
+            child: Text(AppStrings().notifications.gotIt),
           ),
         ],
       ),
@@ -308,7 +309,7 @@ class _NotificationCenterPageState extends State<NotificationCenterPage>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      '通知中心',
+                      AppStrings().notifications.title,
                       style: AppTypography.headingSmall.copyWith(
                         color: AppColors.primary,
                         fontWeight: FontWeight.w600,
@@ -429,7 +430,7 @@ class _NotificationCenterPageState extends State<NotificationCenterPage>
               ),
             ),
             child: Text(
-              '全部标记为已读',
+              AppStrings().notifications.markAllRead,
               style: AppTypography.labelMedium.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -462,7 +463,7 @@ class _NotificationCenterPageState extends State<NotificationCenterPage>
           ),
           const SizedBox(height: 16),
           Text(
-            provider.errorMessage ?? '加载失败',
+            provider.errorMessage ?? AppStrings().common.loadFailed,
             style: AppTypography.bodyMedium.copyWith(
               color: AppColors.mutedForeground,
             ),
@@ -474,7 +475,7 @@ class _NotificationCenterPageState extends State<NotificationCenterPage>
               backgroundColor: AppColors.indigo500,
               foregroundColor: Colors.white,
             ),
-            child: const Text('重试'),
+            child: Text(AppStrings().common.retry),
           ),
         ],
       ),
@@ -508,14 +509,14 @@ class _NotificationCenterPageState extends State<NotificationCenterPage>
             TextButton(
               onPressed: () => Navigator.pop(context, false),
               child: Text(
-                '取消',
+                AppStrings().common.cancel,
                 style: TextStyle(color: AppColors.mutedForeground),
               ),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
               child: Text(
-                '确定',
+                AppStrings().common.confirm,
                 style: TextStyle(color: AppColors.indigo500),
               ),
             ),

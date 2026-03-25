@@ -15,6 +15,7 @@ import 'features/park/services/mock_social_service.dart';
 import 'features/park/providers/park_provider.dart';
 import 'features/park/providers/friend_provider.dart';
 import 'features/park/providers/post_provider.dart';
+import 'features/auth/providers/auth_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,7 +31,7 @@ void main() async {
   await BusinessConfigService.initialize();
   await ThemeService.initialize();
   
-  // 初始化测试用户
+  // 初始化测试用户（保留现有逻辑，但会被登录系统覆盖）
   await TestUserInitializer.initialize();
   
   runApp(const JobPetApp());
@@ -44,19 +45,20 @@ class JobPetApp extends StatefulWidget {
 }
 
 class _JobPetAppState extends State<JobPetApp> {
-  /// 默认用户ID（后续可接入真实用户系统）
-  static const String _defaultUserId = 'default_user_001';
-  
   late final PetProvider _petProvider;
   late final ParkLocalDatasource _parkDatasource;
   late final MockSocialService _socialService;
   late final ParkProvider _parkProvider;
   late final FriendProvider _friendProvider;
   late final PostProvider _postProvider;
+  late final AuthProvider _authProvider;
 
   @override
   void initState() {
     super.initState();
+    
+    // 初始化认证Provider
+    _authProvider = AuthProvider();
     
     // 初始化公园社交相关服务
     _parkDatasource = ParkLocalDatasource();
@@ -68,18 +70,25 @@ class _JobPetAppState extends State<JobPetApp> {
     _friendProvider = FriendProvider(socialService: _socialService);
     _postProvider = PostProvider(socialService: _socialService);
     
-    _initializePet();
+    _initializeApp();
   }
 
-  /// 初始化宠物数据
-  Future<void> _initializePet() async {
-    await _petProvider.initialize(_defaultUserId);
+  /// 初始化应用
+  Future<void> _initializeApp() async {
+    // 先初始化认证状态
+    await _authProvider.initialize();
+    
+    // 根据登录状态初始化宠物数据
+    // 未登录时使用游客ID，已登录时使用用户ID
+    final userId = _authProvider.currentUser?.userId ?? 'guest_user';
+    await _petProvider.initialize(userId);
   }
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider<AuthProvider>.value(value: _authProvider),
         ChangeNotifierProvider<PetProvider>.value(value: _petProvider),
         ChangeNotifierProvider<ParkProvider>.value(value: _parkProvider),
         ChangeNotifierProvider<FriendProvider>.value(value: _friendProvider),

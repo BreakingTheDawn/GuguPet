@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/theme.dart';
+import '../../../core/services/app_strings.dart';
 import '../providers/job_detail_provider.dart';
 import '../widgets/job_info_section.dart';
 import '../widgets/company_info_section.dart';
@@ -61,7 +62,7 @@ class _JobDetailPageContent extends StatelessWidget {
         onPressed: () => Navigator.pop(context),
       ),
       title: Text(
-        '职位详情',
+        AppStrings().jobs.jobDetail,
         style: AppTypography.labelMedium.copyWith(
           color: const Color(0xFF3A3A5A),
           fontWeight: FontWeight.w600,
@@ -190,7 +191,7 @@ class _JobDetailPageContent extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                '工作地点',
+                AppStrings().jobs.workLocation,
                 style: AppTypography.labelMedium.copyWith(
                   color: const Color(0xFF3A3A5A),
                   fontWeight: FontWeight.w600,
@@ -243,7 +244,7 @@ class _JobDetailPageContent extends StatelessWidget {
           // 立即沟通按钮
           Expanded(
             child: _buildOutlineButton(
-              label: '立即沟通',
+              label: AppStrings().jobs.communicateNow,
               icon: Icons.chat_bubble_outline,
               onPressed: () => _handleCommunicate(context),
             ),
@@ -253,7 +254,7 @@ class _JobDetailPageContent extends StatelessWidget {
           Expanded(
             flex: 2,
             child: _buildPrimaryButton(
-              label: '投递简历',
+              label: AppStrings().jobs.submitResume,
               icon: Icons.send_outlined,
               onPressed: () => _handleApply(context),
             ),
@@ -327,7 +328,7 @@ class _JobDetailPageContent extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              provider.isFavorited ? '已添加到收藏' : '已取消收藏',
+              provider.isFavorited ? AppStrings().jobs.addedToFavorite : AppStrings().jobs.removedFromFavorite,
             ),
             duration: const Duration(seconds: 2),
             backgroundColor: provider.isFavorited
@@ -340,7 +341,7 @@ class _JobDetailPageContent extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('操作失败: $e'),
+            content: Text(AppStrings().getStringWithParams(AppStrings().errors.operationFailedWithReason, {'reason': e.toString()})),
             duration: const Duration(seconds: 2),
             backgroundColor: AppColors.destructive,
           ),
@@ -352,9 +353,9 @@ class _JobDetailPageContent extends StatelessWidget {
   /// 分享职位
   void _shareJob(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('分享功能开发中...'),
-        duration: Duration(seconds: 2),
+      SnackBar(
+        content: Text(AppStrings().jobs.shareDeveloping),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -362,9 +363,9 @@ class _JobDetailPageContent extends StatelessWidget {
   /// 处理沟通
   void _handleCommunicate(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('沟通功能开发中...'),
-        duration: Duration(seconds: 2),
+      SnackBar(
+        content: Text(AppStrings().jobs.communicateDeveloping),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -378,20 +379,20 @@ class _JobDetailPageContent extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
         ),
         title: Text(
-          '投递确认',
+          AppStrings().jobs.submitConfirm,
           style: AppTypography.labelMedium.copyWith(
             fontWeight: FontWeight.w600,
           ),
         ),
         content: Text(
-          '确定要投递该职位吗？',
+          AppStrings().jobs.submitConfirmMessage,
           style: AppTypography.bodyMedium,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
             child: Text(
-              '取消',
+              AppStrings().common.cancel,
               style: AppTypography.labelSmall.copyWith(
                 color: AppColors.mutedForeground,
               ),
@@ -402,7 +403,7 @@ class _JobDetailPageContent extends StatelessWidget {
               Navigator.pop(dialogContext);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('已成功投递 ${job['title']}'),
+                  content: Text(AppStrings().getStringWithParams(AppStrings().jobs.submitSuccess, {'title': job['title']})),
                   duration: const Duration(seconds: 2),
                   backgroundColor: AppColors.success,
                 ),
@@ -415,7 +416,7 @@ class _JobDetailPageContent extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
               ),
             ),
-            child: const Text('确定'),
+            child: Text(AppStrings().common.confirm),
           ),
         ],
       ),

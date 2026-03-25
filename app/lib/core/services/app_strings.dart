@@ -31,11 +31,29 @@ class AppStrings extends ConfigService<UIStringsConfig> {
   /// 获取个人中心文本
   ProfileStrings get profile => cachedConfig.profile;
   
+  /// 获取收藏模块文本
+  FavoriteStrings get favorites => cachedConfig.favorites;
+  
   /// 获取通知模块文本
   NotificationStrings get notifications => cachedConfig.notifications;
   
   /// 获取错误提示文本
   ErrorStrings get errors => cachedConfig.errors;
+  
+  /// 获取时间格式文本
+  TimeStrings get time => cachedConfig.time;
+  
+  /// 获取专栏模块文本
+  ColumnStrings get columns => cachedConfig.columns;
+  
+  /// 获取公园模块文本
+  ParkStrings get park => cachedConfig.park;
+  
+  /// 获取倾诉模块文本
+  ConfideStrings get confide => cachedConfig.confide;
+  
+  /// 获取统计模块文本
+  StatsStrings get stats => cachedConfig.stats;
   
   /// 获取带参数的文本
   /// 用于需要动态替换参数的文本

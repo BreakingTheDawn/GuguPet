@@ -45,4 +45,7 @@ abstract class AppRoutes {
   
   /// VIP升级页面
   static const String vipUpgrade = '/vip-upgrade';
+  
+  /// 登录页面
+  static const String login = '/login';
 }

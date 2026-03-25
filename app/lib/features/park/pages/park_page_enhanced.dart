@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/services/app_strings.dart';
 import '../../../routes/app_routes.dart';
+import '../../../shared/widgets/login_required_dialog.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../providers/park_provider.dart';
 import '../providers/friend_provider.dart';
 import '../providers/post_provider.dart';
@@ -53,13 +56,24 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
 
   /// 初始化数据
   void _initializeData() {
+    final authProvider = context.read<AuthProvider>();
+    
+    // 检查登录状态，未登录时弹出登录提示
+    if (!authProvider.isAuthenticated) {
+      LoginGuard.checkSimple(context, featureName: '公园社交');
+      return;
+    }
+    
     final parkProvider = context.read<ParkProvider>();
     final friendProvider = context.read<FriendProvider>();
     final postProvider = context.read<PostProvider>();
     
-    // 设置当前用户（Mock数据）
-    friendProvider.setCurrentUserId('current_user');
-    postProvider.setCurrentUser('current_user', '求职者');
+    // 设置当前用户（使用登录用户的ID）
+    final userId = authProvider.currentUser?.userId ?? 'current_user';
+    final userName = authProvider.currentUser?.userName ?? '求职者';
+    
+    friendProvider.setCurrentUserId(userId);
+    postProvider.setCurrentUser(userId, userName);
     
     // 加载公园用户
     parkProvider.loadParkUsers();
@@ -301,7 +315,7 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
           ),
           const SizedBox(height: 16),
           Text(
-            '这个区域暂时没有其他咕咕',
+            AppStrings().park.noUsersInZone,
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey.shade500,
@@ -348,7 +362,7 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('你${_getInteractionText(type)}${user.name}'),
+          content: Text('${AppStrings().park.youAction}${_getInteractionText(type)}${user.name}'),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -359,13 +373,13 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
   String _getInteractionText(InteractionType type) {
     switch (type) {
       case InteractionType.pet:
-        return '抚摸了';
+        return AppStrings().park.petAction;
       case InteractionType.greet:
-        return '向';
+        return AppStrings().park.greetAction;
       case InteractionType.gift:
-        return '送给';
+        return AppStrings().park.giftAction;
       case InteractionType.like:
-        return '点赞了';
+        return AppStrings().park.likeAction;
     }
   }
 
@@ -382,7 +396,7 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(success ? '好友申请已发送' : '发送失败，请重试'),
+          content: Text(success ? AppStrings().park.friendRequestSent : AppStrings().park.friendRequestFailed),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -394,7 +408,10 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
     // TODO: 跳转到用户动态页面
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('查看${user.name}的动态'),
+        content: Text(AppStrings().getStringWithParams(
+          AppStrings().park.viewUserPosts,
+          {'userName': user.name}
+        )),
         duration: const Duration(seconds: 2),
       ),
     );

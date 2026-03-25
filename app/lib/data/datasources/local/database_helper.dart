@@ -24,7 +24,7 @@ class DatabaseHelper {
 
   // 数据库配置常量
   static const String _databaseName = 'gugupet.db';
-  static const int _databaseVersion = 4;
+  static const int _databaseVersion = 5;
 
   /// 获取数据库实例
   /// 使用 Completer 确保并发安全，避免竞态条件
@@ -288,4 +288,10 @@ class DatabaseHelper {
   static const String columnPushEnabled = 'push_enabled';
   static const String columnQuietHoursStart = 'quiet_hours_start';
   static const String columnQuietHoursEnd = 'quiet_hours_end';
+
+  // ==================== 用户认证字段常量 ====================
+
+  static const String columnAccount = 'account';
+  static const String columnPassword = 'password';
+  static const String columnIsLoggedIn = 'is_logged_in';
 }

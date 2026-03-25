@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/theme.dart';
 import '../../../core/services/app_strings.dart';
+import '../../../routes/app_routes.dart';
+import '../../../shared/widgets/login_required_dialog.dart';
+import '../../auth/providers/auth_provider.dart' as app_auth;
 import '../providers/profile_provider.dart';
 import '../widgets/user_info_card.dart';
 import '../widgets/stat_summary_card.dart';
@@ -36,8 +39,18 @@ class _ProfilePageState extends State<ProfilePage> {
     super.initState();
     // 页面初始化时加载数据
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ProfileProvider>().loadUserData();
+      _initializePage();
     });
+  }
+
+  /// 初始化页面
+  void _initializePage() {
+    final authProvider = context.read<app_auth.AuthProvider>();
+    // 只有在已登录状态下才加载用户数据
+    if (authProvider.isAuthenticated) {
+      final userId = authProvider.currentUser?.userId ?? 'default_user';
+      context.read<ProfileProvider>().loadUserData(userId: userId);
+    }
   }
 
   @override
@@ -50,15 +63,15 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F7FC),
-      body: Consumer<ProfileProvider>(
-        builder: (context, provider, child) {
+      body: Consumer2<app_auth.AuthProvider, ProfileProvider>(
+        builder: (context, authProvider, profileProvider, child) {
           return CustomScrollView(
             slivers: [
               // 自定义AppBar
-              _buildSliverAppBar(),
+              _buildSliverAppBar(authProvider),
               // 下拉刷新区域
               SliverToBoxAdapter(
-                child: _buildRefreshableContent(provider),
+                child: _buildRefreshableContent(authProvider, profileProvider),
               ),
             ],
           );
@@ -68,46 +81,136 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   /// 构建SliverAppBar
-  Widget _buildSliverAppBar() {
+  Widget _buildSliverAppBar(app_auth.AuthProvider authProvider) {
     return SliverAppBar(
-      expandedHeight: 120,
+      expandedHeight: 16,
       floating: false,
-      pinned: true,
+      pinned: false,
       elevation: 0,
       backgroundColor: const Color(0xFFF8F7FC),
-      flexibleSpace: FlexibleSpaceBar(
-        title: Text(
-          AppStrings().profile.title,
-          style: AppTypography.headingSmall.copyWith(
-            color: AppColors.primary,
+      actions: [
+        // 已登录时显示登出按钮
+        if (authProvider.isAuthenticated)
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, color: AppColors.primary),
+            onSelected: (value) => _handleMenuAction(value, authProvider),
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'logout',
+                child: ListTile(
+                  leading: Icon(Icons.logout, color: AppColors.destructive),
+                  title: Text('退出登录'),
+                ),
+              ),
+            ],
           ),
-        ),
-        titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
-      ),
+      ],
     );
   }
 
   /// 构建可刷新的内容区域
-  Widget _buildRefreshableContent(ProfileProvider provider) {
+  Widget _buildRefreshableContent(
+    app_auth.AuthProvider authProvider,
+    ProfileProvider profileProvider,
+  ) {
     return RefreshIndicator(
-      onRefresh: _onRefresh,
-      child: _buildContent(provider),
+      onRefresh: () => _onRefresh(authProvider, profileProvider),
+      child: _buildContent(authProvider, profileProvider),
     );
   }
 
   /// 构建主要内容
-  Widget _buildContent(ProfileProvider provider) {
-    // 显示加载状态
-    if (provider.isLoading && provider.userProfile == null) {
+  Widget _buildContent(
+    app_auth.AuthProvider authProvider,
+    ProfileProvider profileProvider,
+  ) {
+    // 未登录状态
+    if (!authProvider.isAuthenticated) {
+      return _buildUnauthenticatedContent(authProvider);
+    }
+
+    // 已登录状态 - 显示加载状态
+    if (profileProvider.isLoading && profileProvider.userProfile == null) {
       return _buildLoadingState();
     }
 
-    // 显示错误状态
-    if (provider.errorMessage != null && provider.userProfile == null) {
-      return _buildErrorState(provider);
+    // 已登录状态 - 显示错误状态
+    if (profileProvider.errorMessage != null && profileProvider.userProfile == null) {
+      return _buildErrorState(profileProvider);
     }
 
-    // 显示正常内容
+    // 已登录状态 - 显示正常内容
+    return _buildAuthenticatedContent(profileProvider, authProvider);
+  }
+
+  /// 构建未登录状态的内容
+  Widget _buildUnauthenticatedContent(app_auth.AuthProvider authProvider) {
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 未登录状态的用户信息卡片
+            UserInfoCard(
+              userName: '',
+              jobStatusTag: null,
+              isLoggedIn: false,
+              onLoginTap: () => _navigateToLogin(),
+            ),
+            const SizedBox(height: AppSpacing.md),
+
+            // 提示信息
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: AppColors.indigo500.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    color: AppColors.indigo500,
+                    size: AppSpacing.iconMd,
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      '登录后可查看求职数据统计、收藏职位等功能',
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.indigo500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+
+            // 功能菜单标题
+            Text(
+              '功能入口',
+              style: AppTypography.labelMedium.copyWith(
+                color: AppColors.mutedForeground,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+
+            // 简化的功能菜单列表（未登录状态）
+            MenuList(items: _buildUnauthenticatedMenuItems()),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 构建已登录状态的内容
+  Widget _buildAuthenticatedContent(
+    ProfileProvider profileProvider,
+    app_auth.AuthProvider authProvider,
+  ) {
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       child: Padding(
@@ -117,25 +220,26 @@ class _ProfilePageState extends State<ProfilePage> {
           children: [
             // 用户信息卡片
             UserInfoCard(
-              userName: provider.userName,
-              jobStatusTag: provider.jobStatusTag,
-              onAvatarTap: () => _handleEditProfile(provider),
+              userName: profileProvider.userName,
+              jobStatusTag: profileProvider.jobStatusTag,
+              isLoggedIn: true,
+              onAvatarTap: () => _handleEditProfile(profileProvider),
             ),
             const SizedBox(height: AppSpacing.md),
 
             // 统计摘要卡片
             StatSummaryCard(
-              submissionCount: provider.submissionCount,
-              interviewCount: provider.interviewCount,
-              offerCount: provider.offerCount,
+              submissionCount: profileProvider.submissionCount,
+              interviewCount: profileProvider.interviewCount,
+              offerCount: profileProvider.offerCount,
               onTap: () => _handleNavigateToStats(),
             ),
             const SizedBox(height: AppSpacing.md),
 
             // VIP状态卡片
             VipStatusCard(
-              isVip: provider.isVip,
-              vipExpireTime: provider.vipExpireTime,
+              isVip: profileProvider.isVip,
+              vipExpireTime: profileProvider.vipExpireTime,
               onUpgradeTap: () => _handleUpgradeVip(),
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -150,11 +254,22 @@ class _ProfilePageState extends State<ProfilePage> {
             const SizedBox(height: AppSpacing.sm),
 
             // 功能菜单列表
-            MenuList(items: _buildMenuItems(provider)),
+            MenuList(items: _buildMenuItems(profileProvider)),
           ],
         ),
       ),
     );
+  }
+
+  /// 构建未登录状态的菜单项列表
+  List<MenuItem> _buildUnauthenticatedMenuItems() {
+    return [
+      MenuItem(
+        icon: Icons.settings_outlined,
+        title: '设置',
+        onTap: () => _handleNavigateToSettings(),
+      ),
+    ];
   }
 
   /// 构建菜单项列表
@@ -235,9 +350,69 @@ class _ProfilePageState extends State<ProfilePage> {
   // ═══════════════════════════════════════════════════════════
 
   /// 下拉刷新
-  Future<void> _onRefresh() async {
-    await context.read<ProfileProvider>().refresh();
+  Future<void> _onRefresh(
+    app_auth.AuthProvider authProvider,
+    ProfileProvider profileProvider,
+  ) async {
+    if (authProvider.isAuthenticated) {
+      await profileProvider.refresh();
+    }
     _refreshController.refreshCompleted();
+  }
+
+  /// 处理菜单操作
+  void _handleMenuAction(String action, app_auth.AuthProvider authProvider) {
+    switch (action) {
+      case 'logout':
+        _showLogoutDialog(authProvider);
+        break;
+    }
+  }
+
+  /// 显示登出确认对话框
+  Future<void> _showLogoutDialog(app_auth.AuthProvider authProvider) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: const Text('确认退出'),
+        content: const Text('确定要退出登录吗？退出后部分功能将无法使用。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.destructive,
+            ),
+            child: const Text('确定退出'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await authProvider.logout();
+      // 清空个人资料数据
+      context.read<ProfileProvider>().clearUserData();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('已退出登录'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
+
+  /// 跳转到登录页面
+  void _navigateToLogin() {
+    Navigator.of(context).pushNamed(AppRoutes.login);
   }
 
   /// 编辑个人资料

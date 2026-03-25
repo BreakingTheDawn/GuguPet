@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/services/app_strings.dart';
 import '../providers/favorite_provider.dart';
 import '../data/column_data.dart';
 import '../data/models/favorite_column.dart';
@@ -102,7 +103,7 @@ class _FavoriteColumnsPageState extends State<FavoriteColumnsPage> {
               // 标题
               Expanded(
                 child: Text(
-                  '我的收藏',
+                  AppStrings().columns.myFavorites,
                   style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w600,
@@ -400,7 +401,7 @@ class _FavoriteColumnsPageState extends State<FavoriteColumnsPage> {
             ),
             const SizedBox(width: 4),
             Text(
-              '已收藏',
+              AppStrings().columns.favorited,
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
@@ -452,7 +453,7 @@ class _FavoriteColumnsPageState extends State<FavoriteColumnsPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    favorite.columnTitle ?? '专栏已下架',
+                    favorite.columnTitle ?? AppStrings().columns.columnRemovedTitle,
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
@@ -461,7 +462,7 @@ class _FavoriteColumnsPageState extends State<FavoriteColumnsPage> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '该专栏已下架或删除',
+                    AppStrings().columns.columnRemoved,
                     style: TextStyle(
                       fontSize: 12,
                       color: AppColors.archiveTextMuted.withValues(alpha: 0.7),
@@ -492,7 +493,7 @@ class _FavoriteColumnsPageState extends State<FavoriteColumnsPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            '加载中...',
+            AppStrings().common.loading,
             style: TextStyle(
               fontSize: 14,
               color: AppColors.archiveTextMuted,
@@ -539,7 +540,7 @@ class _FavoriteColumnsPageState extends State<FavoriteColumnsPage> {
                   borderRadius: BorderRadius.circular(20),
                 ),
               ),
-              child: const Text('重试'),
+              child: Text(AppStrings().common.retry),
             ),
           ],
         ),
@@ -574,7 +575,7 @@ class _FavoriteColumnsPageState extends State<FavoriteColumnsPage> {
 
             // 提示文字
             Text(
-              '还没有收藏的专栏',
+              AppStrings().columns.noFavorites,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -585,7 +586,7 @@ class _FavoriteColumnsPageState extends State<FavoriteColumnsPage> {
             const SizedBox(height: 8),
 
             Text(
-              '去发现感兴趣的专栏吧',
+              AppStrings().columns.goExplore,
               style: TextStyle(
                 fontSize: 14,
                 color: AppColors.archiveTextMuted,
@@ -610,9 +611,9 @@ class _FavoriteColumnsPageState extends State<FavoriteColumnsPage> {
                     ),
                   ],
                 ),
-                child: const Text(
-                  '去逛逛',
-                  style: TextStyle(
+                child: Text(
+                  AppStrings().columns.goExploreButton,
+                  style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
@@ -657,7 +658,7 @@ class _FavoriteColumnsPageState extends State<FavoriteColumnsPage> {
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('已取消收藏'),
+            content: Text(AppStrings().columns.unfavorited),
             backgroundColor: AppColors.archiveAccent,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -671,7 +672,10 @@ class _FavoriteColumnsPageState extends State<FavoriteColumnsPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('操作失败: $e'),
+            content: Text(AppStrings().getStringWithParams(
+              AppStrings().columns.operationFailed,
+              {'reason': e.toString()}
+            )),
             backgroundColor: AppColors.destructive,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -693,7 +697,7 @@ class _FavoriteColumnsPageState extends State<FavoriteColumnsPage> {
               borderRadius: BorderRadius.circular(16),
             ),
             title: Text(
-              '取消收藏',
+              AppStrings().columns.unfavoriteConfirm,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -701,7 +705,7 @@ class _FavoriteColumnsPageState extends State<FavoriteColumnsPage> {
               ),
             ),
             content: Text(
-              '确定要取消收藏这个专栏吗？',
+              AppStrings().columns.unfavoriteConfirmMessage,
               style: TextStyle(
                 fontSize: 14,
                 color: AppColors.archiveTextMuted,
@@ -712,7 +716,7 @@ class _FavoriteColumnsPageState extends State<FavoriteColumnsPage> {
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
                 child: Text(
-                  '取消',
+                  AppStrings().common.cancel,
                   style: TextStyle(
                     fontSize: 15,
                     color: AppColors.archiveTextMuted,
@@ -724,7 +728,7 @@ class _FavoriteColumnsPageState extends State<FavoriteColumnsPage> {
               TextButton(
                 onPressed: () => Navigator.of(context).pop(true),
                 child: Text(
-                  '确定',
+                  AppStrings().common.confirm,
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,

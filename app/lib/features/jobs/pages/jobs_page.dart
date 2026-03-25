@@ -91,7 +91,7 @@ class _JobsPageState extends State<JobsPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '为你精选',
+                AppStrings().jobs.selectedForYou,
                 style: AppTypography.labelSmall.copyWith(
                   color: AppColors.mutedForeground,
                   letterSpacing: 0.15,
@@ -101,7 +101,7 @@ class _JobsPageState extends State<JobsPage> {
               Row(
                 children: [
                   Text(
-                    '今日新上',
+                    AppStrings().jobs.newToday,
                     style: AppTypography.headingSmall.copyWith(
                       color: const Color(0xFF3A3A5A),
                     ),
@@ -114,7 +114,7 @@ class _JobsPageState extends State<JobsPage> {
                       borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
                     ),
                     child: Text(
-                      '${provider.newJobsCount} 个',
+                      AppStrings().getStringWithParams(AppStrings().jobs.jobsCount, {'count': '${provider.newJobsCount}'}),
                       style: AppTypography.caption.copyWith(
                         color: const Color(0xFF6450C8),
                         fontWeight: FontWeight.w600,
@@ -163,7 +163,7 @@ class _JobsPageState extends State<JobsPage> {
                   context.read<JobsProvider>().search(value);
                 },
                 decoration: InputDecoration(
-                  hintText: '搜索职位、公司、标签...',
+                  hintText: AppStrings().jobs.searchPlaceholder,
                   hintStyle: AppTypography.bodyMedium.copyWith(
                     color: const Color(0xFFC0C0D0),
                   ),
@@ -267,7 +267,7 @@ class _JobsPageState extends State<JobsPage> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      '清除全部',
+                      AppStrings().jobs.clearAll,
                       style: AppTypography.caption.copyWith(
                         color: AppColors.mutedForeground,
                       ),
@@ -525,14 +525,14 @@ class _JobsPageState extends State<JobsPage> {
                   const SizedBox(height: 24),
                   // 职位描述
                   Text(
-                    '职位描述',
+                    AppStrings().jobs.jobDescription,
                     style: AppTypography.labelMedium.copyWith(
                       color: const Color(0xFF3A3A5A),
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    job.description ?? '暂无职位描述',
+                    job.description ?? AppStrings().jobs.noDescription,
                     style: AppTypography.bodyMedium.copyWith(
                       color: AppColors.mutedForeground,
                       height: 1.6,
@@ -588,7 +588,7 @@ class _JobsPageState extends State<JobsPage> {
                         child: OutlinedButton.icon(
                           onPressed: () => _openSourceUrl(job.sourceUrl!),
                           icon: const Icon(Icons.open_in_new, size: 18),
-                          label: const Text('在Boss直聘查看'),
+                          label: Text(AppStrings().jobs.viewOnBoss),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: const Color(0xFF6450C8),
                             side: const BorderSide(color: Color(0xFF6450C8)),
@@ -620,7 +620,7 @@ class _JobsPageState extends State<JobsPage> {
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('已投递 ${job.title}'),
+          content: Text(AppStrings().getStringWithParams(AppStrings().jobs.submitted, {'title': job.title})),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -637,7 +637,7 @@ class _JobsPageState extends State<JobsPage> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(provider.isFavorited(job.id) ? '已收藏' : '已取消收藏'),
+          content: Text(provider.isFavorited(job.id) ? AppStrings().jobs.addedToFavorite : AppStrings().jobs.removedFromFavorite),
           duration: const Duration(seconds: 1),
         ),
       );
@@ -652,7 +652,7 @@ class _JobsPageState extends State<JobsPage> {
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('无法打开链接')),
+          SnackBar(content: Text(AppStrings().jobs.cannotOpenLink)),
         );
       }
     }

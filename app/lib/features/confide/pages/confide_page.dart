@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/theme.dart';
+import '../../../core/services/app_strings.dart';
 import '../../../shared/widgets/widgets.dart';
 import '../../pet/providers/pet_provider.dart';
 import '../../pet/widgets/pet_interaction_bar.dart';
@@ -74,14 +75,29 @@ class _ConfidePageState extends State<ConfidePage>
     }
   }
 
+  /// 根据情感类型获取宠物状态
+  PetState _getPetStateFromEmotion(EmotionType emotion) {
+    switch (emotion) {
+      case EmotionType.positive:
+        return PetState.happy;
+      case EmotionType.negative:
+        return PetState.angry;
+      default:
+        return PetState.idle;
+    }
+  }
+
   /// 处理用户倾诉提交
   void _handleSubmit(String input) {
     _randomMoveTimer?.cancel();
     
+    // 获取响应结果（包含文本和情感类型）
+    final responseResult = _responseService.getResponseWithEmotion(input);
+    
     setState(() {
-      _response = _responseService.getResponse(input);
+      _response = responseResult.text;
       _showResponse = true;
-      _petState = PetState.happy;
+      _petState = _getPetStateFromEmotion(responseResult.emotion);
       _messageCount++;
     });
     _responseController.forward(from: 0);
@@ -90,7 +106,7 @@ class _ConfidePageState extends State<ConfidePage>
     petProvider.onConfide(
       content: input,
       actionType: 'confide',
-      emotionType: 'positive',
+      emotionType: responseResult.emotion.name,
     );
 
     petProvider.generateResponse(
@@ -172,8 +188,11 @@ class _ConfidePageState extends State<ConfidePage>
         if (!_showResponse && _petState != PetState.teasing && _petState != PetState.move)
           Text(
             _messageCount == 0
-                ? '咕咕在等你倾诉...'
-                : '已倾诉 $_messageCount 次，咕咕一直在 ♡',
+                ? AppStrings().confide.waitingHint
+                : AppStrings().getStringWithParams(
+                    AppStrings().confide.messageCountHint,
+                    {'count': _messageCount.toString()}
+                  ),
             style: AppTypography.caption.copyWith(
               color: const Color(0xFFBBB0D0),
             ),
@@ -190,14 +209,14 @@ class _ConfidePageState extends State<ConfidePage>
     
     setState(() {
       _petState = PetState.teasing;
-      _response = '嘻嘻~好痒！';
+      _response = AppStrings().confide.petTickle;
       _showResponse = true;
     });
     _responseController.forward(from: 0);
 
     final petProvider = context.read<PetProvider>();
     petProvider.onConfide(
-      content: '点击宠物互动',
+      content: AppStrings().confide.petInteraction,
       actionType: 'touchPet',
       emotionType: 'positive',
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/theme.dart';
+import '../../../core/services/app_strings.dart';
 import '../../../shared/widgets/widgets.dart';
 
 class InputArea extends StatefulWidget {
@@ -32,7 +33,7 @@ class _InputAreaState extends State<InputArea> {
     return Column(
       children: [
         Text(
-          '此刻想对咕咕说点什么？',
+          AppStrings().confide.inputPlaceholder,
           style: AppTypography.labelSmall.copyWith(
             color: const Color(0xFFB8B0D0),
             letterSpacing: 0.05,
@@ -51,7 +52,7 @@ class _InputAreaState extends State<InputArea> {
                     color: const Color(0xFF5A5A7A),
                   ),
                   decoration: InputDecoration(
-                    hintText: '今天又投了5份简历，有点累了...',
+                    hintText: AppStrings().confide.inputHint,
                     hintStyle: AppTypography.bodyMedium.copyWith(
                       color: AppColors.mutedForeground,
                     ),

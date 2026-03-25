@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/theme.dart';
+import '../../../core/services/app_strings.dart';
 import '../../../shared/widgets/widgets.dart';
+import '../../../shared/widgets/login_required_dialog.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../widgets/weekly_chart.dart';
 import '../widgets/stat_card.dart';
 import '../providers/stats_provider.dart';
@@ -40,9 +43,23 @@ class _StatsPageState extends State<StatsPage>
   }
 
   /// 加载统计数据
-  void _loadStats() {
-    // TODO: 从用户状态获取真实用户ID
-    const userId = 'default_user';
+  void _loadStats() async {
+    // 检查登录状态
+    final authProvider = context.read<AuthProvider>();
+    if (!authProvider.isAuthenticated) {
+      final shouldLogin = await LoginRequiredDialog.show(
+        context,
+        featureName: AppStrings().stats.featureName,
+      );
+      if (shouldLogin != true && mounted) {
+        // 用户选择不登录，返回上一页
+        Navigator.of(context).pop();
+      }
+      return;
+    }
+    
+    // 使用登录用户的ID
+    final userId = authProvider.currentUser?.userId ?? 'default_user';
     context.read<StatsProvider>().loadStats(userId);
   }
 
@@ -58,7 +75,7 @@ class _StatsPageState extends State<StatsPage>
       backgroundColor: const Color(0xFFF8F7FC),
       appBar: AppBar(
         title: Text(
-          '求职数据',
+          AppStrings().stats.title,
           style: AppTypography.headingSmall.copyWith(
             color: AppColors.primary,
           ),
@@ -121,15 +138,15 @@ class _StatsPageState extends State<StatsPage>
           ),
           const SizedBox(height: 16),
           Text(
-            '加载失败',
-            style: AppTypography.bodyMedium.copyWith(
+              AppStrings().stats.loadFailed,
+              style: AppTypography.bodyMedium.copyWith(
               color: AppColors.mutedForeground,
             ),
           ),
           const SizedBox(height: 8),
           TextButton(
             onPressed: _loadStats,
-            child: const Text('重试'),
+            child: Text(AppStrings().common.retry),
           ),
         ],
       ),
@@ -143,14 +160,17 @@ class _StatsPageState extends State<StatsPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '求职数据',
+          AppStrings().stats.weeklyTitle,
           style: AppTypography.headingSmall.copyWith(
             color: const Color(0xFF3A3A5A),
           ),
         ),
         const SizedBox(height: 4),
         Text(
-          '本周已投递 $weeklySubmissions 份简历',
+          AppStrings().getStringWithParams(
+            AppStrings().stats.weeklySubtitle,
+            {'count': weeklySubmissions.toString()}
+          ),
           style: AppTypography.bodyMedium.copyWith(
             color: AppColors.mutedForeground,
           ),
@@ -171,30 +191,30 @@ class _StatsPageState extends State<StatsPage>
       children: [
         StatCard(
           icon: Icons.send_outlined,
-          label: '本周投递',
+          label: AppStrings().stats.weeklySubmissions,
           value: stats?.weeklySubmissions ?? 0,
           change: _calculateChange(stats?.weeklySubmissions ?? 0),
           color: const Color(0xFF6450C8),
         ),
         StatCard(
           icon: Icons.visibility_outlined,
-          label: '被查看',
+          label: AppStrings().stats.viewed,
           value: stats?.weeklyViews ?? 0,
           change: _calculateChange(stats?.weeklyViews ?? 0),
           color: const Color(0xFF50A0C8),
         ),
         StatCard(
           icon: Icons.favorite_outline,
-          label: '感兴趣',
+          label: AppStrings().stats.interested,
           value: stats?.weeklyInterests ?? 0,
-          change: '持平',
+          change: AppStrings().stats.unchanged,
           color: const Color(0xFFC85078),
         ),
         StatCard(
           icon: Icons.chat_bubble_outline,
-          label: '面试邀约',
+          label: AppStrings().stats.interviewInvites,
           value: stats?.weeklyInterviews ?? 0,
-          change: (stats?.weeklyInterviews ?? 0) > 0 ? '新增' : '暂无',
+          change: (stats?.weeklyInterviews ?? 0) > 0 ? AppStrings().stats.newAdd : AppStrings().stats.none,
           color: const Color(0xFF50C880),
         ),
       ],
@@ -203,7 +223,7 @@ class _StatsPageState extends State<StatsPage>
 
   /// 计算变化百分比
   String _calculateChange(int value) {
-    if (value == 0) return '暂无';
+    if (value == 0) return AppStrings().stats.none;
     if (value > 10) return '+${(value * 0.1).toStringAsFixed(0)}%';
     return '+$value';
   }
@@ -217,14 +237,15 @@ class _StatsPageState extends State<StatsPage>
     
     // 如果没有数据，显示默认数据
     if (chartData.isEmpty) {
+      final statsStrings = AppStrings().stats;
       chartData.addAll([
-        {'day': '周一', 'submissions': 0},
-        {'day': '周二', 'submissions': 0},
-        {'day': '周三', 'submissions': 0},
-        {'day': '周四', 'submissions': 0},
-        {'day': '周五', 'submissions': 0},
-        {'day': '周六', 'submissions': 0},
-        {'day': '周日', 'submissions': 0},
+        {'day': statsStrings.dayMon, 'submissions': 0},
+        {'day': statsStrings.dayTue, 'submissions': 0},
+        {'day': statsStrings.dayWed, 'submissions': 0},
+        {'day': statsStrings.dayThu, 'submissions': 0},
+        {'day': statsStrings.dayFri, 'submissions': 0},
+        {'day': statsStrings.daySat, 'submissions': 0},
+        {'day': statsStrings.daySun, 'submissions': 0},
       ]);
     }
     
@@ -234,7 +255,7 @@ class _StatsPageState extends State<StatsPage>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '本周投递趋势',
+            AppStrings().stats.weeklyTrend,
             style: AppTypography.labelMedium.copyWith(
               color: const Color(0xFF3A3A5A),
             ),
@@ -254,7 +275,7 @@ class _StatsPageState extends State<StatsPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '成就徽章',
+          AppStrings().stats.achievementBadges,
           style: AppTypography.labelMedium.copyWith(
             color: const Color(0xFF3A3A5A),
           ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/theme.dart';
+import '../../../core/services/app_strings.dart';
 import '../providers/notification_provider.dart';
 import '../data/models/notification_settings.dart';
 
@@ -166,12 +167,12 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
 
       // 显示成功提示
       if (mounted) {
-        _showSnackBar('设置已保存');
+        _showSnackBar(AppStrings().common.success);
       }
     } catch (e) {
       debugPrint('保存设置失败: $e');
       if (mounted) {
-        _showSnackBar('保存失败，请重试');
+        _showSnackBar(AppStrings().errors.saveFailed);
       }
     } finally {
       if (mounted) {
@@ -363,7 +364,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
               Expanded(
                 child: Center(
                   child: Text(
-                    '通知设置',
+                    AppStrings().settings.notificationSettings,
                     style: AppTypography.headingSmall.copyWith(
                       color: AppColors.primary,
                       fontWeight: FontWeight.w600,
@@ -419,7 +420,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '推送通知',
+                    AppStrings().notifications.pushNotification,
                     style: AppTypography.labelLarge.copyWith(
                       color: AppColors.primary,
                       fontWeight: FontWeight.w600,
@@ -427,7 +428,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '接收应用推送通知',
+                    AppStrings().notifications.pushNotificationDesc,
                     style: AppTypography.bodySmall.copyWith(
                       color: AppColors.mutedForeground,
                     ),
@@ -467,7 +468,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 12),
           child: Text(
-            '通知类型',
+            AppStrings().notifications.notificationTypes,
             style: AppTypography.labelMedium.copyWith(
               color: AppColors.mutedForeground,
               fontWeight: FontWeight.w600,
@@ -491,42 +492,42 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
             children: [
               _buildNotificationTypeItem(
                 icon: Icons.work_outline,
-                title: '面试提醒',
+                title: AppStrings().notifications.interviewReminder,
                 value: _interviewEnabled,
                 onChanged: (value) => _handleNotificationTypeChanged('interview', value),
                 showDivider: true,
               ),
               _buildNotificationTypeItem(
                 icon: Icons.send_outlined,
-                title: '投递状态更新',
+                title: AppStrings().notifications.jobStatusUpdate,
                 value: _jobStatusEnabled,
                 onChanged: (value) => _handleNotificationTypeChanged('jobStatus', value),
                 showDivider: true,
               ),
               _buildNotificationTypeItem(
                 icon: Icons.article_outlined,
-                title: '专栏更新',
+                title: AppStrings().notifications.columnUpdate,
                 value: _columnUpdateEnabled,
                 onChanged: (value) => _handleNotificationTypeChanged('columnUpdate', value),
                 showDivider: true,
               ),
               _buildNotificationTypeItem(
                 icon: Icons.card_membership_outlined,
-                title: 'VIP到期提醒',
+                title: AppStrings().notifications.vipExpireReminder,
                 value: _vipExpireEnabled,
                 onChanged: (value) => _handleNotificationTypeChanged('vipExpire', value),
                 showDivider: true,
               ),
               _buildNotificationTypeItem(
                 icon: Icons.event_outlined,
-                title: '活动通知',
+                title: AppStrings().notifications.activityNotification,
                 value: _activityEnabled,
                 onChanged: (value) => _handleNotificationTypeChanged('activity', value),
                 showDivider: true,
               ),
               _buildNotificationTypeItem(
                 icon: Icons.campaign_outlined,
-                title: '系统公告',
+                title: AppStrings().notifications.systemAnnouncement,
                 value: _systemEnabled,
                 onChanged: (value) => _handleNotificationTypeChanged('system', value),
                 showDivider: false,
@@ -608,7 +609,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 12),
           child: Text(
-            '免打扰时段',
+            AppStrings().notifications.quietHours,
             style: AppTypography.labelMedium.copyWith(
               color: AppColors.mutedForeground,
               fontWeight: FontWeight.w600,
@@ -643,7 +644,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: Text(
-                        '开启免打扰',
+                        AppStrings().notifications.enableQuietHours,
                         style: AppTypography.labelMedium.copyWith(
                           color: AppColors.primary,
                         ),

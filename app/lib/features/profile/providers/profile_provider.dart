@@ -104,6 +104,17 @@ class ProfileProvider extends ChangeNotifier {
     await loadUserData(userId: userId);
   }
 
+  /// 清空用户数据（退出登录时调用）
+  void clearUserData() {
+    _userProfile = null;
+    _submissionCount = 0;
+    _interviewCount = 0;
+    _offerCount = 0;
+    _errorMessage = null;
+    _isLoading = false;
+    notifyListeners();
+  }
+
   /// 更新用户资料
   /// [userName] 用户名
   /// [jobIntention] 求职意向

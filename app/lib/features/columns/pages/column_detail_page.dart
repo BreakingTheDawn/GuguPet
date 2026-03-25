@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/services/app_strings.dart';
 import '../providers/column_provider.dart';
 import '../widgets/rich_text_viewer.dart';
 
@@ -126,7 +127,7 @@ class _ColumnDetailPageState extends State<ColumnDetailPage> {
               // 标题
               Expanded(
                 child: Text(
-                  '专栏详情',
+                  AppStrings().columns.title,
                   style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w600,
@@ -314,7 +315,7 @@ class _ColumnDetailPageState extends State<ColumnDetailPage> {
   /// 构建价格标签
   Widget _buildPriceTag(dynamic content) {
     final price = content.price;
-    final priceText = price == 0 ? '免费' : '¥${price.toStringAsFixed(1)}';
+    final priceText = price == 0 ? AppStrings().columns.free : '¥${price.toStringAsFixed(1)}';
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -393,14 +394,14 @@ class _ColumnDetailPageState extends State<ColumnDetailPage> {
   /// 构建预览内容的HTML
   String _buildPreviewHtml(List<String> previewContent) {
     final buffer = StringBuffer();
-    buffer.write('<h2>📌 内容预览</h2>');
+    buffer.write('<h2>📌 ${AppStrings().columns.contentPreview}</h2>');
 
     for (final item in previewContent) {
       buffer.write('<p>$item</p>');
     }
 
     buffer.write(
-        '<p style="color: #8A6A40; font-style: italic;">购买后可查看完整内容...</p>');
+        '<p style="color: #8A6A40; font-style: italic;">${AppStrings().columns.previewHint}</p>');
 
     return buffer.toString();
   }
@@ -428,7 +429,7 @@ class _ColumnDetailPageState extends State<ColumnDetailPage> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              '购买后可查看完整内容',
+              AppStrings().columns.purchaseHint,
               style: TextStyle(
                 fontSize: 14,
                 color: AppColors.archiveAccentDark,
@@ -469,7 +470,7 @@ class _ColumnDetailPageState extends State<ColumnDetailPage> {
           ),
           const SizedBox(height: 12),
           Text(
-            '解锁完整内容',
+            AppStrings().columns.unlockContent,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
@@ -478,7 +479,7 @@ class _ColumnDetailPageState extends State<ColumnDetailPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            '购买专栏后即可查看所有内容',
+            AppStrings().columns.unlockHint,
             style: TextStyle(
               fontSize: 14,
               color: AppColors.archiveTextMuted,
@@ -543,7 +544,7 @@ class _ColumnDetailPageState extends State<ColumnDetailPage> {
             // 已购买，可以滚动阅读
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: const Text('继续阅读专栏内容'),
+                content: Text(AppStrings().columns.continueReading),
                 backgroundColor: AppColors.archiveAccent,
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(
@@ -564,7 +565,7 @@ class _ColumnDetailPageState extends State<ColumnDetailPage> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '继续阅读',
+                  AppStrings().columns.continueReading,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -599,7 +600,7 @@ class _ColumnDetailPageState extends State<ColumnDetailPage> {
                 ),
               ),
               Text(
-                '单篇购买',
+                AppStrings().columns.singlePurchase,
                 style: TextStyle(
                   fontSize: 12,
                   color: AppColors.archiveTextMuted,
@@ -659,9 +660,9 @@ class _ColumnDetailPageState extends State<ColumnDetailPage> {
                         color: Colors.white,
                       ),
                       const SizedBox(width: 8),
-                      const Text(
-                        '立即购买',
-                        style: TextStyle(
+                      Text(
+                        AppStrings().columns.buyNow,
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
@@ -691,7 +692,7 @@ class _ColumnDetailPageState extends State<ColumnDetailPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            '加载中...',
+            AppStrings().common.loading,
             style: TextStyle(
               fontSize: 14,
               color: AppColors.archiveTextMuted,
@@ -738,7 +739,7 @@ class _ColumnDetailPageState extends State<ColumnDetailPage> {
                   borderRadius: BorderRadius.circular(20),
                 ),
               ),
-              child: const Text('重试'),
+              child: Text(AppStrings().common.retry),
             ),
           ],
         ),
@@ -759,7 +760,7 @@ class _ColumnDetailPageState extends State<ColumnDetailPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            '专栏不存在',
+            AppStrings().columns.columnNotFound,
             style: TextStyle(
               fontSize: 16,
               color: AppColors.archiveTextMuted,
@@ -782,7 +783,7 @@ class _ColumnDetailPageState extends State<ColumnDetailPage> {
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('购买成功！'),
+            content: Text(AppStrings().columns.purchaseSuccess),
             backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -795,7 +796,10 @@ class _ColumnDetailPageState extends State<ColumnDetailPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('购买失败: $e'),
+            content: Text(AppStrings().getStringWithParams(
+              AppStrings().columns.purchaseFailed, 
+              {'reason': e.toString()}
+            )),
             backgroundColor: AppColors.destructive,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -815,7 +819,9 @@ class _ColumnDetailPageState extends State<ColumnDetailPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(isFavorited ? '已收藏' : '已取消收藏'),
+            content: Text(isFavorited 
+              ? AppStrings().columns.favorited 
+              : AppStrings().columns.unfavorited),
             backgroundColor: AppColors.archiveAccent,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -829,7 +835,10 @@ class _ColumnDetailPageState extends State<ColumnDetailPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('操作失败: $e'),
+            content: Text(AppStrings().getStringWithParams(
+              AppStrings().columns.operationFailed,
+              {'reason': e.toString()}
+            )),
             backgroundColor: AppColors.destructive,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -849,7 +858,10 @@ class _ColumnDetailPageState extends State<ColumnDetailPage> {
     // TODO: 实现分享功能
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('分享: ${content.title}'),
+        content: Text(AppStrings().getStringWithParams(
+          AppStrings().columns.sharePrefix,
+          {'title': content.title}
+        )),
         backgroundColor: AppColors.archiveAccent,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(

@@ -317,9 +317,97 @@ GuguPet/
 
 **请合法合规使用本系统，共同维护良好的网络环境！**
 
+## 配置指南
+
+### 🔑 环境变量配置
+
+#### 爬虫系统配置
+
+1. 进入爬虫目录并复制配置模板：
+   ```bash
+   cd crawler
+   cp .env.example .env
+   ```
+
+2. 生成Cookie加密密钥：
+   ```bash
+   python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+   ```
+
+3. 编辑 `.env` 文件，填入生成的密钥：
+   ```
+   COOKIE_ENCRYPTION_KEY=你生成的密钥
+   COOKIE_ENCRYPTION_ENABLED=True
+   ```
+
+#### 首次登录爬虫系统
+
+在使用爬虫前，需要先手动登录各招聘网站以获取Cookie：
+
+```bash
+# 登录Boss直聘
+python login.py boss
+
+# 登录智联招聘
+python login.py zhilian
+
+# 登录前程无忧
+python login.py qiancheng
+```
+
+登录流程：
+1. 运行命令后会自动打开浏览器
+2. 在浏览器中完成扫码或账号密码登录
+3. 登录成功后，回到终端按回车键保存Cookie
+4. Cookie会加密保存到 `cookies/` 目录
+
+### 🤖 LLM API 配置
+
+倾诉功能需要配置大语言模型API。目前支持OpenAI兼容的API接口：
+
+1. 在 `app/lib/core/services/llm_config.dart` 中配置：
+   ```dart
+   class LLMConfig {
+     // API端点（支持OpenAI、Azure、本地模型等）
+     static const String endpoint = 'https://api.openai.com/v1/chat/completions';
+     
+     // 模型名称
+     static const String model = 'gpt-3.5-turbo';
+     
+     // API密钥（建议从环境变量或安全存储读取）
+     static String? apiKey;
+   }
+   ```
+
+2. 支持的API提供商：
+   - OpenAI (官方API)
+   - Azure OpenAI
+   - 本地部署的模型（如Ollama）
+   - 其他OpenAI兼容的API服务
+
+### 📊 数据同步
+
+爬虫采集的职位数据需要同步到App才能查看：
+
+```bash
+# 同步所有平台数据到App
+python sync_to_app.py
+
+# 同步特定平台数据
+python sync_to_app.py boss
+
+# 同步并清空旧数据
+python sync_to_app.py --clear
+```
+
+同步流程说明：
+- 爬虫数据存储在 `crawler/output/jobs.db`
+- 同步后数据会复制到 `app/assets/data/jobs.db`
+- App启动时会读取该数据库展示职位信息
+
 ## 更新日志
 
-### v1.2.0 (2026-03-24)
+### Beta v0.3.0 (2026-03-24)
 
 - ✅ 爬虫系统安全增强完成
   - IP代理池：支持HTTP/HTTPS/SOCKS5代理，自动切换和失效检测
@@ -333,7 +421,7 @@ GuguPet/
 - 新增模块：proxy\_pool, secure\_storage, captcha\_handler, robots\_checker, rate\_limiter, alerter
 - 更新设计文档：添加安全增强章节
 
-### v1.1.0 (2026-03-24)
+### Beta v0.2.0 (2026-03-24)
 
 - ✅ 阶段一完成：基础功能完善 (100%)
   - 数据层建设：SQLite + DAO + 数据迁移
@@ -345,7 +433,7 @@ GuguPet/
 - 新增依赖：flutter\_html, flutter\_local\_notifications, timezone
 - 修复多项代码问题和警告
 
-### v1.0.0 (2026-03-19)
+### Beta v0.1.0 (2026-03-19)
 
 - 初始版本发布
 - 完成Flutter应用端核心功能

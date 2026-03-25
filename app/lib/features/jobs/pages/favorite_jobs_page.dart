@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/theme.dart';
+import '../../../core/services/app_strings.dart';
 import '../../../data/models/favorite_job.dart';
 import '../providers/favorite_provider.dart';
 import '../pages/job_detail_page.dart';
@@ -47,7 +48,7 @@ class _FavoriteJobsPageState extends State<FavoriteJobsPage> {
         onPressed: () => Navigator.pop(context),
       ),
       title: Text(
-        '我的收藏',
+        AppStrings().favorites.title,
         style: AppTypography.labelMedium.copyWith(
           color: const Color(0xFF3A3A5A),
           fontWeight: FontWeight.w600,
@@ -110,7 +111,7 @@ class _FavoriteJobsPageState extends State<FavoriteJobsPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            '加载失败',
+            AppStrings().common.loadFailed,
             style: AppTypography.labelMedium.copyWith(
               color: const Color(0xFF3A3A5A),
               fontWeight: FontWeight.w600,
@@ -128,7 +129,7 @@ class _FavoriteJobsPageState extends State<FavoriteJobsPage> {
           ElevatedButton.icon(
             onPressed: () => context.read<FavoriteProvider>().loadFavorites(),
             icon: const Icon(Icons.refresh, size: 18),
-            label: const Text('重新加载'),
+            label: Text(AppStrings().favorites.reload),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.indigo500,
               foregroundColor: Colors.white,
@@ -166,7 +167,7 @@ class _FavoriteJobsPageState extends State<FavoriteJobsPage> {
           const SizedBox(height: 24),
           // 提示文本
           Text(
-            '暂无收藏职位',
+            AppStrings().favorites.noFavorites,
             style: AppTypography.labelMedium.copyWith(
               color: const Color(0xFF3A3A5A),
               fontWeight: FontWeight.w600,
@@ -174,7 +175,7 @@ class _FavoriteJobsPageState extends State<FavoriteJobsPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            '去发现心仪职位吧',
+            AppStrings().favorites.goDiscover,
             style: AppTypography.bodyMedium.copyWith(
               color: AppColors.mutedForeground,
             ),
@@ -184,7 +185,7 @@ class _FavoriteJobsPageState extends State<FavoriteJobsPage> {
           ElevatedButton.icon(
             onPressed: () => Navigator.pop(context),
             icon: const Icon(Icons.explore_outlined, size: 18),
-            label: const Text('去发现'),
+            label: Text(AppStrings().favorites.goDiscoverButton),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.indigo500,
               foregroundColor: Colors.white,
@@ -228,7 +229,7 @@ class _FavoriteJobsPageState extends State<FavoriteJobsPage> {
                         children: [
                           // 职位标题
                           Text(
-                            favorite.jobTitle ?? '未知职位',
+                            favorite.jobTitle ?? AppStrings().favorites.unknownJob,
                             style: AppTypography.labelMedium.copyWith(
                               color: const Color(0xFF1A1A2E),
                               fontWeight: FontWeight.w600,
@@ -323,7 +324,7 @@ class _FavoriteJobsPageState extends State<FavoriteJobsPage> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        '收藏于 ${_formatDate(favorite.createdAt!)}',
+                        AppStrings().getStringWithParams(AppStrings().favorites.favoriteTime, {'time': _formatDate(favorite.createdAt!)}),
                         style: AppTypography.caption.copyWith(
                           color: Colors.grey[400],
                         ),
@@ -358,7 +359,7 @@ class _FavoriteJobsPageState extends State<FavoriteJobsPage> {
             ),
             const SizedBox(width: 4),
             Text(
-              '取消收藏',
+              AppStrings().favorites.removeFavorite,
               style: AppTypography.caption.copyWith(
                 color: const Color(0xFFE8605A),
                 fontWeight: FontWeight.w500,
@@ -407,7 +408,7 @@ class _FavoriteJobsPageState extends State<FavoriteJobsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              success ? '已取消收藏' : '操作失败',
+              success ? AppStrings().favorites.removed : AppStrings().favorites.operationFailed,
             ),
             duration: const Duration(seconds: 2),
             backgroundColor: success ? AppColors.success : AppColors.destructive,
@@ -426,20 +427,20 @@ class _FavoriteJobsPageState extends State<FavoriteJobsPage> {
           borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
         ),
         title: Text(
-          '取消收藏',
+          AppStrings().favorites.removeConfirm,
           style: AppTypography.labelMedium.copyWith(
             fontWeight: FontWeight.w600,
           ),
         ),
         content: Text(
-          '确定要取消收藏 "${favorite.jobTitle ?? '该职位'}" 吗？',
+          AppStrings().getStringWithParams(AppStrings().favorites.removeConfirmMessage, {'title': favorite.jobTitle ?? AppStrings().favorites.unknownJob}),
           style: AppTypography.bodyMedium,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
             child: Text(
-              '取消',
+              AppStrings().common.cancel,
               style: AppTypography.labelSmall.copyWith(
                 color: AppColors.mutedForeground,
               ),
@@ -454,7 +455,7 @@ class _FavoriteJobsPageState extends State<FavoriteJobsPage> {
                 borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
               ),
             ),
-            child: const Text('确定'),
+            child: Text(AppStrings().common.confirm),
           ),
         ],
       ),

@@ -15,6 +15,8 @@ class DatabaseMigration {
         return _version3;
       case 4:
         return _version4;
+      case 5:
+        return _version5;
       default:
         return null;
     }
@@ -466,6 +468,32 @@ class DatabaseMigration {
     // 公园互动记录表索引 - 按目标用户ID查询
     '''
     CREATE INDEX idx_park_interactions_target_id ON park_interactions (target_id)
+    ''',
+  ];
+
+  // ==================== 版本5迁移脚本 ====================
+
+  /// 版本5的迁移脚本
+  /// 为用户表添加账号密码字段，支持用户登录注册功能
+  static final List<String> _version5 = [
+    // 为用户表添加账号字段（唯一约束）
+    '''
+    ALTER TABLE users ADD COLUMN account TEXT
+    ''',
+    
+    // 为用户表添加密码字段（存储加密后的密码）
+    '''
+    ALTER TABLE users ADD COLUMN password TEXT
+    ''',
+    
+    // 为用户表添加登录状态字段
+    '''
+    ALTER TABLE users ADD COLUMN is_logged_in INTEGER DEFAULT 0
+    ''',
+    
+    // 创建账号索引，用于快速查询
+    '''
+    CREATE INDEX idx_users_account ON users (account)
     ''',
   ];
 }
