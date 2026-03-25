@@ -179,10 +179,10 @@ class _JobFilterBottomSheetState extends State<JobFilterBottomSheet> {
     );
   }
 
-  /// 构建薪资范围选项（多选）
+  /// 构建薪资范围选项(多选)
   Widget _buildSalaryOptions() {
     return _buildMultiSelectOptions(
-      options: JobFilterProvider.salaryOptions,
+      options: widget.filterProvider.salaryOptions,
       selectedOptions: _tempFilter.selectedSalaries,
       onToggle: (option) {
         setState(() {
@@ -192,10 +192,10 @@ class _JobFilterBottomSheetState extends State<JobFilterBottomSheet> {
     );
   }
 
-  /// 构建工作城市选项（多选）
+  /// 构建工作城市选项(多选)
   Widget _buildCityOptions() {
     return _buildMultiSelectOptions(
-      options: JobFilterProvider.cityOptions,
+      options: widget.filterProvider.cityOptions,
       selectedOptions: _tempFilter.selectedCities,
       onToggle: (option) {
         setState(() {
@@ -205,10 +205,10 @@ class _JobFilterBottomSheetState extends State<JobFilterBottomSheet> {
     );
   }
 
-  /// 构建工作经验选项（单选）
+  /// 构建工作经验选项(单选)
   Widget _buildExperienceOptions() {
     return _buildSingleSelectOptions(
-      options: JobFilterProvider.experienceOptions,
+      options: widget.filterProvider.experienceOptions,
       selectedOption: _tempFilter.selectedExperience,
       onSelect: (option) {
         setState(() {
@@ -218,10 +218,10 @@ class _JobFilterBottomSheetState extends State<JobFilterBottomSheet> {
     );
   }
 
-  /// 构建学历要求选项（单选）
+  /// 构建学历要求选项(单选)
   Widget _buildEducationOptions() {
     return _buildSingleSelectOptions(
-      options: JobFilterProvider.educationOptions,
+      options: widget.filterProvider.educationOptions,
       selectedOption: _tempFilter.selectedEducation,
       onSelect: (option) {
         setState(() {
@@ -231,10 +231,10 @@ class _JobFilterBottomSheetState extends State<JobFilterBottomSheet> {
     );
   }
 
-  /// 构建公司规模选项（单选）
+  /// 构建公司规模选项(单选)
   Widget _buildCompanySizeOptions() {
     return _buildSingleSelectOptions(
-      options: JobFilterProvider.companySizeOptions,
+      options: widget.filterProvider.companySizeOptions,
       selectedOption: _tempFilter.selectedCompanySize,
       onSelect: (option) {
         setState(() {
@@ -244,10 +244,10 @@ class _JobFilterBottomSheetState extends State<JobFilterBottomSheet> {
     );
   }
 
-  /// 构建融资阶段选项（单选）
+  /// 构建融资阶段选项(单选)
   Widget _buildFundingStageOptions() {
     return _buildSingleSelectOptions(
-      options: JobFilterProvider.fundingStageOptions,
+      options: widget.filterProvider.fundingStageOptions,
       selectedOption: _tempFilter.selectedFundingStage,
       onSelect: (option) {
         setState(() {

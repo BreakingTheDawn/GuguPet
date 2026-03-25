@@ -1,76 +1,30 @@
 import 'package:flutter/foundation.dart';
+import '../../../core/services/business_config_service.dart';
 
 /// 职位筛选状态管理
 /// 负责管理职位筛选条件、筛选结果和状态
 class JobFilterProvider extends ChangeNotifier {
   // ═══════════════════════════════════════════════════════════
-  // 筛选选项常量定义
+  // 筛选选项（从配置文件加载）
   // ═══════════════════════════════════════════════════════════
 
   /// 薪资范围选项
-  static const List<String> salaryOptions = [
-    '面议',
-    '5k以下',
-    '5-10k',
-    '10-15k',
-    '15-20k',
-    '20-30k',
-    '30k以上',
-  ];
+  List<String> get salaryOptions => BusinessConfigService().jobFilters.salaries;
 
   /// 工作城市选项
-  static const List<String> cityOptions = [
-    '北京',
-    '上海',
-    '广州',
-    '深圳',
-    '杭州',
-    '成都',
-    '武汉',
-    '西安',
-    '南京',
-    '苏州',
-  ];
+  List<String> get cityOptions => BusinessConfigService().jobFilters.cities;
 
   /// 工作经验选项
-  static const List<String> experienceOptions = [
-    '不限',
-    '应届生',
-    '1-3年',
-    '3-5年',
-    '5-10年',
-    '10年以上',
-  ];
+  List<String> get experienceOptions => BusinessConfigService().jobFilters.experiences;
 
   /// 学历要求选项
-  static const List<String> educationOptions = [
-    '不限',
-    '大专',
-    '本科',
-    '硕士',
-    '博士',
-  ];
+  List<String> get educationOptions => BusinessConfigService().jobFilters.educations;
 
   /// 公司规模选项
-  static const List<String> companySizeOptions = [
-    '不限',
-    '0-20人',
-    '20-99人',
-    '100-499人',
-    '500-999人',
-    '1000人以上',
-  ];
+  List<String> get companySizeOptions => BusinessConfigService().jobFilters.companySizes;
 
   /// 融资阶段选项
-  static const List<String> fundingStageOptions = [
-    '不限',
-    '未融资',
-    '天使轮',
-    'A轮',
-    'B轮',
-    'C轮',
-    '已上市',
-  ];
+  List<String> get fundingStageOptions => BusinessConfigService().jobFilters.fundingStages;
 
   // ═══════════════════════════════════════════════════════════
   // 状态变量

@@ -55,5 +55,12 @@ class AppStrings extends ConfigService<UIStringsConfig> {
   }
   
   /// 检查服务是否已初始化
-  static bool get isInitialized => _instance._cachedConfig != null;
+  static bool get isInitialized {
+    try {
+      _instance.cachedConfig;
+      return true;
+    } catch (StateError) {
+      return false;
+    }
+  }
 }
