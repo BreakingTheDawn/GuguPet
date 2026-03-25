@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/theme.dart';
+import '../../../data/models/job.dart';
 import '../widgets/job_card.dart';
 import '../widgets/job_filter_bottom_sheet.dart';
 import '../providers/job_filter_provider.dart';
+import '../providers/jobs_provider.dart';
 
+/// 求职看板页面
+/// 展示职位列表，支持搜索、筛选、投递和收藏功能
 class JobsPage extends StatefulWidget {
   const JobsPage({super.key});
 
@@ -13,70 +18,31 @@ class JobsPage extends StatefulWidget {
 }
 
 class _JobsPageState extends State<JobsPage> {
+  // 搜索控制器
   final _searchController = TextEditingController();
-  String _searchText = '';
-  int _selectedCategory = 0;
-
-  /// 筛选状态Provider
+  
+  // 筛选状态Provider
   late final JobFilterProvider _filterProvider;
 
+  // 分类选项
   static const _categories = ['全部', '设计', '技术', '产品', '运营', '数据'];
-
-  static const _jobs = [
-    {
-      'id': 1, 'title': 'UI设计师', 'salary': '15k-20k', 'company': '某创意科技有限公司',
-      'location': '上海·静安区', 'tags': ['双休', '五险一金', '扁平管理'],
-      'isNew': true, 'isUrgent': false, 'salaryColor': Color(0xFFE8805A), 'posted': '1小时前',
-      'desc': '负责公司核心产品的视觉设计，包括移动端App、Web端界面设计，参与品牌视觉规范制定。',
-    },
-    {
-      'id': 2, 'title': '产品经理', 'salary': '18k-25k', 'company': '某知名互联网大厂',
-      'location': '北京·朝阳区', 'tags': ['六险一金', '期权激励', '免费三餐'],
-      'isNew': false, 'isUrgent': true, 'salaryColor': Color(0xFF5A8AE8), 'posted': '3小时前',
-      'desc': '主导2C产品从0到1的设计规划，深入分析用户需求，驱动产品功能迭代优化。',
-    },
-    {
-      'id': 3, 'title': '前端工程师', 'salary': '20k-30k', 'company': '某头部电商平台',
-      'location': '杭州·余杭区', 'tags': ['双休', '五险一金', '弹性工作'],
-      'isNew': true, 'isUrgent': false, 'salaryColor': Color(0xFF5ABE8A), 'posted': '5小时前',
-      'desc': '负责核心业务前端研发，技术栈React/TypeScript，参与架构设计。',
-    },
-    {
-      'id': 4, 'title': '品牌运营专员', 'salary': '8k-12k', 'company': '某新消费品牌',
-      'location': '广州·天河区', 'tags': ['双休', '五险一金', '餐补'],
-      'isNew': false, 'isUrgent': false, 'salaryColor': Color(0xFFC87ACA), 'posted': '昨天',
-      'desc': '负责品牌社媒运营，包括小红书、微博、微信公众号等平台内容策划与发布。',
-    },
-    {
-      'id': 5, 'title': '数据分析师', 'salary': '15k-22k', 'company': '某头部本地生活平台',
-      'location': '北京·海淀区', 'tags': ['双休', '年终奖', '补充医疗'],
-      'isNew': false, 'isUrgent': true, 'salaryColor': Color(0xFFE8C03A), 'posted': '昨天',
-      'desc': '负责业务数据的统计分析，搭建数据指标体系，输出数据报告。',
-    },
-  ];
-
-  List<Map<String, dynamic>> get _filteredJobs {
-    var jobs = _jobs;
-    
-    // 应用搜索过滤
-    if (_searchText.isNotEmpty) {
-      jobs = jobs.where((job) {
-        return job['title'].toString().contains(_searchText) ||
-            job['company'].toString().contains(_searchText) ||
-            (job['tags'] as List).any((tag) => tag.toString().contains(_searchText));
-      }).toList();
-    }
-    
-    // 应用高级筛选
-    jobs = jobs.where((job) => _filterProvider.matchesFilter(job)).toList();
-    
-    return jobs;
-  }
 
   @override
   void initState() {
     super.initState();
     _filterProvider = JobFilterProvider();
+    
+    // 页面加载后获取职位数据
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadJobs();
+    });
+  }
+
+  /// 加载职位列表
+  void _loadJobs() {
+    // TODO: 从用户状态获取真实用户ID
+    const userId = 'default_user';
+    context.read<JobsProvider>().loadJobs(userId);
   }
 
   @override
@@ -90,18 +56,18 @@ class _JobsPageState extends State<JobsPage> {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(
       value: _filterProvider,
-      child: Consumer<JobFilterProvider>(
-        builder: (context, filter, child) {
+      child: Consumer2<JobsProvider, JobFilterProvider>(
+        builder: (context, jobsProvider, filterProvider, child) {
           return Container(
             color: const Color(0xFFF5F5F8),
             child: Column(
               children: [
-                _buildHeader(),
-                _buildSearchBar(),
-                _buildCategories(),
+                _buildHeader(jobsProvider),
+                _buildSearchBar(filterProvider),
+                _buildCategories(jobsProvider),
                 // 显示筛选标签
-                if (filter.hasAnyFilter) _buildFilterTags(filter),
-                Expanded(child: _buildJobList()),
+                if (filterProvider.hasAnyFilter) _buildFilterTags(filterProvider),
+                Expanded(child: _buildJobList(jobsProvider, filterProvider)),
               ],
             ),
           );
@@ -110,7 +76,8 @@ class _JobsPageState extends State<JobsPage> {
     );
   }
 
-  Widget _buildHeader() {
+  /// 构建页面标题
+  Widget _buildHeader(JobsProvider provider) {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 48, 20, 16),
       decoration: BoxDecoration(
@@ -146,7 +113,7 @@ class _JobsPageState extends State<JobsPage> {
                       borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
                     ),
                     child: Text(
-                      '${_jobs.where((j) => j['isNew'] == true).length} 个',
+                      '${provider.newJobsCount} 个',
                       style: AppTypography.caption.copyWith(
                         color: const Color(0xFF6450C8),
                         fontWeight: FontWeight.w600,
@@ -176,7 +143,7 @@ class _JobsPageState extends State<JobsPage> {
   }
 
   /// 构建搜索栏（带筛选按钮）
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(JobFilterProvider filterProvider) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: Row(
@@ -191,7 +158,9 @@ class _JobsPageState extends State<JobsPage> {
               ),
               child: TextField(
                 controller: _searchController,
-                onChanged: (value) => setState(() => _searchText = value),
+                onChanged: (value) {
+                  context.read<JobsProvider>().search(value);
+                },
                 decoration: InputDecoration(
                   hintText: '搜索职位、公司、标签...',
                   hintStyle: AppTypography.bodyMedium.copyWith(
@@ -207,12 +176,12 @@ class _JobsPageState extends State<JobsPage> {
           const SizedBox(width: 12),
           // 筛选按钮
           GestureDetector(
-            onTap: _showFilterSheet,
+            onTap: () => _showFilterSheet(filterProvider),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: _filterProvider.hasAnyFilter 
+                color: filterProvider.hasAnyFilter 
                     ? AppColors.indigo500 
                     : Colors.white,
                 borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
@@ -223,19 +192,19 @@ class _JobsPageState extends State<JobsPage> {
                   Icon(
                     Icons.tune,
                     size: 20,
-                    color: _filterProvider.hasAnyFilter 
+                    color: filterProvider.hasAnyFilter 
                         ? Colors.white 
                         : const Color(0xFF5A5A7A),
                   ),
                   // 筛选数量指示器
-                  if (_filterProvider.filterCount > 0)
+                  if (filterProvider.filterCount > 0)
                     Positioned(
                       right: 0,
                       top: 0,
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
-                          color: _filterProvider.hasAnyFilter 
+                          color: filterProvider.hasAnyFilter 
                               ? Colors.white 
                               : AppColors.indigo500,
                           shape: BoxShape.circle,
@@ -245,9 +214,9 @@ class _JobsPageState extends State<JobsPage> {
                           minHeight: 16,
                         ),
                         child: Text(
-                          '${_filterProvider.filterCount}',
+                          '${filterProvider.filterCount}',
                           style: AppTypography.caption.copyWith(
-                            color: _filterProvider.hasAnyFilter 
+                            color: filterProvider.hasAnyFilter 
                                 ? AppColors.indigo500 
                                 : Colors.white,
                             fontSize: 10,
@@ -267,19 +236,19 @@ class _JobsPageState extends State<JobsPage> {
   }
 
   /// 构建筛选标签区域
-  Widget _buildFilterTags(JobFilterProvider filter) {
+  Widget _buildFilterTags(JobFilterProvider filterProvider) {
     return Container(
       height: 40,
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: filter.activeFilterTags.length + 1, // +1 为清除全部按钮
+        itemCount: filterProvider.activeFilterTags.length + 1, // +1 为清除全部按钮
         itemBuilder: (context, index) {
           // 清除全部按钮
-          if (index == filter.activeFilterTags.length) {
+          if (index == filterProvider.activeFilterTags.length) {
             return GestureDetector(
-              onTap: () => setState(() => filter.resetAll()),
+              onTap: () => setState(() => filterProvider.resetAll()),
               child: Container(
                 margin: const EdgeInsets.only(left: 8),
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -309,9 +278,9 @@ class _JobsPageState extends State<JobsPage> {
           }
           
           // 筛选标签
-          final tag = filter.activeFilterTags[index];
+          final tag = filterProvider.activeFilterTags[index];
           return GestureDetector(
-            onTap: () => setState(() => filter.removeFilterTag(tag)),
+            onTap: () => setState(() => filterProvider.removeFilterTag(tag)),
             child: Container(
               margin: const EdgeInsets.only(right: 8),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -348,17 +317,18 @@ class _JobsPageState extends State<JobsPage> {
   }
 
   /// 显示筛选弹窗
-  void _showFilterSheet() {
+  void _showFilterSheet(JobFilterProvider filterProvider) {
     JobFilterBottomSheet.show(
       context: context,
-      filterProvider: _filterProvider,
+      filterProvider: filterProvider,
       onConfirm: () {
         setState(() {});
       },
     );
   }
 
-  Widget _buildCategories() {
+  /// 构建分类选择器
+  Widget _buildCategories(JobsProvider provider) {
     return Container(
       height: 44,
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -367,9 +337,9 @@ class _JobsPageState extends State<JobsPage> {
         padding: const EdgeInsets.symmetric(horizontal: 20),
         itemCount: _categories.length,
         itemBuilder: (context, index) {
-          final isSelected = index == _selectedCategory;
+          final isSelected = _categories[index] == provider.selectedCategory;
           return GestureDetector(
-            onTap: () => setState(() => _selectedCategory = index),
+            onTap: () => provider.selectCategory(_categories[index]),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               margin: const EdgeInsets.only(right: 10),
@@ -393,21 +363,73 @@ class _JobsPageState extends State<JobsPage> {
     );
   }
 
-  Widget _buildJobList() {
+  /// 构建职位列表
+  Widget _buildJobList(JobsProvider provider, JobFilterProvider filterProvider) {
+    // 加载中状态
+    if (provider.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    
+    // 错误状态
+    if (provider.error != null) {
+      return _buildErrorState(provider.error!);
+    }
+    
+    // 空状态
+    if (provider.jobs.isEmpty) {
+      return _buildEmptyState();
+    }
+
+    // 应用高级筛选
+    var filteredJobs = provider.jobs.where((job) {
+      return filterProvider.matchesFilter(job.toCardMap());
+    }).toList();
+
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
-      itemCount: _filteredJobs.length,
+      itemCount: filteredJobs.length,
       itemBuilder: (context, index) {
-        final job = _filteredJobs[index];
+        final job = filteredJobs[index];
         return JobCard(
-          job: job,
-          onTap: () => _showJobDetail(job),
+          job: job.toCardMap(),
+          onTap: () => _showJobDetail(job, provider),
         );
       },
     );
   }
 
-  void _showJobDetail(Map<String, dynamic> job) {
+  /// 构建错误状态
+  Widget _buildErrorState(String error) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline, size: 64, color: AppColors.mutedForeground),
+          const SizedBox(height: 16),
+          Text('加载失败', style: AppTypography.bodyMedium.copyWith(color: AppColors.mutedForeground)),
+          const SizedBox(height: 8),
+          TextButton(onPressed: _loadJobs, child: const Text('重试')),
+        ],
+      ),
+    );
+  }
+
+  /// 构建空状态
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.work_off_outlined, size: 64, color: AppColors.mutedForeground),
+          const SizedBox(height: 16),
+          Text('暂无职位', style: AppTypography.bodyMedium.copyWith(color: AppColors.mutedForeground)),
+        ],
+      ),
+    );
+  }
+
+  /// 显示职位详情
+  void _showJobDetail(Job job, JobsProvider provider) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -428,6 +450,7 @@ class _JobsPageState extends State<JobsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // 拖动指示器
                   Center(
                     child: Container(
                       width: 40,
@@ -439,48 +462,67 @@ class _JobsPageState extends State<JobsPage> {
                     ),
                   ),
                   const SizedBox(height: 24),
+                  // 职位标题和薪资
                   Row(
                     children: [
                       Expanded(
                         child: Text(
-                          job['title'] as String,
+                          job.title,
                           style: AppTypography.headingSmall,
                         ),
                       ),
                       Text(
-                        job['salary'] as String,
+                        job.salary,
                         style: AppTypography.headingSmall.copyWith(
-                          color: job['salaryColor'] as Color,
+                          color: const Color(0xFFE8805A),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
+                  // 公司名称
                   Text(
-                    job['company'] as String,
+                    job.company,
                     style: AppTypography.bodyMedium.copyWith(
                       color: AppColors.mutedForeground,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: (job['tags'] as List).map<Widget>((tag) {
-                      return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF5F5F8),
-                          borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                  const SizedBox(height: 8),
+                  // 工作地点
+                  Row(
+                    children: [
+                      Icon(Icons.location_on_outlined, size: 16, color: AppColors.mutedForeground),
+                      const SizedBox(width: 4),
+                      Text(
+                        job.location,
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.mutedForeground,
                         ),
-                        child: Text(
-                          tag as String,
-                          style: AppTypography.caption,
-                        ),
-                      );
-                    }).toList(),
+                      ),
+                    ],
                   ),
+                  const SizedBox(height: 16),
+                  // 标签
+                  if (job.tags != null && job.tags!.isNotEmpty)
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: job.tags!.map<Widget>((tag) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF5F5F8),
+                            borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                          ),
+                          child: Text(
+                            tag,
+                            style: AppTypography.caption,
+                          ),
+                        );
+                      }).toList(),
+                    ),
                   const SizedBox(height: 24),
+                  // 职位描述
                   Text(
                     '职位描述',
                     style: AppTypography.labelMedium.copyWith(
@@ -489,36 +531,74 @@ class _JobsPageState extends State<JobsPage> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    job['desc'] as String,
+                    job.description ?? '暂无职位描述',
                     style: AppTypography.bodyMedium.copyWith(
                       color: AppColors.mutedForeground,
                       height: 1.6,
                     ),
                   ),
                   const SizedBox(height: 32),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('已投递 ${job['title']}'),
-                            duration: const Duration(seconds: 2),
+                  // 操作按钮
+                  Row(
+                    children: [
+                      // 收藏按钮
+                      GestureDetector(
+                        onTap: () => _handleToggleFavorite(job, provider),
+                        child: Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: provider.isFavorited(job.id) 
+                                ? const Color(0xFFE8805A).withValues(alpha: 0.1)
+                                : const Color(0xFFF5F5F8),
+                            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
                           ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF6450C8),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                          child: Icon(
+                            provider.isFavorited(job.id) ? Icons.favorite : Icons.favorite_border,
+                            color: provider.isFavorited(job.id) 
+                                ? const Color(0xFFE8805A)
+                                : AppColors.mutedForeground,
+                          ),
                         ),
                       ),
-                      child: const Text('立即投递'),
-                    ),
+                      const SizedBox(width: 12),
+                      // 投递按钮
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => _handleSubmit(job, provider),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF6450C8),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                            ),
+                          ),
+                          child: const Text('立即投递'),
+                        ),
+                      ),
+                    ],
                   ),
+                  // 查看原链接按钮
+                  if (job.sourceUrl != null && job.sourceUrl!.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: () => _openSourceUrl(job.sourceUrl!),
+                          icon: const Icon(Icons.open_in_new, size: 18),
+                          label: const Text('在Boss直聘查看'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF6450C8),
+                            side: const BorderSide(color: Color(0xFF6450C8)),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -526,5 +606,54 @@ class _JobsPageState extends State<JobsPage> {
         },
       ),
     );
+  }
+
+  /// 处理投递
+  void _handleSubmit(Job job, JobsProvider provider) async {
+    // TODO: 从用户状态获取真实用户ID
+    const userId = 'default_user';
+    
+    final success = await provider.submitJob(userId, job);
+
+    if (success && mounted) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('已投递 ${job.title}'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  /// 处理收藏切换
+  void _handleToggleFavorite(Job job, JobsProvider provider) async {
+    // TODO: 从用户状态获取真实用户ID
+    const userId = 'default_user';
+    
+    await provider.toggleFavorite(userId, job);
+    
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(provider.isFavorited(job.id) ? '已收藏' : '已取消收藏'),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+    }
+  }
+
+  /// 打开职位原链接
+  Future<void> _openSourceUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('无法打开链接')),
+        );
+      }
+    }
   }
 }

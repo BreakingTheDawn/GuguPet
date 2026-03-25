@@ -104,6 +104,60 @@ class ProfileProvider extends ChangeNotifier {
     await loadUserData(userId: userId);
   }
 
+  /// 更新用户资料
+  /// [userName] 用户名
+  /// [jobIntention] 求职意向
+  /// [city] 期望城市
+  /// [salaryExpect] 期望薪资
+  /// 返回是否更新成功
+  Future<bool> updateUserProfile({
+    String? userName,
+    String? jobIntention,
+    String? city,
+    String? salaryExpect,
+    String userId = 'default_user',
+  }) async {
+    try {
+      // 获取当前用户资料
+      final currentProfile = _userProfile;
+      
+      if (currentProfile == null) {
+        _errorMessage = '用户资料不存在';
+        notifyListeners();
+        return false;
+      }
+
+      // 创建更新后的用户资料
+      final updatedProfile = UserProfile(
+        userId: currentProfile.userId,
+        userName: userName ?? currentProfile.userName,
+        jobIntention: jobIntention ?? currentProfile.jobIntention,
+        city: city ?? currentProfile.city,
+        salaryExpect: salaryExpect ?? currentProfile.salaryExpect,
+        petMemory: currentProfile.petMemory,
+        vipStatus: currentProfile.vipStatus,
+        vipExpireTime: currentProfile.vipExpireTime,
+        isOnboarded: currentProfile.isOnboarded,
+        industryTag: currentProfile.industryTag,
+        onboardingReport: currentProfile.onboardingReport,
+      );
+
+      // 保存到数据库
+      await _userRepository.updateUser(updatedProfile);
+      
+      // 更新本地状态
+      _userProfile = updatedProfile;
+      notifyListeners();
+      
+      return true;
+    } catch (e) {
+      _errorMessage = '更新用户资料失败: $e';
+      debugPrint('ProfileProvider Update Error: $e');
+      notifyListeners();
+      return false;
+    }
+  }
+
   // ═══════════════════════════════════════════════════════════
   // 私有方法
   // ═══════════════════════════════════════════════════════════

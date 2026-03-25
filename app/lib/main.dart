@@ -3,11 +3,17 @@ import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'dart:io' show Platform;
 import 'core/theme/theme.dart';
+import 'core/services/test_user_initializer.dart';
 import 'routes/app_routes.dart';
 import 'routes/route_generator.dart';
 import 'features/pet/providers/pet_provider.dart';
+import 'features/park/data/datasources/park_local_datasource.dart';
+import 'features/park/services/mock_social_service.dart';
+import 'features/park/providers/park_provider.dart';
+import 'features/park/providers/friend_provider.dart';
+import 'features/park/providers/post_provider.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // 初始化 Windows/Linux 平台的 SQLite FFI
@@ -15,6 +21,9 @@ void main() {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }
+  
+  // 初始化测试用户
+  await TestUserInitializer.initialize();
   
   runApp(const JobPetApp());
 }
@@ -31,11 +40,26 @@ class _JobPetAppState extends State<JobPetApp> {
   static const String _defaultUserId = 'default_user_001';
   
   late final PetProvider _petProvider;
+  late final ParkLocalDatasource _parkDatasource;
+  late final MockSocialService _socialService;
+  late final ParkProvider _parkProvider;
+  late final FriendProvider _friendProvider;
+  late final PostProvider _postProvider;
 
   @override
   void initState() {
     super.initState();
+    
+    // 初始化公园社交相关服务
+    _parkDatasource = ParkLocalDatasource();
+    _socialService = MockSocialService(datasource: _parkDatasource);
+    
+    // 初始化 Provider
     _petProvider = PetProvider();
+    _parkProvider = ParkProvider(socialService: _socialService);
+    _friendProvider = FriendProvider(socialService: _socialService);
+    _postProvider = PostProvider(socialService: _socialService);
+    
     _initializePet();
   }
 
@@ -49,6 +73,9 @@ class _JobPetAppState extends State<JobPetApp> {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<PetProvider>.value(value: _petProvider),
+        ChangeNotifierProvider<ParkProvider>.value(value: _parkProvider),
+        ChangeNotifierProvider<FriendProvider>.value(value: _friendProvider),
+        ChangeNotifierProvider<PostProvider>.value(value: _postProvider),
       ],
       child: MaterialApp(
         title: '职宠小窝',

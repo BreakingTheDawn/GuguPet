@@ -7,6 +7,10 @@ import '../widgets/notification_item.dart';
 import '../widgets/notification_empty.dart';
 import '../widgets/notification_badge.dart';
 import 'notification_settings_page.dart';
+import '../../jobs/pages/submissions_page.dart';
+import '../../jobs/providers/submissions_provider.dart';
+import '../../profile/pages/vip_upgrade_page.dart';
+import '../../profile/providers/profile_provider.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 /// 通知中心主页面
@@ -159,30 +163,88 @@ class _NotificationCenterPageState extends State<NotificationCenterPage>
   void _handleNotificationAction(model.Notification notification) {
     switch (notification.type) {
       case model.NotificationType.interview:
-        // TODO: 导航到面试详情页面
-        debugPrint('查看面试详情: ${notification.title}');
+        // 跳转到投递记录页面，筛选面试状态
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ChangeNotifierProvider(
+              create: (_) => SubmissionsProvider()..filterByStatus('面试中'),
+              child: const SubmissionsPage(),
+            ),
+          ),
+        );
         break;
+        
       case model.NotificationType.jobStatus:
-        // TODO: 导航到投递记录页面
-        debugPrint('查看投递状态: ${notification.title}');
+        // 跳转到投递记录页面
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ChangeNotifierProvider(
+              create: (_) => SubmissionsProvider(),
+              child: const SubmissionsPage(),
+            ),
+          ),
+        );
         break;
+        
       case model.NotificationType.columnUpdate:
-        // TODO: 导航到专栏详情页面
-        debugPrint('查看专栏更新: ${notification.title}');
+        // 跳转到专栏详情页面
+        final columnId = notification.extraData?['columnId'];
+        if (columnId != null) {
+          Navigator.pushNamed(
+            context,
+            '/column/detail',
+            arguments: {'columnId': columnId},
+          );
+        } else {
+          // 如果没有专栏ID，跳转到专栏列表
+          Navigator.pushNamed(context, '/columns');
+        }
         break;
+        
       case model.NotificationType.vipExpire:
-        // TODO: 导航到VIP续费页面
-        debugPrint('VIP续费提醒: ${notification.title}');
+        // 跳转到VIP升级页面
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VipUpgradePage(
+              isVip: context.read<ProfileProvider>().isVip,
+              vipExpireTime: context.read<ProfileProvider>().vipExpireTime,
+            ),
+          ),
+        );
         break;
+        
       case model.NotificationType.activity:
-        // TODO: 导航到活动详情页面
-        debugPrint('查看活动: ${notification.title}');
+        // 跳转到活动页面（TODO: 实现活动页面）
+        _showSnackBar('活动页面开发中...');
         break;
+        
       case model.NotificationType.system:
-        // TODO: 显示系统公告详情
-        debugPrint('系统公告: ${notification.title}');
+        // 显示系统公告详情
+        _showSystemAnnouncement(notification);
         break;
     }
+  }
+
+  /// 显示系统公告
+  void _showSystemAnnouncement(model.Notification notification) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(notification.title),
+        content: SingleChildScrollView(
+          child: Text(notification.content),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('知道了'),
+          ),
+        ],
+      ),
+    );
   }
 
   // ────────────────────────────────────────────────────────────────────────────

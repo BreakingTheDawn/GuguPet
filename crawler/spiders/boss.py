@@ -294,10 +294,21 @@ class BossSpider(BaseSpider):
                 return None
             
             # 获取薪资（Boss直聘实际使用 .job-salary）
-            # Boss直聘使用字体反爬，需要解码PUA字符
+            # Boss直聘使用动态字体反爬，需要通过JavaScript获取渲染后的文本
             salary_elem = card.ele('css:.job-salary')
-            salary_raw = salary_elem.text.strip() if salary_elem else None
-            salary = decode_boss_text(salary_raw) if salary_raw else None
+            if salary_elem:
+                # 使用JavaScript获取渲染后的文本（绕过字体反爬）
+                try:
+                    salary = self.engine.page.run_js('''
+                        var elem = arguments[0];
+                        return elem.innerText;
+                    ''', salary_elem)
+                    salary = salary.strip() if salary else None
+                except:
+                    # 如果JavaScript失败，尝试直接获取文本
+                    salary = salary_elem.text.strip() if salary_elem else None
+            else:
+                salary = None
             
             # 获取公司名称（Boss直聘实际使用 .boss-name）
             company_elem = card.ele('css:.boss-name')

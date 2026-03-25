@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/theme.dart';
@@ -26,6 +28,10 @@ class _ConfidePageState extends State<ConfidePage>
   int _messageCount = 0;
   late AnimationController _responseController;
 
+  /// 随机移动动画控制器
+  Timer? _randomMoveTimer;
+  final Random _random = Random();
+
   @override
   void initState() {
     super.initState();
@@ -33,17 +39,45 @@ class _ConfidePageState extends State<ConfidePage>
       vsync: this,
       duration: const Duration(milliseconds: 400),
     );
+    _scheduleNextMove();
   }
 
   @override
   void dispose() {
     _responseController.dispose();
+    _randomMoveTimer?.cancel();
     super.dispose();
   }
 
+  /// 调度下一次随机移动动画（5-15秒间隔）
+  void _scheduleNextMove() {
+    final nextDelay = 5 + _random.nextInt(11);
+    _randomMoveTimer?.cancel();
+    _randomMoveTimer = Timer(Duration(seconds: nextDelay), () {
+      if (mounted && _petState == PetState.idle && !_showResponse) {
+        setState(() {
+          _petState = PetState.move;
+        });
+      } else {
+        _scheduleNextMove();
+      }
+    });
+  }
+
+  /// 移动动画完成回调
+  void _onMoveAnimationComplete() {
+    if (mounted && _petState == PetState.move) {
+      setState(() {
+        _petState = PetState.idle;
+      });
+      _scheduleNextMove();
+    }
+  }
+
   /// 处理用户倾诉提交
-  /// 同时更新宠物情感状态和羁绊值
   void _handleSubmit(String input) {
+    _randomMoveTimer?.cancel();
+    
     setState(() {
       _response = _responseService.getResponse(input);
       _showResponse = true;
@@ -52,7 +86,6 @@ class _ConfidePageState extends State<ConfidePage>
     });
     _responseController.forward(from: 0);
 
-    // 调用 PetProvider 记录倾诉互动
     final petProvider = context.read<PetProvider>();
     petProvider.onConfide(
       content: input,
@@ -60,7 +93,6 @@ class _ConfidePageState extends State<ConfidePage>
       emotionType: 'positive',
     );
 
-    // 生成宠物个性化回复
     petProvider.generateResponse(
       scene: 'confide',
       userMessage: input,
@@ -78,6 +110,7 @@ class _ConfidePageState extends State<ConfidePage>
           _showResponse = false;
           _petState = PetState.idle;
         });
+        _scheduleNextMove();
       }
     });
   }
@@ -92,7 +125,6 @@ class _ConfidePageState extends State<ConfidePage>
           SafeArea(
             child: Column(
               children: [
-                // 宠物状态指示器（上移，透明背景）
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
                   child: PetStatusIndicator(),
@@ -107,7 +139,6 @@ class _ConfidePageState extends State<ConfidePage>
               ],
             ),
           ),
-          // 侧边互动栏
           Positioned(
             right: 12,
             top: MediaQuery.of(context).size.height * 0.30,
@@ -122,7 +153,6 @@ class _ConfidePageState extends State<ConfidePage>
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // 宠物话语气泡（统一位置显示）
         if (_showResponse)
           Padding(
             padding: const EdgeInsets.only(bottom: 20),
@@ -131,13 +161,15 @@ class _ConfidePageState extends State<ConfidePage>
               animation: _responseController,
             ),
           ),
-        // 宠物可点击区域
         PetAvatar(
           state: _petState,
           onTap: _onPetTap,
+          onAnimationComplete: _petState == PetState.move 
+              ? _onMoveAnimationComplete 
+              : null,
         ),
         const SizedBox(height: 16),
-        if (!_showResponse && _petState != PetState.teasing)
+        if (!_showResponse && _petState != PetState.teasing && _petState != PetState.move)
           Text(
             _messageCount == 0
                 ? '咕咕在等你倾诉...'
@@ -152,10 +184,10 @@ class _ConfidePageState extends State<ConfidePage>
 
   /// 点击宠物触发搞怪动作
   void _onPetTap() {
-    // 如果正在显示回复，不处理点击
-    if (_showResponse) return;
+    if (_showResponse || _petState == PetState.move) return;
     
-    // 触发搞怪动画
+    _randomMoveTimer?.cancel();
+    
     setState(() {
       _petState = PetState.teasing;
       _response = '嘻嘻~好痒！';
@@ -163,7 +195,6 @@ class _ConfidePageState extends State<ConfidePage>
     });
     _responseController.forward(from: 0);
 
-    // 调用状态机记录互动
     final petProvider = context.read<PetProvider>();
     petProvider.onConfide(
       content: '点击宠物互动',
@@ -171,13 +202,13 @@ class _ConfidePageState extends State<ConfidePage>
       emotionType: 'positive',
     );
 
-    // 2秒后恢复idle状态
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         setState(() {
           _petState = PetState.idle;
           _showResponse = false;
         });
+        _scheduleNextMove();
       }
     });
   }

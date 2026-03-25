@@ -39,7 +39,7 @@ class JobCard extends StatelessWidget {
       children: [
         Expanded(
           child: Text(
-            job['title'],
+            job['title'] ?? '未知职位',
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
@@ -72,7 +72,7 @@ class JobCard extends StatelessWidget {
 
   Widget _buildSalary() {
     return Text(
-      job['salary'],
+      job['salary'] ?? '薪资面议',
       style: TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.w700,
@@ -84,29 +84,36 @@ class JobCard extends StatelessWidget {
   Widget _buildCompany() {
     return Row(
       children: [
-        Text(job['company'], style: AppTypography.bodySmall.copyWith(color: AppColors.mutedForeground)),
+        Text(job['company'] ?? '未知公司', style: AppTypography.bodySmall.copyWith(color: AppColors.mutedForeground)),
         const SizedBox(width: 8),
         const Icon(Icons.location_on_outlined, size: 12, color: Colors.grey),
-        Text(job['location'], style: AppTypography.caption.copyWith(color: Colors.grey)),
+        Text(job['location'] ?? '', style: AppTypography.caption.copyWith(color: Colors.grey)),
         const SizedBox(width: 4),
         const Icon(Icons.access_time, size: 12, color: Colors.grey),
-        Text(job['posted'], style: AppTypography.caption.copyWith(color: Colors.grey)),
+        Text(job['posted'] ?? '', style: AppTypography.caption.copyWith(color: Colors.grey)),
       ],
     );
   }
 
   Widget _buildTags() {
+    final tags = job['tags'];
+    if (tags == null || (tags is List && tags.isEmpty)) {
+      return const SizedBox.shrink();
+    }
+    
+    final tagList = tags is List ? tags : [];
+    
     return Wrap(
       spacing: 6,
       runSpacing: 6,
-      children: (job['tags'] as List).map((tag) {
+      children: tagList.map<Widget>((tag) {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           decoration: BoxDecoration(
             color: const Color(0xFFF5F5FA),
             borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
           ),
-          child: Text(tag, style: AppTypography.caption.copyWith(color: AppColors.mutedForeground)),
+          child: Text(tag.toString(), style: AppTypography.caption.copyWith(color: AppColors.mutedForeground)),
         );
       }).toList(),
     );

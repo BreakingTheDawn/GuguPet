@@ -48,34 +48,36 @@ class PetMemoryModel {
   /// 是否为永久记忆
   bool get isPermanent => type != MemoryType.shortTerm;
 
+  /// 转换为数据库格式（使用下划线命名）
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'petId': petId,
+      'pet_id': petId,
       'type': type.name,
       'category': category.name,
       'key': key,
       'value': value,
       'importance': importance,
-      'emotionalWeight': emotionalWeight,
-      'createdAt': createdAt.toIso8601String(),
-      'expiresAt': expiresAt?.toIso8601String(),
+      'emotional_weight': emotionalWeight,
+      'created_at': createdAt.toIso8601String(),
+      'expires_at': expiresAt?.toIso8601String(),
     };
   }
 
+  /// 从数据库格式解析（支持下划线命名）
   factory PetMemoryModel.fromJson(Map<String, dynamic> json) {
     return PetMemoryModel(
       id: json['id'] as String,
-      petId: json['petId'] as String,
+      petId: json['pet_id'] as String,
       type: MemoryType.values.firstWhere((e) => e.name == json['type']),
       category: MemoryCategory.values.firstWhere((e) => e.name == json['category']),
       key: json['key'] as String,
       value: json['value'] as String,
       importance: (json['importance'] as num?)?.toDouble() ?? 0.5,
-      emotionalWeight: (json['emotionalWeight'] as num?)?.toDouble() ?? 0,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      expiresAt: json['expiresAt'] != null
-          ? DateTime.parse(json['expiresAt'] as String)
+      emotionalWeight: (json['emotional_weight'] as num?)?.toDouble() ?? 0,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      expiresAt: json['expires_at'] != null
+          ? DateTime.parse(json['expires_at'] as String)
           : null,
     );
   }

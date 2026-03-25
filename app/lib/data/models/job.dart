@@ -52,6 +52,12 @@ class Job {
   /// 行业标签
   final String? industryTag;
 
+  /// 职位原始链接（用于跳转到招聘网站）
+  final String? sourceUrl;
+
+  /// 数据来源（boss/zhilian/qiancheng）
+  final String? source;
+
   const Job({
     required this.id,
     required this.title,
@@ -70,6 +76,8 @@ class Job {
     this.companySize,
     this.fundingStage,
     this.industryTag,
+    this.sourceUrl,
+    this.source,
   });
 
   /// 将模型转换为JSON Map
@@ -92,6 +100,8 @@ class Job {
       'companySize': companySize,
       'fundingStage': fundingStage,
       'industryTag': industryTag,
+      'sourceUrl': sourceUrl,
+      'source': source,
     };
   }
 
@@ -119,6 +129,8 @@ class Job {
       companySize: json['companySize'] as String?,
       fundingStage: json['fundingStage'] as String?,
       industryTag: json['industryTag'] as String?,
+      sourceUrl: json['sourceUrl'] as String? ?? json['source_url'] as String?,
+      source: json['source'] as String?,
     );
   }
 
@@ -139,8 +151,8 @@ class Job {
       id: map['id'].toString(),
       title: map['title'] as String,
       company: map['company'] as String,
-      salary: map['salary'] as String,
-      location: map['location'] as String,
+      salary: map['salary'] as String? ?? '',
+      location: map['location'] as String? ?? '',
       category: map['category'] as String?,
       experience: map['experience'] as String?,
       education: map['education'] as String?,
@@ -155,6 +167,8 @@ class Job {
       companySize: map['company_size'] as String?,
       fundingStage: map['funding_stage'] as String?,
       industryTag: map['industry_tag'] as String?,
+      sourceUrl: map['source_url'] as String?,
+      source: map['source'] as String?,
     );
   }
 
@@ -178,6 +192,8 @@ class Job {
       'company_size': companySize,
       'funding_stage': fundingStage,
       'industry_tag': industryTag,
+      'source_url': sourceUrl,
+      'source': source,
     };
   }
 
@@ -198,7 +214,54 @@ class Job {
       'education': education,
       'companySize': companySize,
       'fundingStage': fundingStage,
+      'sourceUrl': sourceUrl,
+      'source': source,
     };
+  }
+
+  /// 复制并更新字段
+  Job copyWith({
+    String? id,
+    String? title,
+    String? company,
+    String? salary,
+    String? location,
+    String? category,
+    String? experience,
+    String? education,
+    List<String>? tags,
+    String? description,
+    bool? isNew,
+    bool? isUrgent,
+    DateTime? postedAt,
+    String? postedText,
+    String? companySize,
+    String? fundingStage,
+    String? industryTag,
+    String? sourceUrl,
+    String? source,
+  }) {
+    return Job(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      company: company ?? this.company,
+      salary: salary ?? this.salary,
+      location: location ?? this.location,
+      category: category ?? this.category,
+      experience: experience ?? this.experience,
+      education: education ?? this.education,
+      tags: tags ?? this.tags,
+      description: description ?? this.description,
+      isNew: isNew ?? this.isNew,
+      isUrgent: isUrgent ?? this.isUrgent,
+      postedAt: postedAt ?? this.postedAt,
+      postedText: postedText ?? this.postedText,
+      companySize: companySize ?? this.companySize,
+      fundingStage: fundingStage ?? this.fundingStage,
+      industryTag: industryTag ?? this.industryTag,
+      sourceUrl: sourceUrl ?? this.sourceUrl,
+      source: source ?? this.source,
+    );
   }
 }
 

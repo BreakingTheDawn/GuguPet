@@ -6,9 +6,16 @@ import '../widgets/user_info_card.dart';
 import '../widgets/stat_summary_card.dart';
 import '../widgets/vip_status_card.dart';
 import '../widgets/menu_list.dart';
+import '../../jobs/pages/submissions_page.dart';
+import '../../jobs/pages/favorite_jobs_page.dart';
+import '../../jobs/providers/submissions_provider.dart';
+import '../../jobs/providers/favorite_provider.dart';
+import '../../stats/pages/stats_page.dart';
+import '../../stats/providers/stats_provider.dart';
 import 'job_intention_page.dart';
 import 'settings_page.dart';
 import 'vip_upgrade_page.dart';
+import 'edit_profile_page.dart';
 
 /// 个人中心主页面
 /// 整合用户信息、统计数据、VIP状态和功能菜单
@@ -233,25 +240,50 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   /// 编辑个人资料
-  void _handleEditProfile(ProfileProvider provider) {
-    // TODO: 导航到编辑个人资料页面
-    debugPrint('编辑个人资料');
+  Future<void> _handleEditProfile(ProfileProvider provider) async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        // 使用 ChangeNotifierProvider.value 提供现有的 Provider
+        builder: (context) => ChangeNotifierProvider<ProfileProvider>.value(
+          value: provider,
+          child: const EditProfilePage(),
+        ),
+      ),
+    );
+    
+    // 如果保存成功，刷新数据
+    if (result == true && mounted) {
+      provider.refresh();
+    }
   }
 
   /// 导航到统计页面
   void _handleNavigateToStats() {
-    // TODO: 导航到统计页面
-    debugPrint('导航到统计页面');
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChangeNotifierProvider(
+          create: (_) => StatsProvider(),
+          child: const StatsPage(),
+        ),
+      ),
+    );
   }
 
   /// 升级VIP
   void _handleUpgradeVip() {
+    // 先获取数据，避免在新页面的builder中使用context读取Provider
+    final provider = context.read<ProfileProvider>();
+    final isVip = provider.isVip;
+    final vipExpireTime = provider.vipExpireTime;
+    
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => VipUpgradePage(
-          isVip: context.read<ProfileProvider>().isVip,
-          vipExpireTime: context.read<ProfileProvider>().vipExpireTime,
+          isVip: isVip,
+          vipExpireTime: vipExpireTime,
         ),
       ),
     );
@@ -274,14 +306,28 @@ class _ProfilePageState extends State<ProfilePage> {
 
   /// 导航到投递记录页面
   void _handleNavigateToSubmissions() {
-    // TODO: 导航到投递记录页面
-    debugPrint('导航到投递记录页面');
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChangeNotifierProvider(
+          create: (_) => SubmissionsProvider(),
+          child: const SubmissionsPage(),
+        ),
+      ),
+    );
   }
 
   /// 导航到收藏职位页面
   void _handleNavigateToFavorites() {
-    // TODO: 导航到收藏职位页面
-    debugPrint('导航到收藏职位页面');
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChangeNotifierProvider(
+          create: (_) => FavoriteProvider(),
+          child: const FavoriteJobsPage(),
+        ),
+      ),
+    );
   }
 
   /// 导航到设置页面

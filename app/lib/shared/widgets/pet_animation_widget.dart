@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:ui' as ui;
 import 'dart:async';
+import 'dart:math';
 
 /// 宠物动画配置数据类
 class PetAnimationConfig {
@@ -33,18 +34,22 @@ class PetAnimationConfig {
 enum PetAnimationType {
   idle,
   happy,
-  teasing,  // 搞怪动作（点击宠物触发）
+  teasing,
+  angry,
+  move,
 }
 
 /// 宠物动画组件 - 使用 CustomPainter 渲染 spritesheet 动画
 class PetAnimationWidget extends StatefulWidget {
   final PetAnimationType animationType;
   final double size;
+  final VoidCallback? onAnimationComplete;
 
   const PetAnimationWidget({
     super.key,
     required this.animationType,
     this.size = 210,
+    this.onAnimationComplete,
   });
 
   @override
@@ -77,13 +82,33 @@ class _PetAnimationWidgetState extends State<PetAnimationWidget>
     ),
     PetAnimationType.teasing: PetAnimationConfig(
       spritesheetPath: 'assets/images/pet/pet_teasing_spritesheet.png',
-      frames: 36,  // 实际帧数
+      frames: 36,
       frameWidth: 256,
       frameHeight: 256,
-      columns: 36,  // 实际列数
+      columns: 36,
       rows: 1,
       fps: 12,
-      loop: false,  // 搞怪动作只播放一次
+      loop: false,
+    ),
+    PetAnimationType.angry: PetAnimationConfig(
+      spritesheetPath: 'assets/images/pet/pet_angry_spritesheet.png',
+      frames: 36,
+      frameWidth: 256,
+      frameHeight: 256,
+      columns: 36,
+      rows: 1,
+      fps: 12,
+      loop: false,
+    ),
+    PetAnimationType.move: PetAnimationConfig(
+      spritesheetPath: 'assets/images/pet/pet_move_spritesheet.png',
+      frames: 46,
+      frameWidth: 256,
+      frameHeight: 256,
+      columns: 46,
+      rows: 1,
+      fps: 8,
+      loop: false,
     ),
   };
 
@@ -113,11 +138,9 @@ class _PetAnimationWidgetState extends State<PetAnimationWidget>
   void didUpdateWidget(PetAnimationWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.animationType != widget.animationType) {
-      // 停止旧动画
       _animationTimer?.cancel();
       _animationTimer = null;
       
-      // 更新状态
       _currentAnimationType = widget.animationType;
       _currentFrame = 0;
       _loadSpritesheet();
@@ -132,7 +155,6 @@ class _PetAnimationWidgetState extends State<PetAnimationWidget>
 
   /// 加载 spritesheet 图片（优先使用缓存）
   Future<void> _loadSpritesheet() async {
-    // 检查缓存
     if (_imageCache.containsKey(widget.animationType)) {
       _spritesheetImage = _imageCache[widget.animationType];
       if (mounted) {
@@ -157,7 +179,6 @@ class _PetAnimationWidgetState extends State<PetAnimationWidget>
       final ui.FrameInfo frameInfo = await codec.getNextFrame();
       final ui.Image image = frameInfo.image;
       
-      // 存入缓存
       _imageCache[widget.animationType] = image;
       
       if (mounted && _currentAnimationType == widget.animationType) {
@@ -199,6 +220,7 @@ class _PetAnimationWidgetState extends State<PetAnimationWidget>
             } else {
               _currentFrame = config.frames - 1;
               timer.cancel();
+              widget.onAnimationComplete?.call();
             }
           }
         });
@@ -271,7 +293,6 @@ class _SpritesheetPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // 计算当前帧在 spritesheet 中的位置
     final row = currentFrame ~/ config.columns;
     final col = currentFrame % config.columns;
     
@@ -289,7 +310,6 @@ class _SpritesheetPainter extends CustomPainter {
       size.height,
     );
     
-    // 绘制当前帧
     canvas.drawImageRect(
       image,
       srcRect,
@@ -301,5 +321,69 @@ class _SpritesheetPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _SpritesheetPainter oldDelegate) {
     return oldDelegate.currentFrame != currentFrame;
+  }
+}
+
+/// 宠物随机动画控制器 - 管理移动动画的随机触发
+class PetRandomAnimationController extends ChangeNotifier {
+  Timer? _randomMoveTimer;
+  final Random _random = Random();
+  
+  PetAnimationType _currentAnimation = PetAnimationType.idle;
+  PetAnimationType get currentAnimation => _currentAnimation;
+  
+  /// 最小触发间隔（秒）
+  final int minIntervalSeconds;
+  /// 最大触发间隔（秒）
+  final int maxIntervalSeconds;
+  
+  PetRandomAnimationController({
+    this.minIntervalSeconds = 5,
+    this.maxIntervalSeconds = 15,
+  });
+  
+  /// 开始随机动画调度
+  void startRandomAnimation() {
+    _scheduleNextMove();
+  }
+  
+  /// 停止随机动画调度
+  void stopRandomAnimation() {
+    _randomMoveTimer?.cancel();
+    _randomMoveTimer = null;
+  }
+  
+  /// 手动触发动画
+  void triggerAnimation(PetAnimationType type) {
+    _randomMoveTimer?.cancel();
+    _currentAnimation = type;
+    notifyListeners();
+  }
+  
+  /// 动画播放完成回调
+  void onAnimationComplete() {
+    if (_currentAnimation != PetAnimationType.idle) {
+      _currentAnimation = PetAnimationType.idle;
+      notifyListeners();
+      _scheduleNextMove();
+    }
+  }
+  
+  /// 调度下一次移动动画
+  void _scheduleNextMove() {
+    final nextDelay = minIntervalSeconds + 
+        _random.nextInt(maxIntervalSeconds - minIntervalSeconds + 1);
+    
+    _randomMoveTimer?.cancel();
+    _randomMoveTimer = Timer(Duration(seconds: nextDelay), () {
+      _currentAnimation = PetAnimationType.move;
+      notifyListeners();
+    });
+  }
+  
+  @override
+  void dispose() {
+    stopRandomAnimation();
+    super.dispose();
   }
 }

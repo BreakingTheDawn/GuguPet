@@ -13,6 +13,8 @@ class DatabaseMigration {
         return _version2;
       case 3:
         return _version3;
+      case 4:
+        return _version4;
       default:
         return null;
     }
@@ -340,6 +342,130 @@ class DatabaseMigration {
     // 成长记录表索引 - 按宠物ID查询
     '''
     CREATE INDEX idx_pet_growth_records_pet_id ON pet_growth_records (pet_id)
+    ''',
+  ];
+
+  // ==================== 版本4迁移脚本 ====================
+
+  /// 版本4的迁移脚本
+  /// 添加公园社交功能相关表：好友表、用户动态表、评论表、点赞表、公园互动表
+  static final List<String> _version4 = [
+    // ==================== 好友关系表 ====================
+    // 存储用户之间的好友关系
+    '''
+    CREATE TABLE friends (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      friend_id TEXT NOT NULL,
+      friend_name TEXT NOT NULL,
+      friend_avatar TEXT,
+      friend_title TEXT,
+      status TEXT NOT NULL DEFAULT 'pending',
+      added_at TEXT,
+      last_interact TEXT,
+      created_at TEXT NOT NULL,
+      UNIQUE(user_id, friend_id)
+    )
+    ''',
+
+    // 好友关系表索引 - 按用户ID查询
+    '''
+    CREATE INDEX idx_friends_user_id ON friends (user_id)
+    ''',
+
+    // 好友关系表索引 - 按好友状态查询
+    '''
+    CREATE INDEX idx_friends_status ON friends (status)
+    ''',
+
+    // ==================== 用户动态表 ====================
+    // 存储用户发布的动态内容
+    '''
+    CREATE TABLE user_posts (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      user_name TEXT NOT NULL,
+      user_avatar TEXT,
+      content TEXT NOT NULL,
+      images TEXT,
+      type TEXT NOT NULL DEFAULT 'daily',
+      like_count INTEGER DEFAULT 0,
+      comment_count INTEGER DEFAULT 0,
+      created_at TEXT NOT NULL
+    )
+    ''',
+
+    // 用户动态表索引 - 按用户ID查询
+    '''
+    CREATE INDEX idx_user_posts_user_id ON user_posts (user_id)
+    ''',
+
+    // 用户动态表索引 - 按动态类型查询
+    '''
+    CREATE INDEX idx_user_posts_type ON user_posts (type)
+    ''',
+
+    // 用户动态表索引 - 按创建时间查询
+    '''
+    CREATE INDEX idx_user_posts_created_at ON user_posts (created_at DESC)
+    ''',
+
+    // ==================== 动态评论表 ====================
+    // 存储用户对动态的评论
+    '''
+    CREATE TABLE post_comments (
+      id TEXT PRIMARY KEY,
+      post_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      user_name TEXT NOT NULL,
+      content TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (post_id) REFERENCES user_posts(id) ON DELETE CASCADE
+    )
+    ''',
+
+    // 评论表索引 - 按动态ID查询
+    '''
+    CREATE INDEX idx_post_comments_post_id ON post_comments (post_id)
+    ''',
+
+    // ==================== 点赞记录表 ====================
+    // 存储用户对动态的点赞记录
+    '''
+    CREATE TABLE post_likes (
+      id TEXT PRIMARY KEY,
+      post_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      UNIQUE(post_id, user_id)
+    )
+    ''',
+
+    // 点赞记录表索引 - 按动态ID查询
+    '''
+    CREATE INDEX idx_post_likes_post_id ON post_likes (post_id)
+    ''',
+
+    // ==================== 公园互动记录表 ====================
+    // 存储用户在公园内的互动行为
+    '''
+    CREATE TABLE park_interactions (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      target_id TEXT NOT NULL,
+      type TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    )
+    ''',
+
+    // 公园互动记录表索引 - 按用户ID查询
+    '''
+    CREATE INDEX idx_park_interactions_user_id ON park_interactions (user_id)
+    ''',
+
+    // 公园互动记录表索引 - 按目标用户ID查询
+    '''
+    CREATE INDEX idx_park_interactions_target_id ON park_interactions (target_id)
     ''',
   ];
 }
