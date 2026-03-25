@@ -141,31 +141,33 @@ class BaseSpider(ABC):
             
             # 处理成功后继续
         
-        # 爬取多页
-        while page <= MAX_PAGES:
-            try:
-                # 解析当前页
-                jobs = self.parse_job_list()
-                all_jobs.extend(jobs)
-                
-                # 检查是否达到目标数量
-                if len(all_jobs) >= JOBS_PER_KEYWORD:
-                    break
-                
+        # 爬取职位（支持翻页或无限滚动）
+        try:
+            # 解析职位列表（Boss直聘使用无限滚动，在parse_job_list中处理）
+            jobs = self.parse_job_list()
+            all_jobs.extend(jobs)
+            
+            # 对于需要翻页的网站，继续翻页
+            page = 1
+            while page <= MAX_PAGES and len(all_jobs) < JOBS_PER_KEYWORD:
                 # 尝试翻页
                 anti_detect.sleep(is_page=True)
                 
                 if not self.get_next_page():
                     break
                 
+                # 解析下一页
+                jobs = self.parse_job_list()
+                all_jobs.extend(jobs)
+                
                 page += 1
                 
-            except Exception as e:
-                self.crawl_logger.error(f"解析第{page}页失败: {e}")
-                break
+        except Exception as e:
+            self.crawl_logger.error(f"解析职位失败: {e}")
         
-        # 保存数据
-        new_count = db.save_jobs_batch(all_jobs[:JOBS_PER_KEYWORD])
+        # 保存数据（限制数量）
+        jobs_to_save = all_jobs[:JOBS_PER_KEYWORD]
+        new_count = db.save_jobs_batch(jobs_to_save)
         self.crawl_logger.end_keyword(len(all_jobs), new_count)
         
         return len(all_jobs), new_count
@@ -181,21 +183,65 @@ class BaseSpider(ABC):
         Returns:
             爬取日志
         """
+        from config.categories import get_category_by_keyword, CATEGORIES
+        from config.settings import JOBS_PER_KEYWORD
+        
         self.crawl_logger.start()
         
         # 初始化浏览器
         self.engine.init_browser()
         
+        # 加载已保存的Cookie
+        from urllib.parse import urlparse
+        domain = urlparse(self.base_url).netloc
+        if self.engine.load_cookies(domain):
+            logger.info(f"[Cookie] 已加载: {domain}")
+        
         try:
-            for city in cities:
-                for keyword in keywords:
-                    try:
-                        self.crawl_keyword(keyword, city)
-                        # 关键词之间的延迟
-                        anti_detect.sleep()
-                    except Exception as e:
-                        self.crawl_logger.error(f"爬取失败: {keyword} @ {city}: {e}")
-                        continue
+            # 按类别遍历，每个类别爬取一定数量后跳到下一个类别
+            for category, category_keywords in CATEGORIES.items():
+                # 检查该类别是否已经有足够的职位
+                current_count = db.get_job_count_by_category(category)
+                today_new = db.get_today_job_count_by_category(category)
+                
+                logger.info(f"[类别] {category}: 当前总数 {current_count}, 今日新增 {today_new}")
+                
+                # 如果该类别已经有足够的职位，跳过
+                if current_count >= JOBS_PER_KEYWORD:
+                    logger.info(f"[类别] {category} 已有 {current_count} 个职位，跳过")
+                    continue
+                
+                # 如果今天已经新增了一些，也跳过（避免重复爬取）
+                if today_new >= 10:
+                    logger.info(f"[类别] {category} 今日已新增 {today_new} 个职位，跳过")
+                    continue
+                
+                # 需要爬取的数量
+                need_count = JOBS_PER_KEYWORD - current_count
+                logger.info(f"[类别] {category} 还需要爬取 {need_count} 个职位")
+                
+                # 遍历该类别下的关键词
+                for keyword in category_keywords:
+                    for city in cities:
+                        try:
+                            total, new = self.crawl_keyword(keyword, city)
+                            
+                            # 检查是否已经爬取足够
+                            current_count = db.get_job_count_by_category(category)
+                            if current_count >= JOBS_PER_KEYWORD:
+                                logger.info(f"[类别] {category} 已达到目标数量 {JOBS_PER_KEYWORD}，跳到下一个类别")
+                                break
+                            
+                            # 关键词之间的延迟
+                            anti_detect.sleep()
+                        except Exception as e:
+                            self.crawl_logger.error(f"爬取失败: {keyword} @ {city}: {e}")
+                            continue
+                    
+                    # 检查类别是否已达到目标
+                    current_count = db.get_job_count_by_category(category)
+                    if current_count >= JOBS_PER_KEYWORD:
+                        break
         finally:
             self.engine.close()
         

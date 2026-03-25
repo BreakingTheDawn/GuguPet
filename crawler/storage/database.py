@@ -230,6 +230,58 @@ class Database:
         conn.close()
         return count
     
+    def get_job_count_by_category(self, category: str) -> int:
+        """
+        获取某个类别的职位数量
+        
+        Args:
+            category: 职位类别
+        
+        Returns:
+            该类别的职位数量
+        """
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT COUNT(*) FROM jobs WHERE category = ?', (category,))
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count
+    
+    def get_today_job_count_by_category(self, category: str) -> int:
+        """
+        获取某个类别今天新增的职位数量
+        
+        Args:
+            category: 职位类别
+        
+        Returns:
+            今天该类别新增的职位数量
+        """
+        today = datetime.now().strftime('%Y-%m-%d')
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            'SELECT COUNT(*) FROM jobs WHERE category = ? AND DATE(created_at) = ?',
+            (category, today)
+        )
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count
+    
+    def get_category_stats(self) -> dict:
+        """
+        获取所有类别的统计信息
+        
+        Returns:
+            类别统计字典 {category: count}
+        """
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT category, COUNT(*) as count FROM jobs GROUP BY category')
+        rows = cursor.fetchall()
+        conn.close()
+        return {row['category']: row['count'] for row in rows}
+    
     # ==================== 爬取日志操作 ====================
     
     def save_crawl_log(self, log: CrawlLog):

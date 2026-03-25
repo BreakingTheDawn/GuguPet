@@ -30,6 +30,31 @@ from pathlib import Path
 # 项目根目录
 BASE_DIR = Path(__file__).parent.parent.absolute()
 
+# ==================== 环境变量加载 ====================
+# 尝试加载 .env 文件（敏感配置从环境变量读取）
+try:
+    from dotenv import load_dotenv
+    env_file = BASE_DIR / ".env"
+    if env_file.exists():
+        load_dotenv(env_file)
+except ImportError:
+    pass  # python-dotenv 未安装时，直接使用系统环境变量
+
+
+def _get_env_bool(key: str, default: bool = False) -> bool:
+    """从环境变量获取布尔值"""
+    value = os.getenv(key, "").strip().lower()
+    if value in ("true", "1", "yes", "on"):
+        return True
+    if value in ("false", "0", "no", "off"):
+        return False
+    return default
+
+
+def _get_env_str(key: str, default: str = "") -> str:
+    """从环境变量获取字符串"""
+    return os.getenv(key, default).strip()
+
 # 数据库配置
 DATABASE_PATH = BASE_DIR / "output" / "jobs.db"
 
@@ -137,10 +162,16 @@ PROXY_TIMEOUT = 10  # 代理连接超时（秒）
 PROXY_MAX_FAILS = 3  # 代理最大失败次数，超过则移除
 
 # ==================== 安全配置 ====================
-# Cookie加密密钥（32字节base64编码，请修改为自己的密钥）
+# Cookie加密密钥（从环境变量读取，不再硬编码）
 # 生成方式：python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
-COOKIE_ENCRYPTION_KEY = "YOUR_ENCRYPTION_KEY_HERE"  # 请替换为实际密钥
-COOKIE_ENCRYPTION_ENABLED = False  # 是否启用Cookie加密（默认关闭，配置密钥后开启）
+# 请在 .env 文件中设置 COOKIE_ENCRYPTION_KEY
+COOKIE_ENCRYPTION_KEY = _get_env_str("COOKIE_ENCRYPTION_KEY", "")
+COOKIE_ENCRYPTION_ENABLED = _get_env_bool("COOKIE_ENCRYPTION_ENABLED", False)
+
+# 验证密钥是否已配置
+if COOKIE_ENCRYPTION_ENABLED and not COOKIE_ENCRYPTION_KEY:
+    import warnings
+    warnings.warn("Cookie加密已启用但未配置密钥，请在 .env 文件中设置 COOKIE_ENCRYPTION_KEY")
 
 # ==================== 验证码配置 ====================
 CAPTCHA_AUTO_RETRY = True  # 是否自动重试

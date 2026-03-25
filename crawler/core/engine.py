@@ -41,10 +41,16 @@ class CrawlerEngine:
     封装浏览器初始化、页面操作等方法
     """
     
-    def __init__(self):
-        """初始化爬虫引擎"""
+    def __init__(self, disable_images: bool = None):
+        """
+        初始化爬虫引擎
+        
+        Args:
+            disable_images: 是否禁用图片加载，None时使用配置文件设置
+        """
         self.page: Optional[ChromiumPage] = None
         self._is_initialized = False
+        self._disable_images = disable_images if disable_images is not None else DISABLE_IMAGES
     
     def init_browser(self):
         """
@@ -91,7 +97,7 @@ class CrawlerEngine:
             logger.debug(f"[浏览器指纹] 分辨率: {width}x{height}, 语言: {lang}")
         
         # 禁用图片加载（提高速度）
-        if DISABLE_IMAGES:
+        if self._disable_images:
             co.set_pref('profile.managed_default_content_settings.images', 2)
         
         # 无头模式配置
