@@ -38,6 +38,7 @@ temp/
 docs/
 suchAs/
 tools/
+images/
 
 # Python
 __pycache__/

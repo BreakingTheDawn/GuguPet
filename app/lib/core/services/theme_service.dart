@@ -45,7 +45,7 @@ class ThemeService extends ConfigService<ThemeConfig> {
     try {
       _instance.cachedConfig;
       return _instance._prefs != null;
-    } catch (StateError) {
+    } catch (e) {
       return false;
     }
   }
