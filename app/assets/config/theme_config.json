@@ -1,0 +1,20 @@
+{
+  "light": {
+    "primary": "#030213",
+    "background": "#FFFFFF",
+    "card": "#FFFFFF",
+    "text": "#030213",
+    "textSecondary": "#717182",
+    "border": "#1A000000",
+    "accent": "#667EEA"
+  },
+  "dark": {
+    "primary": "#FFFFFF",
+    "background": "#030213",
+    "card": "#1A1A2E",
+    "text": "#FFFFFF",
+    "textSecondary": "#A0A0B0",
+    "border": "#1AFFFFFF",
+    "accent": "#8B9AEF"
+  }
+}

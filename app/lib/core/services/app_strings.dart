@@ -59,7 +59,7 @@ class AppStrings extends ConfigService<UIStringsConfig> {
     try {
       _instance.cachedConfig;
       return true;
-    } catch (StateError) {
+    } catch (e) {
       return false;
     }
   }

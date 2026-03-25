@@ -39,7 +39,7 @@ class BusinessConfigService extends ConfigService<BusinessConfig> {
     try {
       _instance.cachedConfig;
       return true;
-    } catch (StateError) {
+    } catch (e) {
       return false;
     }
   }

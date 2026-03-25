@@ -6,6 +6,7 @@ import 'core/theme/theme.dart';
 import 'core/services/test_user_initializer.dart';
 import 'core/services/app_strings.dart';
 import 'core/services/business_config_service.dart';
+import 'core/services/theme_service.dart';
 import 'routes/app_routes.dart';
 import 'routes/route_generator.dart';
 import 'features/pet/providers/pet_provider.dart';
@@ -27,6 +28,7 @@ void main() async {
   // 初始化配置服务
   await AppStrings.initialize();
   await BusinessConfigService.initialize();
+  await ThemeService.initialize();
   
   // 初始化测试用户
   await TestUserInitializer.initialize();
