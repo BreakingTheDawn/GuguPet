@@ -55,3 +55,8 @@ crawler/cookies/
 crawler/cache/
 crawler/output/*.db
 crawler/*.db
+
+# Project planning files
+findings.md
+progress.md
+task_plan.md
