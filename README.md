@@ -76,6 +76,34 @@ GuguPet/
 - Chrome/Edge浏览器
 - Windows/macOS/Linux
 
+## 快速开始
+
+### 使用启动脚本（推荐）
+
+项目提供了开发环境启动脚本，可一键启动各模块：
+
+```bash
+# 进入脚本目录
+cd GuguPet/scripts
+
+# 运行主启动器
+.\start.ps1
+```
+
+**启动脚本功能：**
+
+| 脚本 | 功能 |
+|------|------|
+| `start.ps1` | 主启动器，选择启动不同模块 |
+| `start-app.ps1` | Flutter App 开发环境 |
+| `start-crawler.ps1` | 爬虫系统管理 |
+
+**使用方法：**
+1. 右键点击脚本 → 使用 PowerShell 运行
+2. 或在 PowerShell 中执行：`.\start.ps1`
+
+---
+
 ## 安装与运行
 
 ### Flutter应用端
