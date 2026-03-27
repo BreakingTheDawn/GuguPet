@@ -30,6 +30,9 @@ class _ConfidePageState extends State<ConfidePage>
   PetState _petState = PetState.idle;
   int _messageCount = 0;
   late AnimationController _responseController;
+  
+  /// 流式响应气泡的Key（用于访问State更新文本）
+  final GlobalKey<ResponseBubbleState> _responseBubbleKey = GlobalKey<ResponseBubbleState>();
 
   /// 随机移动动画控制器
   Timer? _randomMoveTimer;
@@ -175,9 +178,26 @@ class _ConfidePageState extends State<ConfidePage>
         _showResponse = true;
         _petState = PetState.idle;
         _messageCount++;
+        _response = ''; // 清空之前的响应
       });
       
+      // 重置响应气泡
+      _responseBubbleKey.currentState?.reset();
+      _responseController.forward(from: 0);
+      
       try {
+        // 设置流式响应回调
+        final chatService = _confideProvider!.chatService;
+        chatService?.onStreamResponse = (chunk, isDone) {
+          if (mounted) {
+            setState(() {
+              _response += chunk;
+            });
+            // 直接更新气泡内容
+            _responseBubbleKey.currentState?.updateText(_response, isDone: isDone);
+          }
+        };
+        
         final result = await _confideProvider!.sendMessage(
           userId: petProvider.pet?.userId ?? 'default_user',
           message: input,
@@ -193,7 +213,8 @@ class _ConfidePageState extends State<ConfidePage>
               _petState = PetState.angry;
             }
           });
-          _responseController.forward(from: 0);
+          // 最终更新气泡内容
+          _responseBubbleKey.currentState?.updateText(_response, isDone: true);
         }
       } catch (e) {
         // AI调用失败，显示错误提示
@@ -202,7 +223,7 @@ class _ConfidePageState extends State<ConfidePage>
           setState(() {
             _response = '咕...网络好像有点问题，稍后再试试吧~';
           });
-          _responseController.forward(from: 0);
+          _responseBubbleKey.currentState?.updateText(_response, isDone: true);
         }
       }
     } else {
@@ -290,8 +311,10 @@ class _ConfidePageState extends State<ConfidePage>
           Padding(
             padding: const EdgeInsets.only(bottom: 20),
             child: ResponseBubble(
+              key: _responseBubbleKey,
               text: _response,
               animation: _responseController,
+              enableStreaming: confideProvider.isAIEnabled,
             ),
           ),
         PetAvatar(

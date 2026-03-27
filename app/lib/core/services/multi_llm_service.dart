@@ -136,12 +136,15 @@ class MultiLLMService {
         LLMResponse response;
         
         if (enableStreaming && onStreamResponse != null) {
-          // 流式调用
+          // 流式调用 - 创建一个缓冲区来累积内容
+          final StringBuffer contentBuffer = StringBuffer();
+          
           response = await service.chat(
             systemPrompt: systemPrompt,
             userMessage: userMessage,
             conversationHistory: conversationHistory,
             onStream: (chunk) {
+              contentBuffer.write(chunk);
               onStreamResponse!(chunk, false);
             },
           );

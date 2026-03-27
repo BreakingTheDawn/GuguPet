@@ -24,6 +24,7 @@ class ConfideProvider extends ChangeNotifier {
   ChatMode get currentMode => _chatService.currentMode;
   String? get error => _chatService.error;
   AIConfig get aiConfig => _configService.config;
+  ChatService? get chatService => _chatService; // 暴露ChatService用于流式回调
 
   /// 初始化
   Future<void> initialize(String userId) async {

@@ -52,7 +52,11 @@ class ServiceProvider {
     // 初始化多模型LLM服务（新增）
     await _initializeMultiLLMService();
     
+    // 将多模型服务传递给ChatService
+    _chatService.updateMultiLLMService(_multiLLMService);
+    
     debugPrint('=== ServiceProvider初始化完成 ===');
+    debugPrint('canUseAIMode: $canUseAIMode');
   }
 
   /// 初始化多模型LLM服务

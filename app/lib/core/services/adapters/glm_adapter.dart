@@ -2,11 +2,11 @@
 // 支持流式调用 (stream=true)
 
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import '../llm_service.dart';
 import '../llm_config.dart';
+import '../utils/stream_response_handler.dart';
 
 /// GLM-4.7适配器
 /// 支持流式响应 (Server-Sent Events)
@@ -124,66 +124,42 @@ class GLMAdapter implements LLMService {
     required Function(String chunk) onChunk,
     required DateTime startTime,
   }) async {
-    final StringBuffer fullContent = StringBuffer();
-    
-    await _dio.post(
-      _config.endpoint,
-      data: requestBody,
-      options: Options(
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${_config.apiKey}',
-          'Accept': 'text/event-stream',
-        },
-        responseType: ResponseType.stream,
-      ),
-      cancelToken: _cancelToken,
-    ).then((response) async {
-      final stream = response.data as Stream<List<int>>;
+    try {
+      final response = await _dio.post(
+        _config.endpoint,
+        data: requestBody,
+        options: StreamResponseHandler.createStreamOptions(
+          headers: {
+            'Authorization': 'Bearer ${_config.apiKey}',
+          },
+        ),
+        cancelToken: _cancelToken,
+      );
+
+      // 使用统一处理器获取字节流
+      final stream = StreamResponseHandler.getStreamFromResponse(response);
       
-      await for (final chunk in stream) {
-        final String text = utf8.decode(chunk);
-        
-        // 解析SSE格式
-        for (final line in text.split('\n')) {
-          if (line.startsWith('data: ')) {
-            final data = line.substring(6);
-            
-            if (data == '[DONE]') {
-              break;
-            }
+      // 使用统一处理器解析SSE流
+      final fullContent = await StreamResponseHandler.parseSSEStream(
+        stream: stream,
+        onChunk: onChunk,
+        contentPath: SSEContentPaths.openAICompatible,
+      );
 
-            try {
-              final jsonData = jsonDecode(data) as Map<String, dynamic>;
-              final choices = jsonData['choices'] as List?;
-              
-              if (choices != null && choices.isNotEmpty) {
-                final delta = choices[0]['delta'] as Map<String, dynamic>?;
-                final content = delta?['content'] as String?;
-                
-                if (content != null && content.isNotEmpty) {
-                  fullContent.write(content);
-                  onChunk(content); // 实时回调
-                }
-              }
-            } catch (e) {
-              debugPrint('GLMAdapter: 解析流数据失败: $e');
-            }
-          }
-        }
-      }
-    });
+      final responseTime = DateTime.now().difference(startTime);
+      
+      debugPrint('GLMAdapter: 流式响应完成，耗时 ${responseTime.inMilliseconds}ms');
+      debugPrint('GLMAdapter: 总长度 ${fullContent.length}');
 
-    final responseTime = DateTime.now().difference(startTime);
-    
-    debugPrint('GLMAdapter: 流式响应完成，耗时 ${responseTime.inMilliseconds}ms');
-    debugPrint('GLMAdapter: 总长度 ${fullContent.length}');
-
-    return LLMResponse(
-      content: fullContent.toString(),
-      tokensUsed: 0, // 流式不返回token统计
-      responseTime: responseTime,
-    );
+      return LLMResponse(
+        content: fullContent,
+        tokensUsed: 0, // 流式不返回token统计
+        responseTime: responseTime,
+      );
+    } on StreamHandlerException catch (e) {
+      debugPrint('GLMAdapter: 流处理错误: $e');
+      throw LLMException('流式响应处理失败: $e');
+    }
   }
 
   /// 构建消息列表

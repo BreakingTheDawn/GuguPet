@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import '../../../core/services/llm_service.dart';
 import '../../../core/services/ai_config_loader_service.dart';
+import '../../../core/services/multi_llm_service.dart';
 import '../../../core/models/ai_config_models.dart';
 import '../data/models/chat_message.dart';
 import '../data/models/chat_session.dart';
@@ -33,6 +34,7 @@ class ChatService extends ChangeNotifier {
   final ChatLocalDatasource _localDatasource;
   final AIConfigService _configService;
   LLMService? _llmService;
+  MultiLLMService? _multiLLMService;
 
   ChatSession? _currentSession;
   ChatMode _currentMode = ChatMode.simple;
@@ -41,27 +43,47 @@ class ChatService extends ChangeNotifier {
   
   /// Token是否已耗尽（用于自动切换本地模式）
   bool _tokenExhausted = false;
+  
+  /// 流式响应回调
+  Function(String chunk, bool isDone)? onStreamResponse;
 
   ChatSession? get currentSession => _currentSession;
   ChatMode get currentMode => _currentMode;
   bool get isLoading => _isLoading;
   String? get error => _error;
   
-  /// 是否可以使用AI模式（配置正确且Token未耗尽）
-  bool get canUseAIMode => _configService.isConfigured && _llmService != null && !_tokenExhausted;
+  /// 是否可以使用AI模式（优先检查多模型服务）
+  bool get canUseAIMode {
+    // 优先检查多模型服务
+    if (_multiLLMService != null && _multiLLMService!.hasAvailableService) {
+      return true;
+    }
+    // 回退到旧方式
+    return _configService.isConfigured && _llmService != null && !_tokenExhausted;
+  }
 
   ChatService({
     ChatLocalDatasource? localDatasource,
     required AIConfigService configService,
     LLMService? llmService,
+    MultiLLMService? multiLLMService,
   })  : _localDatasource = localDatasource ?? ChatLocalDatasource(),
         _configService = configService,
-        _llmService = llmService;
+        _llmService = llmService,
+        _multiLLMService = multiLLMService;
 
   /// 更新LLM服务
   void updateLLMService(LLMService? service) {
     _llmService = service;
     // 更新LLM服务时重置Token耗尽状态
+    _tokenExhausted = false;
+    _currentMode = canUseAIMode ? ChatMode.ai : ChatMode.simple;
+    notifyListeners();
+  }
+  
+  /// 更新多模型LLM服务
+  void updateMultiLLMService(MultiLLMService? service) {
+    _multiLLMService = service;
     _tokenExhausted = false;
     _currentMode = canUseAIMode ? ChatMode.ai : ChatMode.simple;
     notifyListeners();
@@ -155,17 +177,57 @@ class ChatService extends ChangeNotifier {
       final config = await AIConfigLoaderService.getConfig();
       final maxHistoryLength = config.conversation.maxHistoryLength;
       
-      final response = await _llmService!.chat(
-        systemPrompt: systemPrompt,
-        userMessage: userMessage,
-        conversationHistory: _currentSession!.toApiHistory(limit: maxHistoryLength),
-      );
+      String responseContent;
+      
+      // 优先使用多模型服务（支持流式响应）
+      if (_multiLLMService != null && _multiLLMService!.hasAvailableService) {
+        debugPrint('>>> 使用多模型LLM服务');
+        
+        // 设置流式响应回调
+        _multiLLMService!.onStreamResponse = (chunk, isDone) {
+          if (onStreamResponse != null) {
+            onStreamResponse!(chunk, isDone);
+          }
+        };
+        
+        final result = await _multiLLMService!.sendMessage(
+          systemPrompt: systemPrompt,
+          userMessage: userMessage,
+          conversationHistory: _currentSession!.toApiHistory(limit: maxHistoryLength),
+          enableStreaming: true,
+        );
+        
+        responseContent = result.content;
+        
+        if (!result.success) {
+          // 所有模型都失败，返回降级消息
+          _currentMode = ChatMode.simple;
+          _isLoading = false;
+          notifyListeners();
+          return ChatResult(
+            content: result.content,
+            mode: ChatMode.simple,
+            isTokenExhausted: result.isFallback,
+          );
+        }
+      } else if (_llmService != null) {
+        debugPrint('>>> 使用单模型LLM服务');
+        // 回退到旧的LLM服务
+        final response = await _llmService!.chat(
+          systemPrompt: systemPrompt,
+          userMessage: userMessage,
+          conversationHistory: _currentSession!.toApiHistory(limit: maxHistoryLength),
+        );
+        responseContent = response.content;
+      } else {
+        throw LLMException('LLM服务未初始化');
+      }
 
       // 添加AI回复
       final assistantMsg = ChatMessage(
         messageId: 'msg_${DateTime.now().millisecondsSinceEpoch}',
         role: ChatRole.assistant,
-        content: response.content,
+        content: responseContent,
         timestamp: DateTime.now(),
       );
       
@@ -176,9 +238,8 @@ class ChatService extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
 
-      // 添加AI标记 ++ 用于测试区分
       return ChatResult(
-        content: '${response.content}++',
+        content: responseContent,
         mode: ChatMode.ai,
       );
     } on TokenExhaustedException {

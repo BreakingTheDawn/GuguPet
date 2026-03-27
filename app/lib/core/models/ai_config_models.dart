@@ -72,11 +72,11 @@ class AIParameters {
 
   factory AIParameters.fromJson(Map<String, dynamic> json) {
     return AIParameters(
-      maxTokens: json['maxTokens'] as int,
-      temperature: (json['temperature'] as num).toDouble(),
-      timeoutMs: json['timeoutMs'] as int,
-      topK: json['topK'] as int,
-      topP: (json['topP'] as num).toDouble(),
+      maxTokens: json['maxTokens'] as int? ?? 500,
+      temperature: (json['temperature'] as num?)?.toDouble() ?? 0.7,
+      timeoutMs: json['timeoutMs'] as int? ?? 15000,
+      topK: json['topK'] as int? ?? 1,
+      topP: (json['topP'] as num?)?.toDouble() ?? 1.0,
     );
   }
 
