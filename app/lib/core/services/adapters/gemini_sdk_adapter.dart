@@ -47,6 +47,7 @@ class GeminiSDKAdapter implements LLMService {
     required String systemPrompt,
     required String userMessage,
     List<Map<String, String>>? conversationHistory,
+    Function(String chunk)? onStream,
   }) async {
     if (_model == null) {
       throw LLMException('Gemini模型未初始化');

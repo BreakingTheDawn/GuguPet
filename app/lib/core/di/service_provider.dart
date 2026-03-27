@@ -119,14 +119,14 @@ class ServiceProvider {
   }
 
   /// 使用多模型服务发送消息
-  Future<ChatResult> sendMessageWithMultiModel({
+  Future<MultiModelChatResult> sendMessageWithMultiModel({
     required String systemPrompt,
     required String userMessage,
     List<Map<String, String>>? conversationHistory,
     bool enableStreaming = true,
   }) async {
     if (_multiLLMService == null) {
-      return ChatResult(
+      return MultiModelChatResult(
         content: 'AI服务未初始化',
         success: false,
       );

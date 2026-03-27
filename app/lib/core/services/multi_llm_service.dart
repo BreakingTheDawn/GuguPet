@@ -116,7 +116,7 @@ class MultiLLMService {
   }
 
   /// 发送消息（自动故障转移）
-  Future<ChatResult> sendMessage({
+  Future<MultiModelChatResult> sendMessage({
     required String systemPrompt,
     required String userMessage,
     List<Map<String, String>>? conversationHistory,
@@ -158,7 +158,7 @@ class MultiLLMService {
 
         _currentProviderId = providerId;
         
-        return ChatResult(
+        return MultiModelChatResult(
           content: response.content,
           providerId: providerId,
           success: true,
@@ -176,7 +176,7 @@ class MultiLLMService {
     }
 
     // 所有模型都失败
-    return ChatResult(
+    return MultiModelChatResult(
       content: config.conversation.fallbackMessage,
       providerId: null,
       success: false,
@@ -213,14 +213,14 @@ class MultiLLMService {
   }
 }
 
-/// 对话结果
-class ChatResult {
+/// 多模型对话结果
+class MultiModelChatResult {
   final String content;
   final String? providerId;
   final bool success;
   final bool isFallback;
 
-  ChatResult({
+  MultiModelChatResult({
     required this.content,
     this.providerId,
     this.success = true,

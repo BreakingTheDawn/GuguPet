@@ -104,6 +104,11 @@ class AIConfigLoaderService {
         enableAutoFallback: true,
         fallbackMessage: '咕...让我休息一下~',
       ),
+      fallback: FallbackConfig(
+        order: ['gemini'],
+        retryAttempts: 2,
+        retryDelayMs: 1000,
+      ),
     );
   }
 }

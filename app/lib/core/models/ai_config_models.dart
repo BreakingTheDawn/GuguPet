@@ -6,8 +6,10 @@ class AIProviderConfig {
   final String id;
   final String name;
   final bool enabled;
+  final int priority;
   final String defaultModel;
   final String endpoint;
+  final String apiKeyStorageKey;
   final AIParameters parameters;
   final AIFeatures features;
 
@@ -15,8 +17,10 @@ class AIProviderConfig {
     required this.id,
     required this.name,
     required this.enabled,
+    this.priority = 1,
     required this.defaultModel,
     required this.endpoint,
+    this.apiKeyStorageKey = '',
     required this.parameters,
     required this.features,
   });
@@ -26,8 +30,10 @@ class AIProviderConfig {
       id: json['id'] as String,
       name: json['name'] as String,
       enabled: json['enabled'] as bool,
+      priority: json['priority'] as int? ?? 1,
       defaultModel: json['defaultModel'] as String,
       endpoint: json['endpoint'] as String,
+      apiKeyStorageKey: json['apiKeyStorageKey'] as String? ?? '',
       parameters: AIParameters.fromJson(json['parameters'] as Map<String, dynamic>),
       features: AIFeatures.fromJson(json['features'] as Map<String, dynamic>),
     );
@@ -38,8 +44,10 @@ class AIProviderConfig {
       'id': id,
       'name': name,
       'enabled': enabled,
+      'priority': priority,
       'defaultModel': defaultModel,
       'endpoint': endpoint,
+      'apiKeyStorageKey': apiKeyStorageKey,
       'parameters': parameters.toJson(),
       'features': features.toJson(),
     };
@@ -151,11 +159,15 @@ class ConversationConfig {
   final int maxHistoryLength;
   final bool enableAutoFallback;
   final String fallbackMessage;
+  final bool enableStreaming;
+  final int streamTimeoutMs;
 
   const ConversationConfig({
     required this.maxHistoryLength,
     required this.enableAutoFallback,
     required this.fallbackMessage,
+    this.enableStreaming = true,
+    this.streamTimeoutMs = 30000,
   });
 
   factory ConversationConfig.fromJson(Map<String, dynamic> json) {
@@ -163,6 +175,8 @@ class ConversationConfig {
       maxHistoryLength: json['maxHistoryLength'] as int,
       enableAutoFallback: json['enableAutoFallback'] as bool,
       fallbackMessage: json['fallbackMessage'] as String,
+      enableStreaming: json['enableStreaming'] as bool? ?? true,
+      streamTimeoutMs: json['streamTimeoutMs'] as int? ?? 30000,
     );
   }
 
@@ -171,6 +185,37 @@ class ConversationConfig {
       'maxHistoryLength': maxHistoryLength,
       'enableAutoFallback': enableAutoFallback,
       'fallbackMessage': fallbackMessage,
+      'enableStreaming': enableStreaming,
+      'streamTimeoutMs': streamTimeoutMs,
+    };
+  }
+}
+
+/// 故障转移配置
+class FallbackConfig {
+  final List<String> order;
+  final int retryAttempts;
+  final int retryDelayMs;
+
+  const FallbackConfig({
+    required this.order,
+    this.retryAttempts = 2,
+    this.retryDelayMs = 1000,
+  });
+
+  factory FallbackConfig.fromJson(Map<String, dynamic> json) {
+    return FallbackConfig(
+      order: (json['order'] as List).cast<String>(),
+      retryAttempts: json['retryAttempts'] as int? ?? 2,
+      retryDelayMs: json['retryDelayMs'] as int? ?? 1000,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'order': order,
+      'retryAttempts': retryAttempts,
+      'retryDelayMs': retryDelayMs,
     };
   }
 }
@@ -181,12 +226,14 @@ class AIConfigModel {
   final List<AIProviderConfig> providers;
   final SystemPromptConfig systemPrompt;
   final ConversationConfig conversation;
+  final FallbackConfig fallback;
 
   const AIConfigModel({
     required this.version,
     required this.providers,
     required this.systemPrompt,
     required this.conversation,
+    required this.fallback,
   });
 
   factory AIConfigModel.fromJson(Map<String, dynamic> json) {
@@ -197,6 +244,7 @@ class AIConfigModel {
           .toList(),
       systemPrompt: SystemPromptConfig.fromJson(json['systemPrompt'] as Map<String, dynamic>),
       conversation: ConversationConfig.fromJson(json['conversation'] as Map<String, dynamic>),
+      fallback: FallbackConfig.fromJson(json['fallback'] as Map<String, dynamic>),
     );
   }
 
@@ -206,6 +254,7 @@ class AIConfigModel {
       'providers': providers.map((e) => e.toJson()).toList(),
       'systemPrompt': systemPrompt.toJson(),
       'conversation': conversation.toJson(),
+      'fallback': fallback.toJson(),
     };
   }
 

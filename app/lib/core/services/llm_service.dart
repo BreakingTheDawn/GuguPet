@@ -23,6 +23,7 @@ abstract class LLMService {
     required String systemPrompt,
     required String userMessage,
     List<Map<String, String>>? conversationHistory,
+    Function(String chunk)? onStream, // 流式回调
   });
 
   /// 检查服务是否可用
@@ -48,6 +49,7 @@ class OpenAICompatibleService implements LLMService {
     required String systemPrompt,
     required String userMessage,
     List<Map<String, String>>? conversationHistory,
+    Function(String chunk)? onStream,
   }) async {
     if (!_config.isConfigured) {
       throw LLMException('LLM服务未配置');
@@ -182,6 +184,7 @@ class DisabledLLMService implements LLMService {
     required String systemPrompt,
     required String userMessage,
     List<Map<String, String>>? conversationHistory,
+    Function(String chunk)? onStream,
   }) async {
     throw LLMException('LLM服务已禁用');
   }

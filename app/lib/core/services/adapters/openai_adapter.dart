@@ -23,6 +23,7 @@ class OpenAICompatibleAdapter implements LLMService {
     required String systemPrompt,
     required String userMessage,
     List<Map<String, String>>? conversationHistory,
+    Function(String chunk)? onStream,
   }) async {
     if (!_config.isConfigured) {
       throw LLMException('LLM服务未配置');
