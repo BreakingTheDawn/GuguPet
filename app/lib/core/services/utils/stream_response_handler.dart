@@ -109,23 +109,39 @@ class StreamResponseHandler {
     Function(String chunk) onChunk,
     List<dynamic> contentPath,
   ) {
-    if (!line.startsWith('data: ')) return;
+    // 调试：打印每一行原始数据
+    debugPrint('🔍 [SSE] 收到行: ${line.length > 100 ? line.substring(0, 100) + "..." : line}');
+    
+    if (!line.startsWith('data: ')) {
+      debugPrint('⚠️ [SSE] 行不以"data: "开头，跳过');
+      return;
+    }
     
     final data = line.substring(6);
     
     // 检查是否是结束标记
-    if (data == '[DONE]') return;
+    if (data == '[DONE]') {
+      debugPrint('✅ [SSE] 收到结束标记 [DONE]');
+      return;
+    }
     
     try {
       final jsonData = jsonDecode(data) as Map<String, dynamic>;
+      debugPrint('🔍 [SSE] JSON解析成功: $jsonData');
+      
       final content = _extractContent(jsonData, contentPath);
+      debugPrint('🔍 [SSE] 提取的内容: "$content"');
       
       if (content != null && content.isNotEmpty) {
         fullContent.write(content);
         onChunk(content);
+        debugPrint('✅ [SSE] 内容已添加: "$content"');
+      } else {
+        debugPrint('⚠️ [SSE] 内容为空或null');
       }
     } catch (e) {
-      debugPrint('StreamResponseHandler: 解析SSE数据失败: $e');
+      debugPrint('❌ [SSE] 解析失败: $e');
+      debugPrint('❌ [SSE] 原始数据: $data');
     }
   }
 
@@ -157,6 +173,23 @@ class StreamResponseHandler {
       } else if (key is String) {
         if (current is! Map<String, dynamic>) return null;
         current = current[key];
+      }
+    }
+    
+    // 如果content字段为空，尝试查找reasoning_content字段（GLM-4.7支持）
+    if (current == null || (current is String && current.isEmpty)) {
+      // 重新从delta开始查找reasoning_content
+      try {
+        final delta = data['choices']?[0]?['delta'];
+        if (delta is Map<String, dynamic>) {
+          final reasoningContent = delta['reasoning_content'];
+          if (reasoningContent is String && reasoningContent.isNotEmpty) {
+            debugPrint('💡 [SSE] 使用 reasoning_content 字段: "$reasoningContent"');
+            return reasoningContent;
+          }
+        }
+      } catch (e) {
+        debugPrint('⚠️ [SSE] 查找 reasoning_content 失败: $e');
       }
     }
     

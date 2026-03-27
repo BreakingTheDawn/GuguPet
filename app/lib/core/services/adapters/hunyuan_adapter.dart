@@ -18,8 +18,8 @@ class HunyuanAdapter implements LLMService {
   HunyuanAdapter({required LLMConfig config})
       : _config = config,
         _dio = Dio(BaseOptions(
-          connectTimeout: const Duration(seconds: 15),
-          receiveTimeout: const Duration(seconds: 30),
+          connectTimeout: Duration(milliseconds: config.timeoutMs),
+          receiveTimeout: Duration(milliseconds: config.timeoutMs),
         ));
 
   @override

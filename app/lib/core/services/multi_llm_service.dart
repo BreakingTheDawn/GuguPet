@@ -56,6 +56,9 @@ class MultiLLMService {
         apiKey: apiKey,
         endpoint: providerConfig.endpoint,
         model: providerConfig.defaultModel,
+        maxTokens: providerConfig.parameters.maxTokens,
+        temperature: providerConfig.parameters.temperature,
+        timeoutMs: providerConfig.parameters.timeoutMs,
       );
 
       // 创建服务实例
@@ -122,6 +125,9 @@ class MultiLLMService {
     List<Map<String, String>>? conversationHistory,
     bool enableStreaming = true,
   }) async {
+    debugPrint('⏱️ [MultiLLM] 开始发送消息');
+    final totalStart = DateTime.now();
+    
     final config = await AIConfigLoaderService.getConfig();
     final fallbackOrder = config.fallback.order;
     
@@ -131,7 +137,8 @@ class MultiLLMService {
       if (service == null) continue;
 
       try {
-        debugPrint('尝试使用模型: $providerId');
+        debugPrint('⏱️ [MultiLLM] 尝试使用模型: $providerId');
+        final modelStart = DateTime.now();
         
         LLMResponse response;
         
@@ -139,6 +146,7 @@ class MultiLLMService {
           // 流式调用 - 创建一个缓冲区来累积内容
           final StringBuffer contentBuffer = StringBuffer();
           
+          debugPrint('⏱️ [MultiLLM] 开始调用 ${providerId}.chat()');
           response = await service.chat(
             systemPrompt: systemPrompt,
             userMessage: userMessage,
@@ -148,18 +156,24 @@ class MultiLLMService {
               onStreamResponse!(chunk, false);
             },
           );
+          debugPrint('⏱️ [MultiLLM] ${providerId}.chat() 完成，耗时 ${DateTime.now().difference(modelStart).inMilliseconds}ms');
+          
           // 标记流结束
           onStreamResponse!('', true);
         } else {
           // 非流式调用
+          debugPrint('⏱️ [MultiLLM] 开始调用 ${providerId}.chat() (非流式)');
           response = await service.chat(
             systemPrompt: systemPrompt,
             userMessage: userMessage,
             conversationHistory: conversationHistory,
           );
+          debugPrint('⏱️ [MultiLLM] ${providerId}.chat() 完成，耗时 ${DateTime.now().difference(modelStart).inMilliseconds}ms');
         }
 
         _currentProviderId = providerId;
+        
+        debugPrint('⏱️ [MultiLLM] 消息发送成功，总耗时 ${DateTime.now().difference(totalStart).inMilliseconds}ms');
         
         return MultiModelChatResult(
           content: response.content,
@@ -167,18 +181,19 @@ class MultiLLMService {
           success: true,
         );
       } on TokenExhaustedException {
-        debugPrint('$providerId: Token耗尽，尝试下一个模型');
+        debugPrint('⏱️ [MultiLLM] $providerId: Token耗尽，尝试下一个模型');
         continue;
       } on RateLimitException {
-        debugPrint('$providerId: 限流，尝试下一个模型');
+        debugPrint('⏱️ [MultiLLM] $providerId: 限流，尝试下一个模型');
         continue;
       } on LLMException catch (e) {
-        debugPrint('$providerId: 错误 - $e');
+        debugPrint('⏱️ [MultiLLM] $providerId: 错误 - $e');
         continue;
       }
     }
 
     // 所有模型都失败
+    debugPrint('⏱️ [MultiLLM] 所有模型都失败，总耗时 ${DateTime.now().difference(totalStart).inMilliseconds}ms');
     return MultiModelChatResult(
       content: config.conversation.fallbackMessage,
       providerId: null,

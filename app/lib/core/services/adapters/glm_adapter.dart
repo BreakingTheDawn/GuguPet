@@ -18,8 +18,8 @@ class GLMAdapter implements LLMService {
   GLMAdapter({required LLMConfig config})
       : _config = config,
         _dio = Dio(BaseOptions(
-          connectTimeout: const Duration(seconds: 15),
-          receiveTimeout: const Duration(seconds: 30),
+          connectTimeout: Duration(milliseconds: config.timeoutMs),
+          receiveTimeout: Duration(milliseconds: config.timeoutMs),
         ));
 
   @override
@@ -37,14 +37,19 @@ class GLMAdapter implements LLMService {
     _cancelToken = CancelToken();
 
     try {
-      // 构建消息列表
+      // 步骤1：构建消息列表
+      debugPrint('⏱️ [GLM] 步骤1：开始构建消息列表');
+      final step1Start = DateTime.now();
       final messages = _buildMessages(
         systemPrompt: systemPrompt,
         userMessage: userMessage,
         history: conversationHistory,
       );
+      debugPrint('⏱️ [GLM] 步骤1完成：耗时 ${DateTime.now().difference(step1Start).inMilliseconds}ms');
 
-      // 构建请求体
+      // 步骤2：构建请求体
+      debugPrint('⏱️ [GLM] 步骤2：开始构建请求体');
+      final step2Start = DateTime.now();
       final requestBody = {
         'model': _config.model,
         'messages': messages,
@@ -53,10 +58,13 @@ class GLMAdapter implements LLMService {
         'max_tokens': _config.maxTokens,
         'top_p': 0.7,
       };
+      debugPrint('⏱️ [GLM] 步骤2完成：耗时 ${DateTime.now().difference(step2Start).inMilliseconds}ms');
 
       debugPrint('GLMAdapter: 发送请求');
       debugPrint('  模型: ${_config.model}');
       debugPrint('  流式: ${onStream != null}');
+      debugPrint('  maxTokens: ${_config.maxTokens}');
+      debugPrint('  timeoutMs: ${_config.timeoutMs}');
 
       if (onStream != null) {
         // 流式调用
@@ -125,6 +133,10 @@ class GLMAdapter implements LLMService {
     required DateTime startTime,
   }) async {
     try {
+      // 步骤3：发送HTTP请求
+      debugPrint('⏱️ [GLM] 步骤3：开始发送HTTP请求');
+      final step3Start = DateTime.now();
+      
       final response = await _dio.post(
         _config.endpoint,
         data: requestBody,
@@ -135,20 +147,28 @@ class GLMAdapter implements LLMService {
         ),
         cancelToken: _cancelToken,
       );
-
-      // 使用统一处理器获取字节流
-      final stream = StreamResponseHandler.getStreamFromResponse(response);
       
-      // 使用统一处理器解析SSE流
+      debugPrint('⏱️ [GLM] 步骤3完成：HTTP响应到达，耗时 ${DateTime.now().difference(step3Start).inMilliseconds}ms');
+
+      // 步骤4：获取字节流
+      debugPrint('⏱️ [GLM] 步骤4：开始获取字节流');
+      final step4Start = DateTime.now();
+      final stream = StreamResponseHandler.getStreamFromResponse(response);
+      debugPrint('⏱️ [GLM] 步骤4完成：耗时 ${DateTime.now().difference(step4Start).inMilliseconds}ms');
+      
+      // 步骤5：解析SSE流
+      debugPrint('⏱️ [GLM] 步骤5：开始解析SSE流');
+      final step5Start = DateTime.now();
       final fullContent = await StreamResponseHandler.parseSSEStream(
         stream: stream,
         onChunk: onChunk,
         contentPath: SSEContentPaths.openAICompatible,
       );
+      debugPrint('⏱️ [GLM] 步骤5完成：耗时 ${DateTime.now().difference(step5Start).inMilliseconds}ms');
 
       final responseTime = DateTime.now().difference(startTime);
       
-      debugPrint('GLMAdapter: 流式响应完成，耗时 ${responseTime.inMilliseconds}ms');
+      debugPrint('GLMAdapter: 流式响应完成，总耗时 ${responseTime.inMilliseconds}ms');
       debugPrint('GLMAdapter: 总长度 ${fullContent.length}');
 
       return LLMResponse(
