@@ -55,3 +55,4 @@ flutter:
     - assets/images/pet/
     - assets/data/
     - assets/config/
+    - assets/config/ai_config.json
