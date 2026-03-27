@@ -1,11 +1,13 @@
 import 'llm_service.dart';
 import 'adapters/gemini_adapter.dart';
+import 'adapters/gemini_sdk_adapter.dart';
 import 'llm_config.dart';
 
 /// 支持的AI平台
-/// 当前仅支持Google Gemini
+/// 当前支持Google Gemini（HTTP和SDK两种实现）
 enum LLMProvider {
-  gemini('Google Gemini', 'gemini-1.5-flash');
+  gemini('Google Gemini (HTTP)', 'gemini-2.0-flash-exp'),
+  geminiSDK('Google Gemini (SDK)', 'gemini-2.0-flash-exp');
 
   final String displayName;
   final String defaultModel;
@@ -20,6 +22,8 @@ class LLMServiceFactory {
     switch (provider) {
       case LLMProvider.gemini:
         return GeminiAdapter(config: config);
+      case LLMProvider.geminiSDK:
+        return GeminiSDKAdapter(config: config);
     }
   }
 }
