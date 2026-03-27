@@ -8,6 +8,7 @@ import 'core/services/test_admin_initializer.dart';
 import 'core/services/app_strings.dart';
 import 'core/services/business_config_service.dart';
 import 'core/services/theme_service.dart';
+import 'core/services/security_service.dart';
 import 'core/di/repository_provider.dart';
 import 'core/di/service_provider.dart';
 import 'data/models/user_profile.dart';
@@ -31,6 +32,9 @@ void main() async {
     databaseFactory = databaseFactoryFfi;
   }
   
+  // 初始化安全服务
+  await _initializeSecurity();
+  
   // 初始化配置服务
   await AppStrings.initialize();
   await BusinessConfigService.initialize();
@@ -46,6 +50,30 @@ void main() async {
   TestAdminInitializer.printAllTestAccountsInfo();
   
   runApp(const JobPetApp());
+}
+
+/// 初始化安全服务
+Future<void> _initializeSecurity() async {
+  try {
+    // 初始化安全服务
+    final securityService = SecurityService();
+    await securityService.initialize();
+
+    // 检查设备安全性
+    final isSecure = await securityService.isDeviceSecure();
+    if (!isSecure) {
+      // 设备已Root/越狱，记录日志
+      print('[Security] ⚠️ 检测到设备已Root/越狱');
+      print('[Security] 建议：不要在Root/越狱设备上使用VIP等付费功能');
+      // 可以选择显示警告或限制功能
+    } else {
+      print('[Security] ✅ 设备安全检查通过');
+    }
+
+    print('[Security] 安全服务初始化完成');
+  } catch (e) {
+    print('[Security] 安全服务初始化失败: $e');
+  }
 }
 
 class JobPetApp extends StatefulWidget {
