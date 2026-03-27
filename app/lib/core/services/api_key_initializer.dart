@@ -26,18 +26,6 @@ class ApiKeyInitializer {
   Future<void> initialize() async {
     debugPrint('=== API Key初始化 ===');
     
-    // ⚠️ 警告：以下API Key应该从安全渠道获取，不要硬编码
-    // 这里仅作为示例，实际使用时请替换为安全的获取方式
-    
-    // 方式1：从后端接口获取（推荐）
-    // final apiKeys = await _fetchApiKeysFromBackend();
-    
-    // 方式2：从环境变量获取（仅开发环境）
-    // final apiKeys = _getApiKeysFromEnvironment();
-    
-    // 方式3：用户手动输入
-    // 在设置页面由用户输入并保存
-    
     // 当前实现：请手动调用saveApiKey方法配置
     debugPrint('请手动配置API Key，调用: _multiLLMService.saveApiKey(providerId, apiKey)');
   }
@@ -75,33 +63,6 @@ class ApiKeyInitializer {
     
     await _multiLLMService.saveApiKey('gemini', apiKey);
     debugPrint('Gemini API Key已配置');
-  }
-
-  /// 从后端接口获取API Key（示例）
-  /// 
-  /// 实际实现应该：
-  /// 1. 调用后端接口获取加密后的API Key
-  /// 2. 解密并存储到安全存储
-  /// 3. 处理错误和过期情况
-  Future<Map<String, String>> _fetchApiKeysFromBackend() async {
-    // TODO: 实现后端接口调用
-    // final response = await http.get(Uri.parse('https://your-api.com/keys'));
-    // return jsonDecode(response.body);
-    
-    return {};
-  }
-
-  /// 从环境变量获取API Key（仅开发环境）
-  Map<String, String> _getApiKeysFromEnvironment() {
-    // 注意：Flutter不支持直接读取系统环境变量
-    // 需要使用flutter_dotenv包或编译时注入
-    
-    // const apiKey = String.fromEnvironment('GLM_API_KEY');
-    // if (apiKey.isNotEmpty) {
-    //   return {'glm': apiKey};
-    // }
-    
-    return {};
   }
 }
 
@@ -152,10 +113,10 @@ class ApiKeyInitializer {
 /// 
 /// ```dart
 /// final initializer = ApiKeyInitializer(multiLLMService);
-/// await initializer.configureGLM('8e4979fbaa514e27aa97bcd099ba27e2.VXYkauHvE388vBYr');
+/// await initializer.configureGLM('your-api-key-here');
 /// ```
 /// 
-/// ⚠️ 注意：上述API Key仅供测试使用，生产环境请使用更安全的方式获取
+/// ⚠️ 注意：生产环境请使用更安全的方式获取API Key
 const String _glmApiKeyGuide = '''
 GLM-4.7 API Key配置
 
