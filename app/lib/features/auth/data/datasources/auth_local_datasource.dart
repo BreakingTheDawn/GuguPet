@@ -27,6 +27,7 @@ class AuthLocalDatasource implements AuthDatasource {
   
   /// 注册新用户
   /// 返回注册结果：成功返回AuthUser，失败返回null
+  @override
   Future<AuthUser?> register({
     required String account,
     required String password,
@@ -91,6 +92,7 @@ class AuthLocalDatasource implements AuthDatasource {
   
   /// 用户登录
   /// 验证账号密码，成功返回AuthUser，失败返回null
+  @override
   Future<AuthUser?> login({
     required String account,
     required String password,
@@ -126,6 +128,7 @@ class AuthLocalDatasource implements AuthDatasource {
   }
   
   /// 用户登出
+  @override
   Future<void> logout(String userId) async {
     try {
       final db = await _database;
@@ -141,6 +144,7 @@ class AuthLocalDatasource implements AuthDatasource {
   }
   
   /// 获取当前登录用户
+  @override
   Future<AuthUser?> getCurrentUser() async {
     try {
       final db = await _database;
@@ -162,6 +166,7 @@ class AuthLocalDatasource implements AuthDatasource {
   }
   
   /// 检查账号是否存在
+  @override
   Future<bool> isAccountExists(String account) async {
     try {
       final db = await _database;

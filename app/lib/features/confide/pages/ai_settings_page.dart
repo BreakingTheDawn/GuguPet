@@ -107,7 +107,7 @@ class _AISettingsPageState extends State<AISettingsPage> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.indigo500.withOpacity(0.1),
+              color: AppColors.indigo500.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
@@ -173,7 +173,7 @@ class _AISettingsPageState extends State<AISettingsPage> {
                 _isEnabled = value;
               });
             },
-            activeColor: AppColors.indigo500,
+            activeTrackColor: AppColors.indigo500,
           ),
         ],
       ),

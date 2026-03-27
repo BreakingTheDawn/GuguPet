@@ -114,7 +114,7 @@ class GeminiAdapter implements LLMService {
       debugPrint('响应数据: ${e.response?.data}');
       
       // 打印请求详情（用于调试）
-      debugPrint('请求端点: ${endpoint}');
+      debugPrint('请求端点: $endpoint');
       debugPrint('请求体: contents=${contents.length}条');
       
       if (e.response?.statusCode == 400) {

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 import '../../models/user_profile.dart';
+import '../../../core/services/vip_protection_service.dart';
 import 'database_helper.dart';
 
 /// 用户本地数据源接口
@@ -82,6 +83,7 @@ class MockUserLocalDatasource implements UserLocalDatasource {
 /// 包含从SharedPreferences到SQLite的数据迁移功能
 class SqliteUserLocalDatasource implements UserLocalDatasource {
   final DatabaseHelper _databaseHelper;
+  final VipProtectionService _vipProtectionService = VipProtectionService();
   
   /// 迁移标记键名
   static const String _keyMigrationCompleted = 'user_data_migration_completed';
@@ -244,7 +246,25 @@ class SqliteUserLocalDatasource implements UserLocalDatasource {
       );
 
       if (results.isEmpty) return null;
-      return _mapToUser(results.first);
+      final user = _mapToUser(results.first);
+      
+      // 验证VIP状态是否可信
+      final isTrusted = await _vipProtectionService.isVipStatusTrusted(
+        userId,
+        user.vipStatus,
+        user.vipExpireTime,
+      );
+
+      if (!isTrusted && user.vipStatus) {
+        // VIP状态不可信，返回非VIP状态的用户
+        print('[SqliteUserLocalDatasource] 检测到VIP状态异常，用户ID: $userId');
+        return user.copyWith(
+          vipStatus: false,
+          vipExpireTime: null,
+        );
+      }
+
+      return user;
     } catch (e, stackTrace) {
       print('[SqliteUserLocalDatasource] 获取用户失败: $e');
       print('[SqliteUserLocalDatasource] 堆栈跟踪: $stackTrace');

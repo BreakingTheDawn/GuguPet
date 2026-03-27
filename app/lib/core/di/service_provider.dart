@@ -1,7 +1,6 @@
 import '../../features/confide/services/ai_config_service.dart';
 import '../../features/confide/services/chat_service.dart';
 import '../../features/confide/providers/confide_provider.dart';
-import '../services/llm_service.dart';
 import '../services/llm_config.dart';
 import '../services/llm_provider.dart';
 

@@ -69,9 +69,7 @@ class ChatService extends ChangeNotifier {
   Future<void> initializeSession(String userId) async {
     _currentSession = await _localDatasource.getActiveSession(userId);
     
-    if (_currentSession == null) {
-      _currentSession = await _localDatasource.createSession(userId);
-    }
+    _currentSession ??= await _localDatasource.createSession(userId);
     
     // 根据配置和Token状态决定模式
     _currentMode = canUseAIMode ? ChatMode.ai : ChatMode.simple;

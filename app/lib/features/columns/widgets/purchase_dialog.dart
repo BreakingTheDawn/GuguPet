@@ -519,13 +519,13 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
   // ────────────────────────────────────────────────────────────────────────────
 
   /// 处理购买操作
-  Future<void> _handlePurchase(BuildContext context) async {
+  Future<void> _handlePurchase(BuildContext ctx) async {
     try {
       // 显示加载提示
       showDialog(
-        context: context,
+        context: ctx,
         barrierDismissible: false,
-        builder: (ctx) => const Center(
+        builder: (dialogCtx) => const Center(
           child: CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(AppColors.archiveAccent),
           ),
@@ -539,7 +539,7 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
       if (!mounted) return;
 
       // 关闭加载提示
-      Navigator.of(context).pop();
+      Navigator.of(ctx).pop();
 
       // VIP用户免费领取
       if (widget.isVipUser) {

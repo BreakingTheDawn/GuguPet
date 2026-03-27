@@ -132,7 +132,7 @@ class OpenAICompatibleAdapter implements LLMService {
         }
         
         if (message != null) {
-          throw LLMException('$message');
+          throw LLMException(message);
         }
       }
       

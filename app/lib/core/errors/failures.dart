@@ -9,7 +9,7 @@ class Failure {
 }
 
 class NetworkFailure extends Failure {
-  const NetworkFailure({String? message, String? code})
+  const NetworkFailure({super.message, super.code})
       : super(
           message: message ?? '网络请求失败',
           code: code ?? 'NETWORK_ERROR',
@@ -17,19 +17,9 @@ class NetworkFailure extends Failure {
 }
 
 class StorageFailure extends Failure {
-  const StorageFailure({String? message, String? code})
+  const StorageFailure({super.message, super.code})
       : super(
           message: message ?? '存储操作失败',
           code: code ?? 'STORAGE_ERROR',
-        );
-}
-
-class BusinessFailure extends Failure {
-  const BusinessFailure({
-    required String message,
-    String? code,
-  }) : super(
-          message: message,
-          code: code,
         );
 }
