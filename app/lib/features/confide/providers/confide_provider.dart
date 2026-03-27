@@ -27,8 +27,14 @@ class ConfideProvider extends ChangeNotifier {
 
   /// 初始化
   Future<void> initialize(String userId) async {
-    await _configService.initialize();
+    debugPrint('=== ConfideProvider初始化 ===');
+    debugPrint('传入用户ID: $userId');
+    
+    await _configService.initialize(userId: userId);
     await _chatService.initializeSession(userId);
+    
+    debugPrint('ConfideProvider初始化完成');
+    debugPrint('isAIEnabled: $isAIEnabled');
     
     // 根据Token状态决定模式（不再需要手动创建LLM服务）
     // LLM服务由ServiceProvider统一管理

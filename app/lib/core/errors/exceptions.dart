@@ -15,8 +15,8 @@ abstract class AppException implements Exception {
 
 class NetworkException extends AppException {
   NetworkException({
-    super.message,
-    super.code,
+    String? message,
+    String? code,
     super.originalError,
   }) : super(
           message: message ?? '网络请求失败',
@@ -42,8 +42,8 @@ class NoConnectionException extends NetworkException {
 
 class StorageException extends AppException {
   StorageException({
-    super.message,
-    super.code,
+    String? message,
+    String? code,
     super.originalError,
   }) : super(
           message: message ?? '存储操作失败',
@@ -64,13 +64,11 @@ class BusinessException extends AppException {
     required super.message,
     super.code,
     super.originalError,
-  }) : super(
-          code: code ?? 'BUSINESS_ERROR',
-        );
+  });
 }
 
 class AuthException extends BusinessException {
-  AuthException({super.message, super.originalError})
+  AuthException({String? message, super.originalError})
       : super(
           message: message ?? '认证失败',
           code: 'AUTH_ERROR',

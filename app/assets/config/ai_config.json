@@ -1,12 +1,77 @@
 {
-  "version": "1.0.0",
+  "version": "2.0.0",
   "providers": [
+    {
+      "id": "glm",
+      "name": "智谱GLM-4.7",
+      "enabled": true,
+      "priority": 1,
+      "defaultModel": "glm-4.7-flash",
+      "endpoint": "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+      "apiKeyStorageKey": "ai_api_key_glm",
+      "parameters": {
+        "maxTokens": 500,
+        "temperature": 0.7,
+        "timeoutMs": 15000,
+        "topP": 0.7
+      },
+      "features": {
+        "supportsStreaming": true,
+        "supportsSystemPrompt": true,
+        "supportsHistory": true
+      },
+      "headers": {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer {apiKey}"
+      },
+      "requestFormat": {
+        "model": "{model}",
+        "messages": "{messages}",
+        "stream": "{stream}",
+        "temperature": "{temperature}",
+        "max_tokens": "{maxTokens}",
+        "top_p": "{topP}"
+      }
+    },
+    {
+      "id": "hunyuan",
+      "name": "腾讯混元",
+      "enabled": true,
+      "priority": 2,
+      "defaultModel": "hunyuan-lite",
+      "endpoint": "https://hunyuan.tencentcloudapi.com/v1/chat/completions",
+      "apiKeyStorageKey": "ai_api_key_hunyuan",
+      "parameters": {
+        "maxTokens": 500,
+        "temperature": 0.7,
+        "timeoutMs": 15000,
+        "topP": 1.0
+      },
+      "features": {
+        "supportsStreaming": true,
+        "supportsSystemPrompt": true,
+        "supportsHistory": true
+      },
+      "headers": {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer {apiKey}"
+      },
+      "requestFormat": {
+        "model": "{model}",
+        "messages": "{messages}",
+        "stream": "{stream}",
+        "temperature": "{temperature}",
+        "max_tokens": "{maxTokens}"
+      }
+    },
     {
       "id": "gemini",
       "name": "Google Gemini",
-      "enabled": true,
+      "enabled": false,
+      "priority": 3,
       "defaultModel": "gemini-2.0-flash-exp",
       "endpoint": "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
+      "apiKeyStorageKey": "ai_api_key_gemini",
       "parameters": {
         "maxTokens": 500,
         "temperature": 0.7,
@@ -28,6 +93,13 @@
   "conversation": {
     "maxHistoryLength": 10,
     "enableAutoFallback": true,
-    "fallbackMessage": "咕...感觉脑袋有点晕晕的，让我休息一下，我们继续聊天吧~"
+    "fallbackMessage": "咕...感觉脑袋有点晕晕的，让我休息一下，我们继续聊天吧~",
+    "enableStreaming": true,
+    "streamTimeoutMs": 30000
+  },
+  "fallback": {
+    "order": ["glm", "hunyuan", "gemini"],
+    "retryAttempts": 2,
+    "retryDelayMs": 1000
   }
 }

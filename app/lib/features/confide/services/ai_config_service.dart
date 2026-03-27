@@ -97,14 +97,26 @@ class AIConfigService extends ChangeNotifier {
   /// 初始化配置
   /// 从本地存储加载配置
   Future<void> initialize({String? userId}) async {
+    debugPrint('=== AIConfigService初始化开始 ===');
+    debugPrint('传入用户ID: $userId');
+    debugPrint('当前用户ID: $_currentUserId');
+    
     try {
       _prefs = await SharedPreferences.getInstance();
+      debugPrint('SharedPreferences初始化成功');
       
       // 如果用户ID变化，需要重新加载对应用户的配置
       if (_currentUserId != userId) {
         _currentUserId = userId;
         await _loadConfig();
       }
+      
+      debugPrint('最终配置状态:');
+      debugPrint('  isConfigured: $isConfigured');
+      debugPrint('  config.isEnabled: ${_config.isEnabled}');
+      debugPrint('  config.apiKey长度: ${_config.apiKey.length}');
+      debugPrint('  config.endpoint: ${_config.endpoint}');
+      debugPrint('  config.model: ${_config.model}');
       
       notifyListeners();
     } catch (e) {
@@ -114,25 +126,43 @@ class AIConfigService extends ChangeNotifier {
 
   /// 加载配置
   Future<void> _loadConfig() async {
+    debugPrint('=== 加载AI配置 ===');
+    debugPrint('配置键名: ${_getConfigKey()}');
+    
     // 加载配置
     final configJson = _prefs?.getString(_getConfigKey());
+    debugPrint('配置JSON是否存在: ${configJson != null}');
+    
     if (configJson != null && configJson.isNotEmpty) {
       try {
         final decoded = jsonDecode(configJson) as Map<String, dynamic>;
+        debugPrint('解析的配置: $decoded');
         _config = AIConfig.fromJson(decoded);
+        
+        debugPrint('从SharedPreferences加载的配置:');
+        debugPrint('  provider: ${_config.provider}');
+        debugPrint('  apiKey长度: ${_config.apiKey.length}');
+        debugPrint('  endpoint: ${_config.endpoint}');
+        debugPrint('  model: ${_config.model}');
+        debugPrint('  isEnabled: ${_config.isEnabled}');
         
         // 从安全存储加载API密钥
         await loadApiKeyFromSecureStorage();
+        
+        debugPrint('从安全存储加载API密钥后:');
+        debugPrint('  apiKey长度: ${_config.apiKey.length}');
       } catch (e) {
         debugPrint('解析AI配置失败: $e');
       }
     } else {
       // 如果没有保存的配置，使用默认配置
+      debugPrint('未找到保存的配置，使用默认配置');
       _config = const AIConfig();
     }
     
     // 加载弹窗显示状态
     _hasShownUnlockDialog = _prefs?.getBool(_getUnlockDialogKey()) ?? false;
+    debugPrint('解锁弹窗已显示: $_hasShownUnlockDialog');
   }
 
   /// 切换用户
@@ -225,11 +255,19 @@ class AIConfigService extends ChangeNotifier {
 
   /// 从安全存储加载API密钥
   Future<void> loadApiKeyFromSecureStorage() async {
+    debugPrint('=== 从安全存储加载API密钥 ===');
     try {
       final securityService = SecurityService();
       final encryptedKey = await securityService.secureRead(_apiKeySecureKey);
+      debugPrint('加密密钥是否存在: ${encryptedKey != null}');
+      debugPrint('加密密钥长度: ${encryptedKey?.length ?? 0}');
+      
       if (encryptedKey != null && encryptedKey.isNotEmpty) {
-        _config = _config.copyWith(apiKey: securityService.decryptData(encryptedKey));
+        final decryptedKey = securityService.decryptData(encryptedKey);
+        debugPrint('解密后的API密钥长度: ${decryptedKey.length}');
+        _config = _config.copyWith(apiKey: decryptedKey);
+      } else {
+        debugPrint('安全存储中未找到API密钥');
       }
     } catch (e) {
       debugPrint('从安全存储加载API密钥失败: $e');

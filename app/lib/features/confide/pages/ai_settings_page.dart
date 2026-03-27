@@ -265,7 +265,7 @@ class _AISettingsPageState extends State<AISettingsPage> {
             TextFormField(
               controller: _endpointController,
               decoration: InputDecoration(
-                hintText: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent',
+                hintText: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent',
                 hintStyle: TextStyle(
                   color: AppColors.mutedForeground,
                   fontSize: 12,
@@ -295,7 +295,7 @@ class _AISettingsPageState extends State<AISettingsPage> {
             ),
             const SizedBox(height: 4),
             Text(
-              '推荐使用 gemini-1.5-flash',
+              '推荐使用 gemini-2.0-flash-exp',
               style: AppTypography.bodySmall.copyWith(
                 color: AppColors.mutedForeground,
               ),
@@ -304,7 +304,7 @@ class _AISettingsPageState extends State<AISettingsPage> {
             TextFormField(
               controller: _modelController,
               decoration: InputDecoration(
-                hintText: 'gemini-1.5-flash',
+                hintText: 'gemini-2.0-flash-exp',
                 hintStyle: TextStyle(color: AppColors.mutedForeground),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -444,10 +444,10 @@ class _AISettingsPageState extends State<AISettingsPage> {
         provider: LLMProvider.gemini,
         apiKey: _apiKeyController.text.trim(),
         endpoint: _endpointController.text.trim().isEmpty
-            ? 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent'
+            ? 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent'
             : _endpointController.text.trim(),
         model: _modelController.text.trim().isEmpty
-            ? 'gemini-1.5-flash'
+            ? 'gemini-2.0-flash-exp'
             : _modelController.text.trim(),
         isEnabled: _isEnabled,
       );
