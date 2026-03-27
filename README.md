@@ -92,17 +92,18 @@ cd GuguPet/scripts
 
 **启动脚本功能：**
 
-| 脚本 | 功能 |
-|------|------|
-| `start.ps1` | 主启动器，选择启动不同模块 |
-| `start-app.ps1` | Flutter App 开发环境 |
-| `start-crawler.ps1` | 爬虫系统管理 |
+| 脚本                  | 功能               |
+| ------------------- | ---------------- |
+| `start.ps1`         | 主启动器，选择启动不同模块    |
+| `start-app.ps1`     | Flutter App 开发环境 |
+| `start-crawler.ps1` | 爬虫系统管理           |
 
 **使用方法：**
+
 1. 右键点击脚本 → 使用 PowerShell 运行
 2. 或在 PowerShell 中执行：`.\start.ps1`
 
----
+***
 
 ## 安装与运行
 
@@ -197,53 +198,58 @@ cd GuguPet/scripts
 ## 应用界面展示
 
 ### 倾诉室 - 宠物陪伴
+
 与虚拟宠物咕咕互动，倾诉求职烦恼，获得情感支持和鼓励。
 
-![倾诉室](./images/倾诉室.png)
+!\[倾诉室]\(./images/倾诉室.png null)
 
 ### 职位 - 求职辅助
+
 浏览精选职位，支持按类别筛选，查看职位详情和公司评分。
 
-![职位列表](./images/职位.png)
+!\[职位列表]\(./images/职位.png null)
 
-![职位详情](./images/职位具体页面.png)
+!\[职位详情]\(./images/职位具体页面.png null)
 
 ### 公园 - 社交互动
+
 在码农森林中与其他用户互动，查看好友动态，结识求职伙伴。
 
-![公园首页](./images/公园.png)
+!\[公园首页]\(./images/公园.png null)
 
-![好友列表](./images/公园的好友功能.png)
+!\[好友列表]\(./images/公园的好友功能.png null)
 
-![动态消息](./images/公园的动态功能.png)
+!\[动态消息]\(./images/公园的动态功能.png null)
 
-![消息通知](./images/公园的消息通知.png)
+!\[消息通知]\(./images/公园的消息通知.png null)
 
 ### 专栏 - 知识付费
+
 提供求职技能、政策补贴、职场成长等干货内容，助力职业发展。
 
-![专栏首页](./images/专栏.png)
+!\[专栏首页]\(./images/专栏.png null)
 
-![试读功能](./images/专栏的具体试读功能.png)
+!\[试读功能]\(./images/专栏的具体试读功能.png null)
 
 ### 个人中心 - 求职管理
+
 管理个人求职进度，查看投递、面试、Offer统计，升级VIP解锁更多特权。
 
-![个人中心](./images/个人中心.png)
+!\[个人中心]\(./images/个人中心.png null)
 
-![求职统计](./images/个人中心的求职页面.png)
+!\[求职统计]\(./images/个人中心的求职页面.png null)
 
 ### VIP会员 - 宠物增值服务
 
 VIP会员提供宠物相关的增值服务，让陪伴更有趣：
 
-| 特权 | 描述 |
-|------|------|
-| 📚 专栏免费阅读 | 免费阅读所有付费专栏内容 |
-| 🎨 宠物外观 | 解锁专属宠物皮肤和颜色 |
-| 🎀 宠物配饰 | 获得可爱配饰装扮你的咕咕 |
-| ⚡ 羁绊加速 | 羁绊值获取速度提升50% |
-| ⏱️ 互动加速 | 喂食、玩耍等互动冷却缩短50% |
+| 特权        | 描述              |
+| --------- | --------------- |
+| 📚 专栏免费阅读 | 免费阅读所有付费专栏内容    |
+| 🎨 宠物外观   | 解锁专属宠物皮肤和颜色     |
+| 🎀 宠物配饰   | 获得可爱配饰装扮你的咕咕    |
+| ⚡ 羁绊加速    | 羁绊值获取速度提升50%    |
+| ⏱️ 互动加速   | 喂食、玩耍等互动冷却缩短50% |
 
 **套餐价格**：月度¥19.9 / 季度¥49.9 / 年度¥149.9
 
@@ -355,7 +361,7 @@ VIP会员提供宠物相关的增值服务，让陪伴更有趣：
 | 智联招聘   | <https://www.zhaopin.com/robots.txt> | 非高峰时段  | ≥5秒  |
 | 前程无忧   | <https://www.51job.com/robots.txt>   | 非高峰时段  | ≥5秒  |
 
----
+***
 
 **请合法合规使用本系统，共同维护良好的网络环境！**
 
@@ -370,12 +376,10 @@ VIP会员提供宠物相关的增值服务，让陪伴更有趣：
    cd crawler
    cp .env.example .env
    ```
-
 2. 生成Cookie加密密钥：
    ```bash
    python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
    ```
-
 3. 编辑 `.env` 文件，填入生成的密钥：
    ```
    COOKIE_ENCRYPTION_KEY=你生成的密钥
@@ -398,6 +402,7 @@ python login.py qiancheng
 ```
 
 登录流程：
+
 1. 运行命令后会自动打开浏览器
 2. 在浏览器中完成扫码或账号密码登录
 3. 登录成功后，回到终端按回车键保存Cookie
@@ -420,7 +425,6 @@ python login.py qiancheng
      static String? apiKey;
    }
    ```
-
 2. 支持的API提供商：
    - OpenAI (官方API)
    - Azure OpenAI
@@ -443,6 +447,7 @@ python sync_to_app.py --clear
 ```
 
 同步流程说明：
+
 - 爬虫数据存储在 `crawler/output/jobs.db`
 - 同步后数据会复制到 `app/assets/data/jobs.db`
 - App启动时会读取该数据库展示职位信息
@@ -452,13 +457,12 @@ python sync_to_app.py --clear
 ### v1.0.2 (2026-03-27)
 
 - ✅ 修复多项代码警告和弃用问题
-- ✅ 修复business_config.json配置文件问题
+- ✅ 修复business\_config.json配置文件问题
 - ✅ 修复PetActionResponses模型支持可选的excited字段
-- ✅ 修复theme_service.dart中的代码警告
+- ✅ 修复theme\_service.dart中的代码警告
 - ✅ 优化主题系统
 - ✅ 实现业务数据配置化
 - ✅ 实现UI文本配置化
-- ✅ 新增开发环境启动脚本
 
 ### v1.0.1 (2026-03-25)
 

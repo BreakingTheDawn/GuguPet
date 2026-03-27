@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/services/llm_provider.dart';
+import '../../../core/services/security_service.dart';
 
 /// AI对话配置模型
 class AIConfig {
@@ -119,6 +120,9 @@ class AIConfigService extends ChangeNotifier {
       try {
         final decoded = jsonDecode(configJson) as Map<String, dynamic>;
         _config = AIConfig.fromJson(decoded);
+        
+        // 从安全存储加载API密钥
+        await loadApiKeyFromSecureStorage();
       } catch (e) {
         debugPrint('解析AI配置失败: $e');
       }
@@ -159,7 +163,18 @@ class AIConfigService extends ChangeNotifier {
     
     // 持久化到本地存储（使用用户特定的键名）
     try {
-      await _prefs?.setString(_getConfigKey(), jsonEncode(config.toJson()));
+      // 保存API密钥到安全存储
+      await saveApiKeyToSecureStorage(config.apiKey);
+      
+      // 保存其他配置到SharedPreferences（不包含API密钥）
+      final configWithoutApiKey = AIConfig(
+        provider: config.provider,
+        apiKey: '', // 不保存API密钥到SharedPreferences
+        endpoint: config.endpoint,
+        model: config.model,
+        isEnabled: config.isEnabled,
+      );
+      await _prefs?.setString(_getConfigKey(), jsonEncode(configWithoutApiKey.toJson()));
       notifyListeners();
     } catch (e) {
       debugPrint('保存AI配置失败: $e');
@@ -184,6 +199,8 @@ class AIConfigService extends ChangeNotifier {
     
     try {
       await _prefs?.remove(_getConfigKey());
+      // 同时清除安全存储的API密钥
+      await clearApiKeyFromSecureStorage();
       notifyListeners();
     } catch (e) {
       debugPrint('清除AI配置失败: $e');
@@ -199,7 +216,45 @@ class AIConfigService extends ChangeNotifier {
     } catch (e) {
       debugPrint('重置弹窗状态失败: $e');
     }
-    
-    notifyListeners();
+  }
+
+  // ==================== 安全存储API密钥 ====================
+
+  /// 安全存储键名
+  static const String _apiKeySecureKey = 'ai_api_key_secure';
+
+  /// 从安全存储加载API密钥
+  Future<void> loadApiKeyFromSecureStorage() async {
+    try {
+      final securityService = SecurityService();
+      final encryptedKey = await securityService.secureRead(_apiKeySecureKey);
+      if (encryptedKey != null && encryptedKey.isNotEmpty) {
+        _config = _config.copyWith(apiKey: securityService.decryptData(encryptedKey));
+      }
+    } catch (e) {
+      debugPrint('从安全存储加载API密钥失败: $e');
+    }
+  }
+
+  /// 保存API密钥到安全存储
+  Future<void> saveApiKeyToSecureStorage(String apiKey) async {
+    try {
+      final securityService = SecurityService();
+      final encryptedKey = securityService.encryptData(apiKey);
+      await securityService.secureWrite(_apiKeySecureKey, encryptedKey);
+    } catch (e) {
+      debugPrint('保存API密钥到安全存储失败: $e');
+      rethrow;
+    }
+  }
+
+  /// 清除安全存储的API密钥
+  Future<void> clearApiKeyFromSecureStorage() async {
+    try {
+      final securityService = SecurityService();
+      await securityService.secureDelete(_apiKeySecureKey);
+    } catch (e) {
+      debugPrint('清除安全存储的API密钥失败: $e');
+    }
   }
 }
