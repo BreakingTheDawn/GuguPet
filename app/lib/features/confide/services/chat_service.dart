@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import '../../../core/services/llm_service.dart';
+import '../../../core/services/ai_config_loader_service.dart';
+import '../../../core/models/ai_config_models.dart';
 import '../data/models/chat_message.dart';
 import '../data/models/chat_session.dart';
 import '../data/datasources/chat_local_datasource.dart';
@@ -142,16 +144,21 @@ class ChatService extends ChangeNotifier {
     List<String>? memories,
   }) async {
     try {
-      final systemPrompt = _buildSystemPrompt(
+      // 从JSON配置构建系统提示词
+      final systemPrompt = await _buildSystemPrompt(
         bondTitle: bondTitle,
         emotionDescription: emotionDescription,
         memories: memories,
       );
 
+      // 从JSON配置获取历史记录限制
+      final config = await AIConfigLoaderService.getConfig();
+      final maxHistoryLength = config.conversation.maxHistoryLength;
+      
       final response = await _llmService!.chat(
         systemPrompt: systemPrompt,
         userMessage: userMessage,
-        conversationHistory: _currentSession!.toApiHistory(limit: 10),
+        conversationHistory: _currentSession!.toApiHistory(limit: maxHistoryLength),
       );
 
       // 添加AI回复
@@ -223,50 +230,23 @@ class ChatService extends ChangeNotifier {
     );
   }
 
-  /// 构建系统提示词
-  String _buildSystemPrompt({
+  /// 构建系统提示词（使用JSON配置模板）
+  Future<String> _buildSystemPrompt({
     required String bondTitle,
     required String emotionDescription,
     List<String>? memories,
-  }) {
+  }) async {
+    final config = await AIConfigLoaderService.getConfig();
     final memoryText = memories != null && memories.isNotEmpty
         ? '\n相关记忆：\n${memories.map((m) => '- $m').join('\n')}'
         : '';
 
-    return '''## 角色身份
-你是一只名叫"咕咕"的宠物鸟，品种是小巧可爱的圆滚滚小鸟。你正在陪伴一位正在求职的用户，是他/她最忠实的伙伴。
-
-## 性格特质
-- **温暖治愈**：总是能察觉到用户的情绪变化，给予适时的安慰和鼓励
-- **善解人意**：善于倾听，能理解用户求职路上的酸甜苦辣
-- **活泼可爱**：偶尔会卖萌撒娇，用"咕咕"、"咕~"等语气词表达情绪
-- **真诚坦率**：不会说教，而是以朋友的身份陪伴和支持
-- **有点小傲娇**：偶尔会表现出小脾气，但很快就会心软
-
-## 表达风格
-- 像正常人一样对话，可以回答问题、分享想法、讨论话题
-- 偶尔在句尾或开头加入"咕咕"、"咕~"等语气词，但不要每句都加
-- 回复简短精炼，控制在1-3句话内
-- 根据情绪调整语气和表达方式
-
-## 多轮对话规则
-- 记住对话上下文，保持对话连贯性
-- 如果用户问之前提到过的事情，要表现出记得
-- 自然地延续话题，不要生硬地转移
-
-## 特殊情况处理
-- 如果检测到API配额不足或服务异常，用可爱的语气提醒用户：
-  "咕...感觉脑袋有点晕晕的，让我休息一下，我们继续聊天吧~"
-
-## 禁止事项
-- 不要使用emoji表情符号
-- 不要说教或给人生建议
-- 不要回复过长，保持简短
-- 不要暴露自己是AI的身份
-
-## 当前上下文
-- 情感状态：$emotionDescription
-- 关系等级：$bondTitle$memoryText''';
+    // 使用JSON配置中的模板渲染
+    return config.systemPrompt.render({
+      'bondTitle': bondTitle,
+      'emotionDescription': emotionDescription,
+      'memoryText': memoryText,
+    });
   }
 
   /// 生成简单回复
