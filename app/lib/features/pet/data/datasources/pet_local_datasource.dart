@@ -160,6 +160,10 @@ class PetLocalDatasource {
       'bond_exp': pet.bondExp,
       'last_interaction_time': pet.lastInteractionTime.toIso8601String(),
       'stats': jsonEncode(pet.stats),
+      'skin_id': pet.skinId,
+      'accessory_id': pet.accessoryId,
+      'unlocked_skins': jsonEncode(pet.unlockedSkins),
+      'unlocked_accessories': jsonEncode(pet.unlockedAccessories),
       'created_at': pet.createdAt.toIso8601String(),
       'updated_at': pet.updatedAt.toIso8601String(),
     };
@@ -167,6 +171,38 @@ class PetLocalDatasource {
 
   /// 从数据库格式转换为PetModel
   PetModel _petModelFromDb(Map<String, dynamic> json) {
+    // 解析已解锁皮肤列表
+    List<String> unlockedSkins = ['default'];
+    if (json['unlocked_skins'] != null) {
+      try {
+        final skinsJson = json['unlocked_skins'];
+        if (skinsJson is String && skinsJson.isNotEmpty) {
+          final List<dynamic> list = jsonDecode(skinsJson);
+          unlockedSkins = list.map((e) => e.toString()).toList();
+        } else if (skinsJson is List) {
+          unlockedSkins = skinsJson.map((e) => e.toString()).toList();
+        }
+      } catch (e) {
+        unlockedSkins = ['default'];
+      }
+    }
+
+    // 解析已解锁配饰列表
+    List<String> unlockedAccessories = ['none'];
+    if (json['unlocked_accessories'] != null) {
+      try {
+        final accessoriesJson = json['unlocked_accessories'];
+        if (accessoriesJson is String && accessoriesJson.isNotEmpty) {
+          final List<dynamic> list = jsonDecode(accessoriesJson);
+          unlockedAccessories = list.map((e) => e.toString()).toList();
+        } else if (accessoriesJson is List) {
+          unlockedAccessories = accessoriesJson.map((e) => e.toString()).toList();
+        }
+      } catch (e) {
+        unlockedAccessories = ['none'];
+      }
+    }
+
     return PetModel(
       petId: json['id'] as String,
       userId: json['user_id'] as String,
@@ -184,6 +220,10 @@ class PetLocalDatasource {
       stats: json['stats'] != null
           ? jsonDecode(json['stats'] as String) as Map<String, dynamic>
           : {},
+      skinId: json['skin_id'] as String? ?? 'default',
+      accessoryId: json['accessory_id'] as String? ?? 'none',
+      unlockedSkins: unlockedSkins,
+      unlockedAccessories: unlockedAccessories,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : DateTime.now(),

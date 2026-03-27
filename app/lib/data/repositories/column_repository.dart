@@ -35,6 +35,12 @@ abstract class ColumnRepository {
   /// 返回是否已购买
   Future<bool> isPurchased(String userId, String columnId);
 
+  /// 获取用户对指定专栏的购买记录
+  /// [userId] 用户ID
+  /// [columnId] 专栏ID
+  /// 返回购买记录，未购买则返回null
+  Future<PurchasedColumn?> getPurchaseRecord(String userId, String columnId);
+
   // ────────────────────────────────────────────────────────────────────────────
   // 收藏相关操作
   // ────────────────────────────────────────────────────────────────────────────

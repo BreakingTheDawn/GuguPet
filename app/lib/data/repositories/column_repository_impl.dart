@@ -5,6 +5,7 @@ import '../../features/columns/data/models/purchased_column.dart';
 import '../../features/columns/data/models/favorite_column.dart';
 import '../../features/columns/data/column_data.dart';
 import '../../core/utils/logger_service.dart';
+import '../../features/auth/data/datasources/auth_local_datasource.dart';
 import 'column_repository.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -19,10 +20,17 @@ class ColumnRepositoryImpl implements ColumnRepository {
   /// 本地数据源实例
   final ColumnLocalDatasource _localDatasource;
 
+  /// 认证数据源实例
+  final AuthLocalDatasource _authDatasource;
+
   /// 构造函数
   /// [localDatasource] 本地数据源，默认使用SQLite实现
-  ColumnRepositoryImpl({ColumnLocalDatasource? localDatasource})
-      : _localDatasource = localDatasource ?? SqliteColumnLocalDatasource();
+  /// [authDatasource] 认证数据源，默认使用AuthLocalDatasource实现
+  ColumnRepositoryImpl({
+    ColumnLocalDatasource? localDatasource,
+    AuthLocalDatasource? authDatasource,
+  })  : _localDatasource = localDatasource ?? SqliteColumnLocalDatasource(),
+        _authDatasource = authDatasource ?? AuthLocalDatasource();
 
   // ═══════════════════════════════════════════════════════════════════════════════
   // 专栏内容相关操作实现
@@ -100,6 +108,16 @@ class ColumnRepositoryImpl implements ColumnRepository {
     }
   }
 
+  @override
+  Future<PurchasedColumn?> getPurchaseRecord(String userId, String columnId) async {
+    try {
+      return await _localDatasource.getPurchaseRecord(userId, columnId);
+    } catch (e) {
+      AppLogger.error('[ColumnRepositoryImpl] 获取购买记录失败: $e');
+      rethrow;
+    }
+  }
+
   // ═══════════════════════════════════════════════════════════════════════════════
   // 收藏相关操作实现
   // ═══════════════════════════════════════════════════════════════════════════════
@@ -149,9 +167,16 @@ class ColumnRepositoryImpl implements ColumnRepository {
   // ═══════════════════════════════════════════════════════════════════════════════
 
   /// 获取当前用户ID
-  /// 当前使用默认用户ID，后续可从认证服务获取
+  /// 优先从认证服务获取真实用户ID，未登录时使用默认ID
   Future<String> _getCurrentUserId() async {
-    // TODO: 后续可从认证服务或UserRepository获取当前登录用户ID
+    try {
+      final authUser = await _authDatasource.getCurrentUser();
+      if (authUser != null && authUser.isLoggedIn) {
+        return authUser.userId;
+      }
+    } catch (e) {
+      AppLogger.warning('[ColumnRepositoryImpl] 获取当前用户失败，使用默认ID: $e');
+    }
     return 'default_user';
   }
 

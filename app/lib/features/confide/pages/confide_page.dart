@@ -11,7 +11,9 @@ import '../../pet/widgets/pet_status_indicator.dart';
 import '../widgets/pet_avatar.dart';
 import '../widgets/response_bubble.dart';
 import '../widgets/input_area.dart';
+import '../widgets/ai_unlock_dialog.dart';
 import '../services/response_service.dart';
+import '../providers/confide_provider.dart';
 
 class ConfidePage extends StatefulWidget {
   const ConfidePage({super.key});
@@ -32,22 +34,88 @@ class _ConfidePageState extends State<ConfidePage>
   /// 随机移动动画控制器
   Timer? _randomMoveTimer;
   final Random _random = Random();
+  
+  /// 倾诉Provider（从全局获取）
+  ConfideProvider? _confideProvider;
+  
+  /// 是否已初始化
+  bool _initialized = false;
+  
+  /// 是否已显示解锁弹窗
+  bool _unlockDialogShown = false;
 
   @override
   void initState() {
     super.initState();
+    
     _responseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 400),
     );
     _scheduleNextMove();
+    
+    // 延迟初始化，等待Provider准备就绪
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeConfide();
+    });
   }
 
   @override
   void dispose() {
     _responseController.dispose();
     _randomMoveTimer?.cancel();
+    // 不需要dispose _confideProvider，因为它是全局的
     super.dispose();
+  }
+
+  /// 初始化倾诉功能
+  Future<void> _initializeConfide() async {
+    if (_initialized) return;
+    
+    // 从全局获取ConfideProvider
+    _confideProvider = context.read<ConfideProvider>();
+    
+    final petProvider = context.read<PetProvider>();
+    
+    // 获取用户ID（从petProvider或authProvider获取）
+    final userId = petProvider.pet?.userId ?? 'default_user';
+    
+    // 初始化倾诉Provider（如果尚未初始化）
+    await _confideProvider!.initialize(userId);
+    
+    // 检查是否需要显示解锁弹窗
+    final bondLevel = petProvider.bondLevel;
+    debugPrint('=== 解锁弹窗检查 ===');
+    debugPrint('bondLevel: $bondLevel');
+    debugPrint('shouldShowUnlockDialog: ${_confideProvider!.shouldShowUnlockDialog(bondLevel)}');
+    debugPrint('_unlockDialogShown: $_unlockDialogShown');
+    
+    if (_confideProvider!.shouldShowUnlockDialog(bondLevel) && !_unlockDialogShown) {
+      debugPrint('>>> 显示解锁弹窗');
+      _unlockDialogShown = true;
+      _showUnlockDialog();
+    } else {
+      debugPrint('>>> 不显示解锁弹窗');
+    }
+    
+    _initialized = true;
+  }
+
+  /// 显示AI功能解锁弹窗
+  Future<void> _showUnlockDialog() async {
+    if (!mounted) return;
+    
+    final result = await AIUnlockDialog.show(context);
+    
+    // 标记已显示
+    if (_confideProvider != null) {
+      await _confideProvider!.markUnlockDialogShown();
+    }
+    
+    // 如果用户选择去配置，导航已在弹窗中处理
+    if (result == true && mounted) {
+      // 用户已去配置，可以做一些后续处理
+    }
   }
 
   /// 调度下一次随机移动动画（5-15秒间隔）
@@ -88,37 +156,79 @@ class _ConfidePageState extends State<ConfidePage>
   }
 
   /// 处理用户倾诉提交
-  void _handleSubmit(String input) {
+  Future<void> _handleSubmit(String input) async {
     _randomMoveTimer?.cancel();
     
-    // 获取响应结果（包含文本和情感类型）
-    final responseResult = _responseService.getResponseWithEmotion(input);
-    
-    setState(() {
-      _response = responseResult.text;
-      _showResponse = true;
-      _petState = _getPetStateFromEmotion(responseResult.emotion);
-      _messageCount++;
-    });
-    _responseController.forward(from: 0);
-
     final petProvider = context.read<PetProvider>();
+    
+    // 记录倾诉行为
     petProvider.onConfide(
       content: input,
       actionType: 'confide',
-      emotionType: responseResult.emotion.name,
+      emotionType: 'neutral',
     );
 
-    petProvider.generateResponse(
-      scene: 'confide',
-      userMessage: input,
-    ).then((petResponse) {
-      if (mounted && petResponse.isNotEmpty) {
-        setState(() {
-          _response = petResponse;
-        });
+    // 判断是否使用AI对话服务
+    if (_confideProvider != null && _confideProvider!.isAIEnabled) {
+      // 使用AI生成回复
+      setState(() {
+        _showResponse = true;
+        _petState = PetState.idle;
+        _messageCount++;
+      });
+      
+      try {
+        final result = await _confideProvider!.sendMessage(
+          userId: petProvider.pet?.userId ?? 'default_user',
+          message: input,
+          bondTitle: petProvider.bondTitle,
+          emotionDescription: '平静、温和',
+        );
+        
+        if (mounted) {
+          setState(() {
+            _response = result.content;
+            // 如果Token不足，可以显示特殊提示
+            if (result.isTokenExhausted) {
+              _petState = PetState.angry;
+            }
+          });
+          _responseController.forward(from: 0);
+        }
+      } catch (e) {
+        // AI调用失败，显示错误提示
+        debugPrint('AI对话失败: $e');
+        if (mounted) {
+          setState(() {
+            _response = '咕...网络好像有点问题，稍后再试试吧~';
+          });
+          _responseController.forward(from: 0);
+        }
       }
-    });
+    } else {
+      // 使用本地模板生成回复（简单倾诉模式）
+      final responseResult = _responseService.getResponseWithEmotion(input);
+      
+      setState(() {
+        _response = responseResult.text;
+        _showResponse = true;
+        _petState = _getPetStateFromEmotion(responseResult.emotion);
+        _messageCount++;
+      });
+      _responseController.forward(from: 0);
+      
+      // 使用原有的PetProvider生成回复
+      petProvider.generateResponse(
+        scene: 'confide',
+        userMessage: input,
+      ).then((petResponse) {
+        if (mounted && petResponse.isNotEmpty) {
+          setState(() {
+            _response = petResponse;
+          });
+        }
+      });
+    }
 
     Future.delayed(const Duration(milliseconds: 5500), () {
       if (mounted) {
@@ -133,39 +243,46 @@ class _ConfidePageState extends State<ConfidePage>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(gradient: AppColors.confideBackground),
-      child: Stack(
-        children: [
-          ..._buildStars(),
-          SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                  child: PetStatusIndicator(),
+    // 使用Consumer监听ConfideProvider变化
+    return Consumer<ConfideProvider>(
+      builder: (context, confideProvider, child) {
+        _confideProvider = confideProvider;
+        
+        return Container(
+          decoration: const BoxDecoration(gradient: AppColors.confideBackground),
+          child: Stack(
+            children: [
+              ..._buildStars(),
+              SafeArea(
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                      child: PetStatusIndicator(),
+                    ),
+                    Expanded(
+                      child: _buildContent(confideProvider),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                      child: InputArea(onSubmit: _handleSubmit),
+                    ),
+                  ],
                 ),
-                Expanded(
-                  child: _buildContent(),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                  child: InputArea(onSubmit: _handleSubmit),
-                ),
-              ],
-            ),
+              ),
+              Positioned(
+                right: 12,
+                top: MediaQuery.of(context).size.height * 0.30,
+                child: const PetInteractionBar(),
+              ),
+            ],
           ),
-          Positioned(
-            right: 12,
-            top: MediaQuery.of(context).size.height * 0.30,
-            child: const PetInteractionBar(),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildContent() {
+  Widget _buildContent(ConfideProvider confideProvider) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -186,16 +303,42 @@ class _ConfidePageState extends State<ConfidePage>
         ),
         const SizedBox(height: 16),
         if (!_showResponse && _petState != PetState.teasing && _petState != PetState.move)
-          Text(
-            _messageCount == 0
-                ? AppStrings().confide.waitingHint
-                : AppStrings().getStringWithParams(
-                    AppStrings().confide.messageCountHint,
-                    {'count': _messageCount.toString()}
+          Column(
+            children: [
+              Text(
+                _messageCount == 0
+                    ? AppStrings().confide.waitingHint
+                    : AppStrings().getStringWithParams(
+                        AppStrings().confide.messageCountHint,
+                        {'count': _messageCount.toString()}
+                      ),
+                style: AppTypography.caption.copyWith(
+                  color: const Color(0xFFBBB0D0),
+                ),
+              ),
+              // 显示AI状态指示
+              if (confideProvider.isAIEnabled)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.auto_awesome,
+                        size: 14,
+                        color: AppColors.indigo500.withValues(alpha: 0.7),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'AI智能对话中',
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.indigo500.withValues(alpha: 0.7),
+                        ),
+                      ),
+                    ],
                   ),
-            style: AppTypography.caption.copyWith(
-              color: const Color(0xFFBBB0D0),
-            ),
+                ),
+            ],
           ),
       ],
     );

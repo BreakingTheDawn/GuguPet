@@ -1,3 +1,13 @@
+/// Optional 包装器类
+/// 用于区分"不传参数"和"传null值"两种情况
+class Optional<T> {
+  final T? value;
+  const Optional(this.value);
+  
+  /// 创建一个包含 null 值的 Optional
+  static Optional<T> nullValue<T>() => Optional<T>(null);
+}
+
 class UserProfile {
   final String userId;
   final String userName;
@@ -70,6 +80,53 @@ class UserProfile {
       vipStatus: false,
       petMemory: [],
     );
+  }
+
+  /// 复制并更新部分字段
+  /// 使用 Optional 包装器支持将字段设置为 null
+  UserProfile copyWith({
+    String? userId,
+    String? userName,
+    String? jobIntention,
+    String? city,
+    String? salaryExpect,
+    List<PetMemory>? petMemory,
+    bool? vipStatus,
+    Optional<DateTime>? vipExpireTime,
+    bool? isOnboarded,
+    String? industryTag,
+    String? onboardingReport,
+  }) {
+    return UserProfile(
+      userId: userId ?? this.userId,
+      userName: userName ?? this.userName,
+      jobIntention: jobIntention ?? this.jobIntention,
+      city: city ?? this.city,
+      salaryExpect: salaryExpect ?? this.salaryExpect,
+      petMemory: petMemory ?? this.petMemory,
+      vipStatus: vipStatus ?? this.vipStatus,
+      vipExpireTime: vipExpireTime != null 
+          ? vipExpireTime.value 
+          : this.vipExpireTime,
+      isOnboarded: isOnboarded ?? this.isOnboarded,
+      industryTag: industryTag ?? this.industryTag,
+      onboardingReport: onboardingReport ?? this.onboardingReport,
+    );
+  }
+
+  /// 检查VIP是否有效
+  /// VIP状态为true且过期时间大于当前时间
+  bool get isVipValid {
+    if (!vipStatus) return false;
+    if (vipExpireTime == null) return false;
+    return vipExpireTime!.isAfter(DateTime.now());
+  }
+
+  /// 获取VIP剩余天数
+  /// 如果VIP无效返回0
+  int get vipRemainingDays {
+    if (!isVipValid) return 0;
+    return vipExpireTime!.difference(DateTime.now()).inDays;
   }
 }
 

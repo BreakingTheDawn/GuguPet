@@ -108,11 +108,12 @@ class PetResponseGenerator {
 
   /// 触发大模型的场景
   static const Set<String> _llmTriggerScenes = {
-    'deep_confide',      // 深度倾诉
-    'offer_received',    // 拿到Offer
+    'confide',          // 倾诉（新增）
+    'deep_confide',     // 深度倾诉
+    'offer_received',   // 拿到Offer
     'interview_received',// 收到面试
-    'job_rejected',      // 被拒绝
-    'milestone',         // 里程碑事件
+    'job_rejected',     // 被拒绝
+    'milestone',        // 里程碑事件
   };
 
   PetResponseGenerator({
@@ -152,8 +153,8 @@ class PetResponseGenerator {
 
   /// 判断是否使用大模型
   bool _shouldUseLLM(String scene, int bondLevel) {
-    // 羁绊等级>=3且是复杂场景
-    return bondLevel >= 3 && _llmTriggerScenes.contains(scene);
+    // 羁绊等级>=1且是复杂场景
+    return bondLevel >= 1 && _llmTriggerScenes.contains(scene);
   }
 
   /// 本地模板生成

@@ -3,17 +3,39 @@ import '../data/column_data.dart';
 
 /// 专栏卡片组件
 /// 展示单个付费专栏的信息，包括分类标签、标题、福利描述和价格
+/// 支持下架状态显示：下架专栏显示灰色，用户无法点击进入
+/// 支持已购买状态显示：已购买专栏显示"已购买"标签
+/// 点击卡片整体可跳转到详情页
 class ColumnCard extends StatelessWidget {
+  /// 专栏数据
   final ColumnItem column;
+
+  /// 卡片索引，用于动画延迟
   final int index;
+
+  /// 试读按钮点击回调
   final VoidCallback onPreview;
+
+  /// 卡片整体点击回调（跳转到详情页）
+  final VoidCallback? onTap;
+
+  /// 是否已购买（已购买用户显示不同UI）
+  final bool isPurchased;
 
   const ColumnCard({
     super.key,
     required this.column,
     required this.index,
     required this.onPreview,
+    this.onTap,
+    this.isPurchased = false,
   });
+
+  /// 是否为下架状态
+  bool get isOffline => column.isOffline;
+
+  /// 是否显示已购买状态
+  bool get showPurchased => isPurchased && !isOffline;
 
   @override
   Widget build(BuildContext context) {
@@ -30,40 +52,103 @@ class ColumnCard extends StatelessWidget {
           ),
         );
       },
+      child: GestureDetector(
+        onTap: isOffline ? null : onTap,
+        child: Stack(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isOffline
+                      ? [const Color(0xFFD0D0D0), const Color(0xFFB8B8B8)]
+                      : [const Color(0xFFEDD8A8), const Color(0xFFE3C47E)],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: isOffline
+                        ? Colors.black.withValues(alpha: 0.08)
+                        : const Color(0xFF644614).withValues(alpha: 0.15),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
+                  BoxShadow(
+                    color: Colors.white.withValues(alpha: 0.4),
+                    blurRadius: 0,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+                border: Border.all(
+                  color: isOffline
+                      ? Colors.grey.withValues(alpha: 0.3)
+                      : const Color(0xFFB4823C).withValues(alpha: 0.22),
+                  width: 1,
+                ),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Stack(
+                  children: [
+                    _buildLeftStrip(),
+                    _buildFoldCorner(),
+                    _buildContent(),
+                    _buildBottomBar(),
+                  ],
+                ),
+              ),
+            ),
+            if (isOffline) _buildOfflineOverlay(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 下架状态遮罩层
+  /// 显示"即将上线"标签，覆盖整个卡片
+  Widget _buildOfflineOverlay() {
+    return Positioned.fill(
       child: Container(
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFFEDD8A8), Color(0xFFE3C47E)],
-          ),
+          color: Colors.white.withValues(alpha: 0.35),
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF644614).withValues(alpha: 0.15),
-              blurRadius: 16,
-              offset: const Offset(0, 4),
-            ),
-            BoxShadow(
-              color: Colors.white.withValues(alpha: 0.4),
-              blurRadius: 0,
-              offset: const Offset(0, 1),
-            ),
-          ],
-          border: Border.all(
-            color: const Color(0xFFB4823C).withValues(alpha: 0.22),
-            width: 1,
-          ),
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Stack(
-            children: [
-              _buildLeftStrip(),
-              _buildFoldCorner(),
-              _buildContent(),
-              _buildBottomBar(),
-            ],
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.grey.withValues(alpha: 0.85),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.15),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.schedule,
+                  size: 14,
+                  color: Colors.white,
+                ),
+                SizedBox(width: 6),
+                Text(
+                  '即将上线',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -71,6 +156,7 @@ class ColumnCard extends StatelessWidget {
   }
 
   /// 左侧牛皮纸纹理条
+  /// 下架状态使用灰色
   Widget _buildLeftStrip() {
     return Positioned(
       left: 0,
@@ -79,7 +165,9 @@ class ColumnCard extends StatelessWidget {
       child: Container(
         width: 6,
         decoration: BoxDecoration(
-          color: const Color(0xFF785014).withValues(alpha: 0.12),
+          color: isOffline
+              ? Colors.grey.withValues(alpha: 0.15)
+              : const Color(0xFF785014).withValues(alpha: 0.12),
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(16),
             bottomLeft: Radius.circular(16),
@@ -90,13 +178,14 @@ class ColumnCard extends StatelessWidget {
   }
 
   /// 右上角折角效果
+  /// 下架状态使用灰色
   Widget _buildFoldCorner() {
     return Positioned(
       top: 0,
       right: 0,
       child: CustomPaint(
         size: const Size(18, 18),
-        painter: _FoldCornerPainter(),
+        painter: _FoldCornerPainter(isOffline: isOffline),
       ),
     );
   }
@@ -118,7 +207,7 @@ class ColumnCard extends StatelessWidget {
     );
   }
 
-  /// 卡片头部：分类标签和emoji
+  /// 卡片头部：分类标签、emoji和已购买标签
   Widget _buildHeader() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -139,22 +228,60 @@ class ColumnCard extends StatelessWidget {
             ),
           ),
         ),
-        Text(
-          column.emoji,
-          style: const TextStyle(fontSize: 16),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (showPurchased) _buildPurchasedBadge(),
+            const SizedBox(width: 4),
+            Text(
+              column.emoji,
+              style: const TextStyle(fontSize: 16),
+            ),
+          ],
         ),
       ],
     );
   }
 
+  /// 已购买标签
+  Widget _buildPurchasedBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: const Color(0xFF4CAF50).withValues(alpha: 0.9),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.check_circle,
+            size: 10,
+            color: Colors.white,
+          ),
+          SizedBox(width: 3),
+          Text(
+            '已购买',
+            style: TextStyle(
+              fontSize: 8,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// 专栏标题
+  /// 下架状态使用灰色文字
   Widget _buildTitle() {
     return Text(
       column.title,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.w700,
-        color: Color(0xFF2A1A08),
+        color: isOffline ? Colors.grey.withValues(alpha: 0.6) : const Color(0xFF2A1A08),
         height: 1.5,
       ),
       maxLines: 2,
@@ -163,12 +290,13 @@ class ColumnCard extends StatelessWidget {
   }
 
   /// 福利描述
+  /// 下架状态使用灰色文字
   Widget _buildBenefits() {
     return Text(
       column.benefits,
       style: TextStyle(
         fontSize: 9.5,
-        color: const Color(0xFF8A6A40),
+        color: isOffline ? Colors.grey.withValues(alpha: 0.5) : const Color(0xFF8A6A40),
         height: 1.5,
       ),
       maxLines: 1,
@@ -176,7 +304,9 @@ class ColumnCard extends StatelessWidget {
     );
   }
 
-  /// 底部操作栏：试读按钮和价格
+  /// 底部操作栏：试读按钮和价格/阅读按钮
+  /// 下架状态使用灰色背景
+  /// 已购买状态显示"立即阅读"，未购买显示"试读"和价格
   Widget _buildBottomBar() {
     return Positioned(
       left: 0,
@@ -185,10 +315,14 @@ class ColumnCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: const Color(0xFF785014).withValues(alpha: 0.07),
+          color: isOffline
+              ? Colors.grey.withValues(alpha: 0.08)
+              : const Color(0xFF785014).withValues(alpha: 0.07),
           border: Border(
             top: BorderSide(
-              color: const Color(0xFF785014).withValues(alpha: 0.1),
+              color: isOffline
+                  ? Colors.grey.withValues(alpha: 0.15)
+                  : const Color(0xFF785014).withValues(alpha: 0.1),
               width: 1,
             ),
           ),
@@ -196,8 +330,45 @@ class ColumnCard extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildPreviewButton(),
-            _buildPrice(),
+            showPurchased ? _buildReadButton() : _buildPreviewButton(),
+            showPurchased ? const SizedBox() : _buildPrice(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 立即阅读按钮（已购买状态）
+  Widget _buildReadButton() {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: const Color(0xFF4CAF50).withValues(alpha: 0.9),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: const Color(0xFF4CAF50).withValues(alpha: 0.3),
+            width: 1,
+          ),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.auto_stories,
+              size: 10,
+              color: Colors.white,
+            ),
+            SizedBox(width: 4),
+            Text(
+              '立即阅读',
+              style: TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
           ],
         ),
       ),
@@ -205,16 +376,19 @@ class ColumnCard extends StatelessWidget {
   }
 
   /// 试读按钮
+  /// 下架状态禁用点击
   Widget _buildPreviewButton() {
     return GestureDetector(
-      onTap: onPreview,
+      onTap: isOffline ? null : onPreview,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.55),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: const Color(0xFF785014).withValues(alpha: 0.2),
+            color: isOffline
+                ? Colors.grey.withValues(alpha: 0.2)
+                : const Color(0xFF785014).withValues(alpha: 0.2),
             width: 1,
           ),
         ),
@@ -224,7 +398,7 @@ class ColumnCard extends StatelessWidget {
             Icon(
               Icons.visibility_outlined,
               size: 10,
-              color: const Color(0xFF8A6A40),
+              color: isOffline ? Colors.grey : const Color(0xFF8A6A40),
             ),
             const SizedBox(width: 4),
             Text(
@@ -232,7 +406,7 @@ class ColumnCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 9,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF8A6A40),
+                color: isOffline ? Colors.grey : const Color(0xFF8A6A40),
               ),
             ),
           ],
@@ -242,24 +416,33 @@ class ColumnCard extends StatelessWidget {
   }
 
   /// 价格标签
+  /// 下架状态使用灰色文字
   Widget _buildPrice() {
     return Text(
       column.price,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 13,
         fontWeight: FontWeight.w700,
-        color: Color(0xFF3A2A18),
+        color: isOffline ? Colors.grey.withValues(alpha: 0.5) : const Color(0xFF3A2A18),
       ),
     );
   }
 }
 
 /// 折角效果绘制器
+/// 支持下架状态的灰色显示
 class _FoldCornerPainter extends CustomPainter {
+  /// 是否为下架状态
+  final bool isOffline;
+
+  _FoldCornerPainter({this.isOffline = false});
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFF785014).withValues(alpha: 0.18)
+      ..color = isOffline
+          ? Colors.grey.withValues(alpha: 0.2)
+          : const Color(0xFF785014).withValues(alpha: 0.18)
       ..style = PaintingStyle.fill;
 
     final path = Path()
@@ -275,10 +458,9 @@ class _FoldCornerPainter extends CustomPainter {
       ..shader = LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [
-          const Color(0xFFD4A860),
-          Colors.transparent,
-        ],
+        colors: isOffline
+            ? [Colors.grey.withValues(alpha: 0.3), Colors.transparent]
+            : [const Color(0xFFD4A860), Colors.transparent],
       ).createShader(Rect.fromLTWH(0, 0, 14, 14));
 
     final highlightPath = Path()
@@ -291,5 +473,6 @@ class _FoldCornerPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _FoldCornerPainter oldDelegate) =>
+      oldDelegate.isOffline != isOffline;
 }

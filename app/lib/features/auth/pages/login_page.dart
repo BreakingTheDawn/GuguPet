@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../data/models/auth_state.dart';
+import '../../pet/providers/pet_provider.dart';
+import '../../../core/di/repository_provider.dart';
 import 'register_page.dart';
 
 /// 登录页面
@@ -239,7 +241,32 @@ class _LoginPageState extends State<LoginPage> {
     );
     
     if (success && mounted) {
-      Navigator.of(context).pop();
+      // 登录成功后同步VIP状态到PetProvider
+      await _syncVipStatusToPetProvider(authProvider);
+      
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+    }
+  }
+  
+  /// 同步VIP状态到PetProvider
+  /// 登录成功后调用，确保VIP特权立即生效
+  Future<void> _syncVipStatusToPetProvider(AuthProvider authProvider) async {
+    try {
+      final userId = authProvider.currentUser?.userId;
+      if (userId == null) return;
+      
+      // 获取用户资料
+      final userProfile = await repositoryProvider.userRepository.getUser(userId);
+      
+      // 更新PetProvider中的用户资料
+      if (mounted) {
+        final petProvider = context.read<PetProvider>();
+        petProvider.updateUserProfile(userProfile);
+      }
+    } catch (e) {
+      debugPrint('同步VIP状态失败: $e');
     }
   }
   

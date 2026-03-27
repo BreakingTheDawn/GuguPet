@@ -108,13 +108,21 @@ class PetGrowthService {
   }
 
   /// 增加羁绊值
+  /// [currentExp] 当前经验值
+  /// [currentLevel] 当前等级
+  /// [gain] 基础经验值增益
+  /// [actionType] 行为类型
+  /// [isVip] 是否为VIP用户（VIP用户经验值+50%）
   BondGrowthResult addBondExp({
     required double currentExp,
     required int currentLevel,
     required double gain,
     required String actionType,
+    bool isVip = false,
   }) {
-    final newExp = currentExp + gain;
+    // VIP用户羁绊值获取提升50%
+    final actualGain = isVip ? gain * 1.5 : gain;
+    final newExp = currentExp + actualGain;
     final newLevel = calculateLevel(newExp);
     final levelUp = newLevel > currentLevel;
     

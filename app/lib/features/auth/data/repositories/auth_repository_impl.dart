@@ -1,13 +1,15 @@
+import '../datasources/auth_datasource.dart';
 import '../datasources/auth_local_datasource.dart';
 import '../models/auth_user.dart';
 import 'auth_repository.dart';
 
 /// 认证仓库实现
 /// 封装认证相关的业务逻辑
+/// 支持 AuthDatasource 接口注入，便于测试和依赖注入
 class AuthRepositoryImpl implements AuthRepository {
-  final AuthLocalDatasource _localDatasource;
+  final AuthDatasource _localDatasource;
   
-  AuthRepositoryImpl({AuthLocalDatasource? localDatasource})
+  AuthRepositoryImpl({AuthDatasource? localDatasource})
       : _localDatasource = localDatasource ?? AuthLocalDatasource();
   
   @override

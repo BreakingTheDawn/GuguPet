@@ -48,4 +48,7 @@ abstract class AppRoutes {
   
   /// 登录页面
   static const String login = '/login';
+  
+  /// AI对话设置页面
+  static const String aiSettings = '/ai-settings';
 }

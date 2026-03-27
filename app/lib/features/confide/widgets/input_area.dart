@@ -14,10 +14,12 @@ class InputArea extends StatefulWidget {
 
 class _InputAreaState extends State<InputArea> {
   final _controller = TextEditingController();
+  final _focusNode = FocusNode();
 
   @override
   void dispose() {
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -25,6 +27,8 @@ class _InputAreaState extends State<InputArea> {
     if (_controller.text.trim().isNotEmpty) {
       widget.onSubmit(_controller.text.trim());
       _controller.clear();
+      // 提交后重新获取焦点，方便用户继续输入
+      _focusNode.requestFocus();
     }
   }
 
@@ -48,6 +52,7 @@ class _InputAreaState extends State<InputArea> {
               Expanded(
                 child: TextField(
                   controller: _controller,
+                  focusNode: _focusNode,
                   style: AppTypography.bodyMedium.copyWith(
                     color: const Color(0xFF5A5A7A),
                   ),

@@ -17,6 +17,10 @@ class DatabaseMigration {
         return _version4;
       case 5:
         return _version5;
+      case 6:
+        return _version6;
+      case 7:
+        return _version7;
       default:
         return null;
     }
@@ -494,6 +498,84 @@ class DatabaseMigration {
     // 创建账号索引，用于快速查询
     '''
     CREATE INDEX idx_users_account ON users (account)
+    ''',
+  ];
+
+  // ==================== 版本6迁移脚本 ====================
+
+  /// 版本6的迁移脚本
+  /// 为宠物表添加外观相关字段，支持VIP宠物皮肤和配饰功能
+  static final List<String> _version6 = [
+    // 为宠物表添加皮肤ID字段
+    '''
+    ALTER TABLE pets ADD COLUMN skin_id TEXT DEFAULT 'default'
+    ''',
+    
+    // 为宠物表添加配饰ID字段
+    '''
+    ALTER TABLE pets ADD COLUMN accessory_id TEXT DEFAULT 'none'
+    ''',
+    
+    // 为宠物表添加已解锁皮肤列表字段（JSON格式）
+    '''
+    ALTER TABLE pets ADD COLUMN unlocked_skins TEXT DEFAULT '["default"]'
+    ''',
+    
+    // 为宠物表添加已解锁配饰列表字段（JSON格式）
+    '''
+    ALTER TABLE pets ADD COLUMN unlocked_accessories TEXT DEFAULT '["none"]'
+    ''',
+  ];
+
+  // ==================== 版本7迁移脚本 ====================
+
+  /// 版本7的迁移脚本
+  /// 添加AI对话功能相关表：对话会话表、对话消息表
+  static final List<String> _version7 = [
+    // ==================== 对话会话表 ====================
+    // 存储用户的对话会话信息
+    '''
+    CREATE TABLE chat_sessions (
+      session_id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      last_active_at TEXT NOT NULL,
+      is_ended INTEGER DEFAULT 0,
+      FOREIGN KEY (user_id) REFERENCES users(user_id)
+    )
+    ''',
+
+    // 对话会话表索引 - 按用户ID查询
+    '''
+    CREATE INDEX idx_chat_sessions_user_id ON chat_sessions (user_id)
+    ''',
+
+    // 对话会话表索引 - 按最后活跃时间查询
+    '''
+    CREATE INDEX idx_chat_sessions_last_active_at ON chat_sessions (last_active_at)
+    ''',
+
+    // ==================== 对话消息表 ====================
+    // 存储对话中的每条消息
+    '''
+    CREATE TABLE chat_messages (
+      message_id TEXT PRIMARY KEY,
+      session_id TEXT NOT NULL,
+      role TEXT NOT NULL,
+      content TEXT NOT NULL,
+      timestamp TEXT NOT NULL,
+      FOREIGN KEY (session_id) REFERENCES chat_sessions(session_id) ON DELETE CASCADE
+    )
+    ''',
+
+    // 对话消息表索引 - 按会话ID查询
+    '''
+    CREATE INDEX idx_chat_messages_session_id ON chat_messages (session_id)
+    ''',
+
+    // 对话消息表索引 - 按时间戳查询
+    '''
+    CREATE INDEX idx_chat_messages_timestamp ON chat_messages (timestamp)
     ''',
   ];
 }

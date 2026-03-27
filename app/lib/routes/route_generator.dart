@@ -22,6 +22,7 @@ import '../features/notifications/providers/notification_provider.dart';
 import '../features/notifications/services/notification_service.dart';
 import '../data/repositories/notification_repository_impl.dart';
 import '../features/auth/pages/login_page.dart';
+import '../features/confide/pages/ai_settings_page.dart';
 
 /// 路由生成器
 /// 负责根据路由名称生成对应的页面
@@ -110,6 +111,10 @@ class RouteGenerator {
       // 登录页面
       case AppRoutes.login:
         return MaterialPageRoute(builder: (_) => const LoginPage());
+      
+      // AI对话设置页面
+      case AppRoutes.aiSettings:
+        return MaterialPageRoute(builder: (_) => const AISettingsPage());
       
       // 默认：显示404页面
       default:

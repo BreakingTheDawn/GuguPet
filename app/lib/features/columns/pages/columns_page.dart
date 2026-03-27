@@ -3,9 +3,12 @@ import '../data/column_data.dart';
 import '../widgets/column_card.dart';
 import '../widgets/preview_modal.dart';
 import '../widgets/bottom_cta.dart';
+import 'column_detail_page.dart';
+import '../../../data/repositories/column_repository_impl.dart';
+import '../../../data/datasources/local/column_local_datasource.dart';
+import '../../../features/auth/data/datasources/auth_local_datasource.dart';
 
 /// 付费专栏主页面
-/// 展示咕咕档案馆的所有专栏内容
 class ColumnsPage extends StatefulWidget {
   const ColumnsPage({super.key});
 
@@ -15,16 +18,36 @@ class ColumnsPage extends StatefulWidget {
 
 class _ColumnsPageState extends State<ColumnsPage>
     with TickerProviderStateMixin {
+  /// 当前预览的专栏
   ColumnItem? _previewColumn;
+
+  /// 用户已购买的专栏ID列表
+  Set<int> _purchasedColumnIds = {};
+
+  /// 是否正在加载购买状态
+  bool _isLoadingPurchaseStatus = true;
+
+  /// 专栏仓库实例
+  late final ColumnRepositoryImpl _columnRepository;
+
+  /// 当前选中的分类索引
   int _selectedCategory = 0;
 
+  /// 装饰点动画控制器
   late AnimationController _dotAnimationController;
+
+  /// 装饰点动画列表
   late List<Animation<double>> _dotAnimations;
 
   @override
   void initState() {
     super.initState();
+    _columnRepository = ColumnRepositoryImpl(
+      localDatasource: SqliteColumnLocalDatasource(),
+      authDatasource: AuthLocalDatasource(),
+    );
     _initDotAnimations();
+    _loadPurchasedStatus();
   }
 
   /// 初始化装饰点动画
@@ -46,6 +69,35 @@ class _ColumnsPageState extends State<ColumnsPage>
         ),
       );
     });
+  }
+
+  /// 加载用户购买状态
+  Future<void> _loadPurchasedStatus() async {
+    try {
+      // 获取当前用户ID
+      final authDatasource = AuthLocalDatasource();
+      final authUser = await authDatasource.getCurrentUser();
+      final userId = authUser?.userId ?? 'default_user';
+
+      // 获取用户已购买的专栏列表
+      final purchasedColumns =
+          await _columnRepository.getPurchasedColumns(userId);
+
+      if (mounted) {
+        setState(() {
+          _purchasedColumnIds =
+              purchasedColumns.map((p) => int.parse(p.columnId)).toSet();
+          _isLoadingPurchaseStatus = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('[ColumnsPage] 加载购买状态失败: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingPurchaseStatus = false;
+        });
+      }
+    }
   }
 
   @override
@@ -353,7 +405,18 @@ class _ColumnsPageState extends State<ColumnsPage>
   }
 
   /// 专栏卡片网格
+  /// 专栏卡片网格
   Widget _buildColumnGrid() {
+    // 如果正在加载购买状态，显示加载指示器
+    if (_isLoadingPurchaseStatus) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 80),
       child: GridView.builder(
@@ -367,10 +430,13 @@ class _ColumnsPageState extends State<ColumnsPage>
         itemCount: ColumnData.columns.length,
         itemBuilder: (context, index) {
           final column = ColumnData.columns[index];
+          final isPurchased = _purchasedColumnIds.contains(column.id);
           return ColumnCard(
             column: column,
             index: index,
             onPreview: () => _showPreview(column),
+            onTap: column.isOffline ? null : () => _navigateToDetail(column),
+            isPurchased: isPurchased,
           );
         },
       ),
@@ -380,5 +446,16 @@ class _ColumnsPageState extends State<ColumnsPage>
   /// 显示预览弹窗
   void _showPreview(ColumnItem column) {
     setState(() => _previewColumn = column);
+  }
+
+  /// 跳转到专栏详情页
+  void _navigateToDetail(ColumnItem column) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ColumnDetailPage(
+          columnId: column.id.toString(),
+        ),
+      ),
+    );
   }
 }

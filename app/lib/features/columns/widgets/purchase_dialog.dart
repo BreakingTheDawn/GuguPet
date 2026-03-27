@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/di/repository_provider.dart';
+import '../data/models/purchased_column.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 /// 购买确认弹窗组件
@@ -539,8 +541,12 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
       // 关闭加载提示
       Navigator.of(context).pop();
 
-      // VIP用户直接成功
+      // VIP用户免费领取
       if (widget.isVipUser) {
+        // 保存VIP免费领取记录到数据库
+        await _saveVipPurchaseRecord();
+        
+        if (!mounted) return;
         Navigator.of(context).pop(true);
         widget.onPurchaseSuccess?.call();
         return;
@@ -578,6 +584,41 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
       // 显示错误提示
       _showErrorToast(context);
       debugPrint('购买失败: $e');
+    }
+  }
+
+  /// 保存VIP免费领取记录
+  /// VIP用户免费阅读专栏时，保存一条purchaseType为'vip'的购买记录
+  Future<void> _saveVipPurchaseRecord() async {
+    try {
+      // 使用默认用户ID（实际应用中应从AuthProvider获取）
+      const userId = 'default_user';
+
+      // 检查是否已有购买记录
+      final existingRecord = await repositoryProvider.columnRepository
+          .getPurchaseRecord(userId, widget.columnId);
+
+      if (existingRecord != null) {
+        debugPrint('VIP用户已有该专栏的购买记录，跳过保存');
+        return;
+      }
+
+      // 创建VIP免费领取记录
+      final record = PurchasedColumn(
+        id: '${userId}_${widget.columnId}_vip_${DateTime.now().millisecondsSinceEpoch}',
+        userId: userId,
+        columnId: widget.columnId,
+        purchaseType: 'vip', // VIP免费领取类型
+        purchasePrice: null, // VIP免费，价格为null
+        purchasedAt: DateTime.now(),
+      );
+
+      // 保存购买记录
+      await repositoryProvider.columnRepository.purchaseColumn(record);
+      debugPrint('VIP免费领取记录已保存: ${widget.columnId}');
+    } catch (e) {
+      debugPrint('保存VIP购买记录失败: $e');
+      // 保存失败不影响阅读流程
     }
   }
 

@@ -1,7 +1,7 @@
 name: jobpet
 description: "职宠小窝 - 轻拟人电子宠物求职陪伴APP"
 publish_to: 'none'
-version: 0.3.0+1
+version: 1.0.2+1
 
 environment:
   sdk: ^3.10.4
@@ -38,6 +38,8 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  mockito: ^5.4.4
+  build_runner: ^2.4.8
 
 flutter:
   uses-material-design: true

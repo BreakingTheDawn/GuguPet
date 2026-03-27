@@ -32,78 +32,87 @@ class VipStatusCard extends StatelessWidget {
 
   /// 构建VIP用户内容
   Widget _buildVipContent() {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.warning.withValues(alpha: 0.15),
-            AppColors.indigo500.withValues(alpha: 0.1),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-      ),
-      padding: const EdgeInsets.all(AppSpacing.md),
-      child: Row(
-        children: [
-          // VIP图标
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.sm),
-            decoration: BoxDecoration(
-              color: AppColors.warning.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-            ),
-            child: const Text(
-              '🔥',
-              style: TextStyle(fontSize: 24),
-            ),
+    return InkWell(
+      onTap: onUpgradeTap,
+      borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.warning.withValues(alpha: 0.15),
+              AppColors.indigo500.withValues(alpha: 0.1),
+            ],
           ),
-          const SizedBox(width: AppSpacing.md),
-          // VIP信息
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      'VIP会员',
-                      style: AppTypography.labelLarge.copyWith(
-                        color: AppColors.warning,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.xs),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.xs,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.warning.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                      ),
-                      child: Text(
-                        '已激活',
-                        style: AppTypography.labelSmall.copyWith(
+          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+        ),
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Row(
+          children: [
+            // VIP图标
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              decoration: BoxDecoration(
+                color: AppColors.warning.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+              ),
+              child: const Text(
+                '🔥',
+                style: TextStyle(fontSize: 24),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            // VIP信息
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        'VIP会员',
+                        style: AppTypography.labelLarge.copyWith(
                           color: AppColors.warning,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  _formatExpireTime(),
-                  style: AppTypography.bodySmall.copyWith(
-                    color: AppColors.mutedForeground,
+                      const SizedBox(width: AppSpacing.xs),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.xs,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.warning.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                        ),
+                        child: Text(
+                          '已激活',
+                          style: AppTypography.labelSmall.copyWith(
+                            color: AppColors.warning,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    _formatExpireTime(),
+                    style: AppTypography.bodySmall.copyWith(
+                      color: AppColors.mutedForeground,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+            // 箭头图标（VIP用户也可点击查看权益）
+            Icon(
+              Icons.chevron_right,
+              color: AppColors.warning.withValues(alpha: 0.7),
+            ),
+          ],
+        ),
       ),
     );
   }

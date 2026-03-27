@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/theme/theme.dart';
 import '../../../shared/widgets/widgets.dart';
+import '../../../core/di/repository_provider.dart';
+import '../../../data/models/user_profile.dart';
+import '../../pet/providers/pet_provider.dart';
 
 /// VIP套餐类型枚举
 enum VipPackageType {
@@ -116,36 +120,32 @@ class _VipUpgradePageState extends State<VipUpgradePage> {
   ];
 
   /// VIP特权列表
+  /// 根据项目实际功能设计，提供宠物相关的增值服务
   final List<VipPrivilege> _privileges = const [
     VipPrivilege(
-      icon: Icons.push_pin_outlined,
-      title: '简历置顶',
-      description: '简历在招聘方列表中优先展示',
+      icon: Icons.menu_book_outlined,
+      title: '专栏免费阅读',
+      description: '免费阅读所有付费专栏内容',
     ),
     VipPrivilege(
-      icon: Icons.trending_up_outlined,
-      title: '优先推荐',
-      description: '获得更多优质职位推荐机会',
+      icon: Icons.palette_outlined,
+      title: '宠物外观',
+      description: '解锁专属宠物皮肤和颜色',
     ),
     VipPrivilege(
-      icon: Icons.support_agent_outlined,
-      title: '专属客服',
-      description: '享受一对一专属客服服务',
+      icon: Icons.card_giftcard_outlined,
+      title: '宠物配饰',
+      description: '获得可爱配饰装扮你的咕咕',
     ),
     VipPrivilege(
-      icon: Icons.analytics_outlined,
-      title: '数据报告',
-      description: '获取详细的求职数据分析报告',
+      icon: Icons.bolt_outlined,
+      title: '羁绊加速',
+      description: '羁绊值获取速度提升50%',
     ),
     VipPrivilege(
-      icon: Icons.visibility_outlined,
-      title: '谁看过我',
-      description: '查看哪些HR浏览了你的简历',
-    ),
-    VipPrivilege(
-      icon: Icons.block_outlined,
-      title: '屏蔽公司',
-      description: '屏蔽不想看到的公司和职位',
+      icon: Icons.timer_outlined,
+      title: '互动加速',
+      description: '喂食、玩耍等互动冷却缩短50%',
     ),
   ];
 
@@ -673,7 +673,7 @@ class _VipUpgradePageState extends State<VipUpgradePage> {
   }
 
   /// 处理支付
-  void _handlePayment() {
+  Future<void> _handlePayment() async {
     final selectedPackageData = _packages.firstWhere(
       (p) => p.type == _selectedPackage,
     );
@@ -682,14 +682,81 @@ class _VipUpgradePageState extends State<VipUpgradePage> {
     debugPrint('支付套餐: ${selectedPackageData.name}');
     debugPrint('支付金额: ¥${selectedPackageData.price}');
 
-    // 显示支付成功提示（临时）
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('即将开通${selectedPackageData.name}'),
-        backgroundColor: AppColors.success,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    // 计算VIP过期时间
+    DateTime expireTime;
+    final now = DateTime.now();
+    switch (selectedPackageData.type) {
+      case VipPackageType.monthly:
+        expireTime = now.add(const Duration(days: 30));
+        break;
+      case VipPackageType.quarterly:
+        expireTime = now.add(const Duration(days: 90));
+        break;
+      case VipPackageType.yearly:
+        expireTime = now.add(const Duration(days: 365));
+        break;
+    }
+
+    // 更新VIP状态到数据库
+    try {
+      // 获取当前用户资料
+      final userProfile = await repositoryProvider.userRepository.getUser('default_user');
+      
+      if (userProfile != null) {
+        // 创建更新后的用户资料
+        final updatedProfile = UserProfile(
+          userId: userProfile.userId,
+          userName: userProfile.userName,
+          jobIntention: userProfile.jobIntention,
+          city: userProfile.city,
+          salaryExpect: userProfile.salaryExpect,
+          petMemory: userProfile.petMemory,
+          vipStatus: true,
+          vipExpireTime: expireTime,
+          isOnboarded: userProfile.isOnboarded,
+          industryTag: userProfile.industryTag,
+          onboardingReport: userProfile.onboardingReport,
+        );
+
+        // 保存到数据库
+        await repositoryProvider.userRepository.updateUser(updatedProfile);
+
+        // 同步VIP状态到PetProvider
+        if (mounted) {
+          try {
+            final petProvider = context.read<PetProvider>();
+            petProvider.updateUserProfile(updatedProfile);
+          } catch (e) {
+            debugPrint('同步VIP状态到PetProvider失败: $e');
+          }
+        }
+
+        // 显示支付成功提示
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${selectedPackageData.name}开通成功！'),
+              backgroundColor: AppColors.success,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+
+          // 返回上一页
+          Navigator.of(context).pop(true);
+        }
+      }
+    } catch (e) {
+      debugPrint('VIP开通失败: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('开通失败: $e'),
+            backgroundColor: AppColors.destructive,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   /// 处理服务协议点击

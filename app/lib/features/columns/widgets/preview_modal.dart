@@ -3,8 +3,12 @@ import '../data/column_data.dart';
 
 /// 预览弹窗组件
 /// 底部弹出式模态框，展示专栏的前20%预览内容
+/// 下架专栏显示"即将上线"提示，无法购买
 class PreviewModal extends StatelessWidget {
+  /// 专栏数据
   final ColumnItem? column;
+
+  /// 关闭回调
   final VoidCallback onClose;
 
   const PreviewModal({
@@ -12,6 +16,9 @@ class PreviewModal extends StatelessWidget {
     required this.column,
     required this.onClose,
   });
+
+  /// 是否为下架状态
+  bool get isOffline => column?.isOffline ?? false;
 
   @override
   Widget build(BuildContext context) {
@@ -41,9 +48,9 @@ class PreviewModal extends StatelessWidget {
                   constraints: BoxConstraints(
                     maxHeight: MediaQuery.of(context).size.height * 0.72,
                   ),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFFDFAF4),
-                    borderRadius: BorderRadius.vertical(
+                  decoration: BoxDecoration(
+                    color: isOffline ? const Color(0xFFF5F5F5) : const Color(0xFFFDFAF4),
+                    borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(24),
                     ),
                   ),
@@ -52,8 +59,8 @@ class PreviewModal extends StatelessWidget {
                     children: [
                       _buildDragHandle(),
                       _buildHeader(),
-                      _buildContent(),
-                      _buildUnlockButton(),
+                      if (isOffline) _buildOfflineNotice() else _buildContent(),
+                      _buildBottomButton(),
                     ],
                   ),
                 ),
@@ -87,7 +94,9 @@ class PreviewModal extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
-            color: const Color(0xFFA0783C).withValues(alpha: 0.15),
+            color: isOffline
+                ? Colors.grey.withValues(alpha: 0.15)
+                : const Color(0xFFA0783C).withValues(alpha: 0.15),
             width: 1,
           ),
         ),
@@ -102,7 +111,7 @@ class PreviewModal extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
                   decoration: BoxDecoration(
-                    color: column!.catBg,
+                    color: isOffline ? Colors.grey.withValues(alpha: 0.2) : column!.catBg,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -110,26 +119,26 @@ class PreviewModal extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
-                      color: column!.catColor,
+                      color: isOffline ? Colors.grey : column!.catColor,
                     ),
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   column!.title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF2A1A0A),
+                    color: isOffline ? Colors.grey : const Color(0xFF2A1A0A),
                     height: 1.4,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '前 20% 内容免费预览',
+                  isOffline ? '内容正在准备中' : '前 20% 内容免费预览',
                   style: TextStyle(
                     fontSize: 11,
-                    color: const Color(0xFFA08050),
+                    color: isOffline ? Colors.grey : const Color(0xFFA08050),
                   ),
                 ),
               ],
@@ -142,11 +151,54 @@ class PreviewModal extends StatelessWidget {
               child: Icon(
                 Icons.close,
                 size: 20,
-                color: const Color(0xFFC0A880),
+                color: isOffline ? Colors.grey : const Color(0xFFC0A880),
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// 下架状态提示区域
+  /// 显示"即将上线"的提示信息
+  Widget _buildOfflineNotice() {
+    return Flexible(
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.grey.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.schedule,
+                size: 48,
+                color: Colors.grey.withValues(alpha: 0.6),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              '内容正在准备中',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.withValues(alpha: 0.8),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '该专栏即将上线，敬请期待',
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey.withValues(alpha: 0.6),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -215,15 +267,52 @@ class PreviewModal extends StatelessWidget {
     );
   }
 
-  /// 解锁购买按钮
-  Widget _buildUnlockButton() {
+  /// 底部按钮
+  /// 下架状态显示"敬请期待"，正常状态显示"解锁完整内容"
+  Widget _buildBottomButton() {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-      child: _ShimmerButton(
-        text: '解锁完整内容 · ${column!.price}',
-        onTap: () {
-          // TODO: 实现购买逻辑
-        },
+      child: isOffline
+          ? _buildComingSoonButton()
+          : _ShimmerButton(
+              text: '解锁完整内容 · ${column!.price}',
+              onTap: () {
+                // TODO: 实现购买逻辑
+              },
+            ),
+    );
+  }
+
+  /// "敬请期待"按钮
+  /// 下架状态显示，禁用点击
+  Widget _buildComingSoonButton() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      decoration: BoxDecoration(
+        color: Colors.grey.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: const Center(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.schedule,
+              size: 18,
+              color: Colors.white,
+            ),
+            SizedBox(width: 8),
+            Text(
+              '敬请期待',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

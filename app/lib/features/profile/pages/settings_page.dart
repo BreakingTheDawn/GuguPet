@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/theme/theme.dart';
 import '../../../core/services/app_strings.dart';
 import '../../../shared/widgets/widgets.dart';
+import '../../../routes/app_routes.dart';
+import '../../auth/providers/auth_provider.dart';
+import '../../profile/providers/profile_provider.dart';
 
 /// 设置页面
 /// 包含通知设置、隐私设置、关于信息等功能
@@ -216,6 +220,13 @@ class _SettingsPageState extends State<SettingsPage> {
                 _contactVisible = value;
               });
             },
+          ),
+          _buildDivider(),
+          _buildActionTile(
+            icon: Icons.auto_awesome,
+            title: 'AI对话设置',
+            subtitle: '配置咕咕的智能对话功能',
+            onTap: _handleAISettings,
           ),
           _buildDivider(),
           _buildActionTile(
@@ -522,6 +533,11 @@ class _SettingsPageState extends State<SettingsPage> {
   // 事件处理方法
   // ═══════════════════════════════════════════════════════════
 
+  /// AI对话设置
+  void _handleAISettings() {
+    Navigator.of(context).pushNamed(AppRoutes.aiSettings);
+  }
+
   /// 清除数据
   void _handleClearData() {
     showDialog(
@@ -589,11 +605,30 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              // TODO: 实际退出登录逻辑
-              // 退出后返回登录页面
-              Navigator.of(context).popUntil((route) => route.isFirst);
+              
+              // 获取 AuthProvider 并执行退出登录
+              final authProvider = context.read<AuthProvider>();
+              await authProvider.logout();
+              
+              // 清空个人资料数据
+              if (mounted) {
+                context.read<ProfileProvider>().clearUserData();
+              }
+              
+              // 显示退出成功提示
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('已退出登录'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+                
+                // 退出登录后返回到"我的"页面
+                Navigator.pop(context);
+              }
             },
             child: Text(
               AppStrings().common.confirm,
@@ -621,10 +656,30 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              // TODO: 实际注销账号逻辑
-              Navigator.of(context).popUntil((route) => route.isFirst);
+              
+              // 获取 AuthProvider 并执行退出登录
+              final authProvider = context.read<AuthProvider>();
+              await authProvider.logout();
+              
+              // 清空个人资料数据
+              if (mounted) {
+                context.read<ProfileProvider>().clearUserData();
+              }
+              
+              // 显示注销成功提示
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('账号已注销'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+                
+                // 注销账号后返回到"我的"页面
+                Navigator.pop(context);
+              }
             },
             child: Text(
               AppStrings().common.confirm,

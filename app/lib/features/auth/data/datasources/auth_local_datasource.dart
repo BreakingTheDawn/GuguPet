@@ -3,10 +3,12 @@ import 'dart:convert';
 import 'package:sqflite/sqflite.dart';
 import '../../../../data/datasources/local/database_helper.dart';
 import '../models/auth_user.dart';
+import 'auth_datasource.dart';
 
 /// 认证本地数据源
 /// 负责用户认证相关的数据库操作
-class AuthLocalDatasource {
+/// 实现 AuthDatasource 接口，支持依赖注入和测试
+class AuthLocalDatasource implements AuthDatasource {
   final DatabaseHelper _databaseHelper;
   
   AuthLocalDatasource({DatabaseHelper? databaseHelper})
