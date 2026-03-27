@@ -165,32 +165,19 @@ class ChatService extends ChangeNotifier {
     required String emotionDescription,
     List<String>? memories,
   }) async {
-    debugPrint('⏱️ [ChatService] 开始发送AI消息');
-    final totalStart = DateTime.now();
-    
     try {
-      // 步骤1：从JSON配置构建系统提示词
-      debugPrint('⏱️ [ChatService] 步骤1：构建系统提示词');
-      final step1Start = DateTime.now();
+      // 从JSON配置构建系统提示词
       final systemPrompt = await _buildSystemPrompt(
         bondTitle: bondTitle,
         emotionDescription: emotionDescription,
         memories: memories,
       );
-      debugPrint('⏱️ [ChatService] 步骤1完成：耗时 ${DateTime.now().difference(step1Start).inMilliseconds}ms');
 
-      // 步骤2：从JSON配置获取历史记录限制
-      debugPrint('⏱️ [ChatService] 步骤2：加载配置');
-      final step2Start = DateTime.now();
+      // 从JSON配置获取历史记录限制
       final config = await AIConfigLoaderService.getConfig();
       final maxHistoryLength = config.conversation.maxHistoryLength;
-      debugPrint('⏱️ [ChatService] 步骤2完成：耗时 ${DateTime.now().difference(step2Start).inMilliseconds}ms');
       
       String responseContent;
-      
-      // 步骤3：调用LLM服务
-      debugPrint('⏱️ [ChatService] 步骤3：调用LLM服务');
-      final step3Start = DateTime.now();
       
       // 优先使用多模型服务（支持流式响应）
       if (_multiLLMService != null && _multiLLMService!.hasAvailableService) {
@@ -211,7 +198,6 @@ class ChatService extends ChangeNotifier {
         );
         
         responseContent = result.content;
-        debugPrint('⏱️ [ChatService] 步骤3完成：LLM调用耗时 ${DateTime.now().difference(step3Start).inMilliseconds}ms');
         
         if (!result.success) {
           // 所有模型都失败，返回降级消息
@@ -233,24 +219,18 @@ class ChatService extends ChangeNotifier {
           conversationHistory: _currentSession!.toApiHistory(limit: maxHistoryLength),
         );
         responseContent = response.content;
-        debugPrint('⏱️ [ChatService] 步骤3完成：LLM调用耗时 ${DateTime.now().difference(step3Start).inMilliseconds}ms');
       } else {
         throw LLMException('LLM服务未初始化');
       }
 
-      // 步骤4：回复长度控制
-      debugPrint('⏱️ [ChatService] 步骤4：回复长度控制');
-      final step4Start = DateTime.now();
+      // 回复长度控制：超过60字自动截断（兜底机制）
       const maxLength = 60;
       if (responseContent.length > maxLength) {
         debugPrint('⚠️ AI回复过长(${responseContent.length}字)，自动截断到${maxLength}字');
         responseContent = '${responseContent.substring(0, maxLength)}...';
       }
-      debugPrint('⏱️ [ChatService] 步骤4完成：耗时 ${DateTime.now().difference(step4Start).inMilliseconds}ms');
 
-      // 步骤5：保存消息到数据库
-      debugPrint('⏱️ [ChatService] 步骤5：保存消息到数据库');
-      final step5Start = DateTime.now();
+      // 添加AI回复
       final assistantMsg = ChatMessage(
         messageId: 'msg_${DateTime.now().millisecondsSinceEpoch}',
         role: ChatRole.assistant,
@@ -260,13 +240,10 @@ class ChatService extends ChangeNotifier {
       
       _currentSession = _currentSession!.addMessage(assistantMsg);
       await _localDatasource.addMessage(_currentSession!.sessionId, assistantMsg);
-      debugPrint('⏱️ [ChatService] 步骤5完成：耗时 ${DateTime.now().difference(step5Start).inMilliseconds}ms');
 
       _currentMode = ChatMode.ai;
       _isLoading = false;
       notifyListeners();
-
-      debugPrint('⏱️ [ChatService] AI消息发送完成，总耗时 ${DateTime.now().difference(totalStart).inMilliseconds}ms');
 
       return ChatResult(
         content: responseContent,

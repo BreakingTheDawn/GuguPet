@@ -109,39 +109,23 @@ class StreamResponseHandler {
     Function(String chunk) onChunk,
     List<dynamic> contentPath,
   ) {
-    // 调试：打印每一行原始数据
-    debugPrint('🔍 [SSE] 收到行: ${line.length > 100 ? line.substring(0, 100) + "..." : line}');
-    
-    if (!line.startsWith('data: ')) {
-      debugPrint('⚠️ [SSE] 行不以"data: "开头，跳过');
-      return;
-    }
+    if (!line.startsWith('data: ')) return;
     
     final data = line.substring(6);
     
     // 检查是否是结束标记
-    if (data == '[DONE]') {
-      debugPrint('✅ [SSE] 收到结束标记 [DONE]');
-      return;
-    }
+    if (data == '[DONE]') return;
     
     try {
       final jsonData = jsonDecode(data) as Map<String, dynamic>;
-      debugPrint('🔍 [SSE] JSON解析成功: $jsonData');
-      
       final content = _extractContent(jsonData, contentPath);
-      debugPrint('🔍 [SSE] 提取的内容: "$content"');
       
       if (content != null && content.isNotEmpty) {
         fullContent.write(content);
         onChunk(content);
-        debugPrint('✅ [SSE] 内容已添加: "$content"');
-      } else {
-        debugPrint('⚠️ [SSE] 内容为空或null');
       }
     } catch (e) {
-      debugPrint('❌ [SSE] 解析失败: $e');
-      debugPrint('❌ [SSE] 原始数据: $data');
+      debugPrint('StreamResponseHandler: 解析SSE数据失败: $e');
     }
   }
 
@@ -184,12 +168,11 @@ class StreamResponseHandler {
         if (delta is Map<String, dynamic>) {
           final reasoningContent = delta['reasoning_content'];
           if (reasoningContent is String && reasoningContent.isNotEmpty) {
-            debugPrint('💡 [SSE] 使用 reasoning_content 字段: "$reasoningContent"');
             return reasoningContent;
           }
         }
       } catch (e) {
-        debugPrint('⚠️ [SSE] 查找 reasoning_content 失败: $e');
+        // 忽略错误
       }
     }
     
