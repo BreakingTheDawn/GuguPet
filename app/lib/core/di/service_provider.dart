@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import '../../features/confide/services/ai_config_service.dart';
 import '../../features/confide/services/chat_service.dart';
 import '../../features/confide/providers/confide_provider.dart';
@@ -24,9 +25,19 @@ class ServiceProvider {
   /// 初始化服务
   /// [userId] 当前登录用户的ID，用于隔离用户数据
   Future<void> initialize({String? userId}) async {
+    debugPrint('=== ServiceProvider初始化开始 ===');
+    debugPrint('用户ID: $userId');
+    
     // 创建AI配置服务
     _aiConfigService = AIConfigService();
     await _aiConfigService.initialize(userId: userId);
+    
+    debugPrint('AI配置服务初始化完成');
+    debugPrint('isConfigured: ${_aiConfigService.isConfigured}');
+    debugPrint('config.isEnabled: ${_aiConfigService.config.isEnabled}');
+    debugPrint('config.apiKey长度: ${_aiConfigService.config.apiKey.length}');
+    debugPrint('config.endpoint: ${_aiConfigService.config.endpoint}');
+    debugPrint('config.model: ${_aiConfigService.config.model}');
 
     // 创建对话服务
     _chatService = ChatService(configService: _aiConfigService);
@@ -39,8 +50,13 @@ class ServiceProvider {
 
     // 如果已配置，初始化LLM服务
     if (_aiConfigService.isConfigured) {
+      debugPrint('>>> 开始初始化LLM服务');
       _updateLLMService();
+    } else {
+      debugPrint('>>> AI未配置，跳过LLM服务初始化');
     }
+    
+    debugPrint('=== ServiceProvider初始化完成 ===');
   }
 
   /// 切换用户
@@ -55,7 +71,11 @@ class ServiceProvider {
 
   /// 更新LLM服务
   void _updateLLMService() {
+    debugPrint('=== 更新LLM服务 ===');
     final config = _aiConfigService.config;
+    debugPrint('config.isConfigured: ${config.isConfigured}');
+    debugPrint('config.isEnabled: ${config.isEnabled}');
+    
     if (config.isConfigured && config.isEnabled) {
       final llmConfig = LLMConfig(
         apiKey: config.apiKey,
@@ -63,10 +83,16 @@ class ServiceProvider {
         model: config.model,
       );
       
-      // 使用工厂创建对应平台的服务
-      final service = LLMServiceFactory.create(config.provider, llmConfig);
+      debugPrint('创建LLM服务 - Provider: ${config.provider}');
+      debugPrint('LLMConfig - endpoint: ${llmConfig.endpoint}');
+      debugPrint('LLMConfig - model: ${llmConfig.model}');
+      
+      // 默认使用SDK版本（更稳定）
+      final service = LLMServiceFactory.create(LLMProvider.geminiSDK, llmConfig);
       _chatService.updateLLMService(service);
+      debugPrint('LLM服务已更新（使用SDK）');
     } else {
+      debugPrint('配置未完成或未启用，清除LLM服务');
       _chatService.updateLLMService(null);
     }
   }
