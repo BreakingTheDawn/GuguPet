@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import '../../../core/services/llm_service.dart';
 import '../../../core/services/ai_config_loader_service.dart';
+import '../../../core/models/ai_config_models.dart';
 import '../data/models/chat_message.dart';
 import '../data/models/chat_session.dart';
 import '../data/datasources/chat_local_datasource.dart';

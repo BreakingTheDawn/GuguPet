@@ -9,6 +9,7 @@ import 'core/services/app_strings.dart';
 import 'core/services/business_config_service.dart';
 import 'core/services/theme_service.dart';
 import 'core/services/security_service.dart';
+import 'core/services/ai_auto_config_service.dart';
 import 'core/di/repository_provider.dart';
 import 'core/di/service_provider.dart';
 import 'data/models/user_profile.dart';
@@ -48,6 +49,9 @@ void main() async {
   
   // 打印所有测试账号信息
   TestAdminInitializer.printAllTestAccountsInfo();
+  
+  // 自动配置AI服务（后台配置，无需用户输入）
+  await AIAutoConfigService.initialize();
   
   runApp(const JobPetApp());
 }
