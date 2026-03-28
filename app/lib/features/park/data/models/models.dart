@@ -8,3 +8,4 @@ export 'post_comment.dart';
 export 'post_like.dart';
 export 'park_interaction.dart';
 export 'park_user.dart';
+export 'wish_envelope.dart';

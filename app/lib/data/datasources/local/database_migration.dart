@@ -23,6 +23,8 @@ class DatabaseMigration {
         return _version7;
       case 8:
         return _version8;
+      case 9:
+        return _version9;
       default:
         return null;
     }
@@ -599,6 +601,72 @@ class DatabaseMigration {
     // 为用户表添加公园解锁来源字段
     '''
     ALTER TABLE users ADD COLUMN park_unlock_source TEXT
+    ''',
+  ];
+
+  // ==================== 版本9迁移脚本 ====================
+
+  /// 版本9的迁移脚本
+  /// 添加许愿树功能相关表：鼓励信封表
+  static final List<String> _version9 = [
+    // ==================== 鼓励信封表 ====================
+    // 存储上岸用户创建的鼓励信封
+    '''
+    CREATE TABLE wish_envelopes (
+      id TEXT PRIMARY KEY,
+      creator_id TEXT NOT NULL,
+      creator_name TEXT NOT NULL,
+      creator_avatar TEXT,
+      creator_title TEXT,
+      title TEXT NOT NULL,
+      content TEXT NOT NULL,
+      type TEXT NOT NULL DEFAULT 'encouragement',
+      status TEXT NOT NULL DEFAULT 'pending',
+      receiver_id TEXT,
+      receiver_name TEXT,
+      assigned_at TEXT,
+      read_at TEXT,
+      reply_content TEXT,
+      replied_at TEXT,
+      is_public INTEGER DEFAULT 1,
+      like_count INTEGER DEFAULT 0,
+      created_at TEXT NOT NULL
+    )
+    ''',
+
+    // 鼓励信封表索引 - 按创建者ID查询
+    '''
+    CREATE INDEX idx_wish_envelopes_creator_id ON wish_envelopes (creator_id)
+    ''',
+
+    // 鼓励信封表索引 - 按接收者ID查询
+    '''
+    CREATE INDEX idx_wish_envelopes_receiver_id ON wish_envelopes (receiver_id)
+    ''',
+
+    // 鼓励信封表索引 - 按状态查询
+    '''
+    CREATE INDEX idx_wish_envelopes_status ON wish_envelopes (status)
+    ''',
+
+    // 鼓励信封表索引 - 按类型查询
+    '''
+    CREATE INDEX idx_wish_envelopes_type ON wish_envelopes (type)
+    ''',
+
+    // 鼓励信封表索引 - 按创建时间查询
+    '''
+    CREATE INDEX idx_wish_envelopes_created_at ON wish_envelopes (created_at DESC)
+    ''',
+
+    // 为好友表添加在线状态字段
+    '''
+    ALTER TABLE friends ADD COLUMN online_status TEXT DEFAULT 'offline'
+    ''',
+
+    // 为好友表添加最后活跃时间字段
+    '''
+    ALTER TABLE friends ADD COLUMN last_active_at TEXT
     ''',
   ];
 }
