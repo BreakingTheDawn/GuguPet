@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'dart:ui' as ui;
 import 'dart:async';
 import 'dart:math';
+import '../../core/constants/app_constants.dart';
 
 /// 宠物动画配置数据类
 class PetAnimationConfig {
@@ -65,7 +66,7 @@ class _PetAnimationWidgetState extends State<PetAnimationWidget>
   /// 预定义的动画配置
   static const Map<PetAnimationType, PetAnimationConfig> _animationConfigs = {
     PetAnimationType.idle: PetAnimationConfig(
-      spritesheetPath: 'assets/images/pet/pet_idle_spritesheet.png',
+      spritesheetPath: AssetPaths.petIdleSpritesheet,
       frames: 36,
       frameWidth: 256,
       frameHeight: 256,
@@ -77,7 +78,7 @@ class _PetAnimationWidgetState extends State<PetAnimationWidget>
       framesPerVariant: 36,
     ),
     PetAnimationType.happy: PetAnimationConfig(
-      spritesheetPath: 'assets/images/pet/pet_happy_spritesheet.png',
+      spritesheetPath: AssetPaths.petHappySpritesheet,
       frames: 24,
       frameWidth: 256,
       frameHeight: 256,
@@ -87,7 +88,7 @@ class _PetAnimationWidgetState extends State<PetAnimationWidget>
       loop: true,
     ),
     PetAnimationType.teasing: PetAnimationConfig(
-      spritesheetPath: 'assets/images/pet/pet_teasing_spritesheet.png',
+      spritesheetPath: AssetPaths.petTeasingSpritesheet,
       frames: 36,
       frameWidth: 256,
       frameHeight: 256,
@@ -97,7 +98,7 @@ class _PetAnimationWidgetState extends State<PetAnimationWidget>
       loop: false,
     ),
     PetAnimationType.angry: PetAnimationConfig(
-      spritesheetPath: 'assets/images/pet/pet_angry_spritesheet.png',
+      spritesheetPath: AssetPaths.petAngrySpritesheet,
       frames: 36,
       frameWidth: 256,
       frameHeight: 256,
@@ -107,7 +108,7 @@ class _PetAnimationWidgetState extends State<PetAnimationWidget>
       loop: false,
     ),
     PetAnimationType.move: PetAnimationConfig(
-      spritesheetPath: 'assets/images/pet/pet_move_spritesheet.png',
+      spritesheetPath: AssetPaths.petMoveSpritesheet,
       frames: 46,
       frameWidth: 256,
       frameHeight: 256,

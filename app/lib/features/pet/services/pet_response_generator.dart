@@ -1,4 +1,5 @@
 import '../../../core/services/llm_service.dart';
+import '../../../core/services/business_config_service.dart';
 import '../data/models/pet_emotion.dart';
 import '../data/models/pet_memory.dart';
 import 'pet_growth_service.dart';
@@ -12,8 +13,13 @@ enum ResponseStrategy {
 
 /// 回复生成结果
 class ResponseResult {
+  /// 回复内容
   final String content;
+  
+  /// 生成策略
   final ResponseStrategy strategy;
+  
+  /// 是否使用了LLM
   final bool usedLLM;
 
   ResponseResult({
@@ -26,103 +32,30 @@ class ResponseResult {
 /// 宠物回复生成服务
 /// 混合架构：简单场景本地模板，复杂场景大模型
 class PetResponseGenerator {
+  /// LLM服务实例
   final LLMService? _llmService;
+  
+  /// 宠物成长服务
   final PetGrowthService _growthService;
+  
+  /// 业务配置服务
+  final BusinessConfigService _configService;
 
-  /// 本地回复模板库
-  static const Map<String, Map<String, List<String>>> _templates = {
-    'feed': {
-      'happy': [
-        '好吃！谢谢投喂~',
-        '真香！你对我真好！',
-        '吃饱饱了~好满足！',
-      ],
-      'normal': [
-        '谢谢投喂~',
-        '好吃！',
-      ],
-    },
-    'play': {
-      'happy': [
-        '玩得好开心！',
-        '再来再来！',
-        '太好玩了！',
-      ],
-      'excited': [
-        '太棒了！我最喜欢玩了！',
-        '哈哈哈好开心！',
-      ],
-    },
-    'pet': {
-      'happy': [
-        '舒服~',
-        '再摸摸~',
-        '好幸福~',
-      ],
-      'normal': [
-        '嗯~',
-        '还可以~',
-      ],
-      'angry': [
-        '好吧...原谅你了',
-        '哼...算了',
-      ],
-    },
-    'confide_positive': {
-      'happy': [
-        '太棒了！为你开心！',
-        '好消息！继续加油！',
-        '你真厉害！',
-      ],
-      'excited': [
-        '哇！太好了！我就知道你可以的！',
-        '恭喜恭喜！我们一起庆祝！',
-      ],
-    },
-    'confide_negative': {
-      'sad': [
-        '没关系，我会一直陪着你的',
-        '别难过，一切都会好起来的',
-        '我在这里，随时听你说',
-      ],
-      'normal': [
-        '我理解你的感受',
-        '有什么我可以帮你的吗？',
-      ],
-    },
-    'greeting': {
-      'happy': [
-        '你回来啦！好想你~',
-        '咕咕！等你很久了！',
-      ],
-      'normal': [
-        '你好呀~',
-        '咕咕~',
-      ],
-      'sad': [
-        '你终于来了...我等了好久',
-        '咕...我还以为你不来了',
-      ],
-    },
-  };
-
-  /// 触发大模型的场景
-  static const Set<String> _llmTriggerScenes = {
-    'confide',          // 倾诉（新增）
-    'deep_confide',     // 深度倾诉
-    'offer_received',   // 拿到Offer
-    'interview_received',// 收到面试
-    'job_rejected',     // 被拒绝
-    'milestone',        // 里程碑事件
-  };
-
+  /// 构造函数
   PetResponseGenerator({
     LLMService? llmService,
     PetGrowthService? growthService,
+    BusinessConfigService? configService,
   })  : _llmService = llmService,
-        _growthService = growthService ?? PetGrowthService();
+        _growthService = growthService ?? PetGrowthService(),
+        _configService = configService ?? BusinessConfigService();
 
   /// 生成回复
+  /// [scene] 场景名称
+  /// [emotion] 情感类型
+  /// [bondLevel] 羁绊等级
+  /// [memories] 记忆列表
+  /// [userMessage] 用户消息
   Future<ResponseResult> generate({
     required String scene,
     required PetEmotionType emotion,
@@ -152,29 +85,22 @@ class PetResponseGenerator {
   }
 
   /// 判断是否使用大模型
+  /// [scene] 场景名称
+  /// [bondLevel] 羁绊等级
   bool _shouldUseLLM(String scene, int bondLevel) {
     // 羁绊等级>=1且是复杂场景
-    return bondLevel >= 1 && _llmTriggerScenes.contains(scene);
+    return bondLevel >= 1 && _configService.isLLMTriggerScene(scene);
   }
 
   /// 本地模板生成
+  /// [scene] 场景名称
+  /// [emotion] 情感类型
   ResponseResult _generateLocal({
     required String scene,
     required PetEmotionType emotion,
   }) {
     final emotionKey = emotion.name;
-    final sceneTemplates = _templates[scene];
-
-    String content;
-    if (sceneTemplates != null && sceneTemplates.containsKey(emotionKey)) {
-      final options = sceneTemplates[emotionKey]!;
-      content = options[DateTime.now().millisecondsSinceEpoch % options.length];
-    } else if (sceneTemplates != null && sceneTemplates.containsKey('normal')) {
-      final options = sceneTemplates['normal']!;
-      content = options[DateTime.now().millisecondsSinceEpoch % options.length];
-    } else {
-      content = '咕咕~'; // 默认回复
-    }
+    final content = _getResponseFromConfig(scene, emotionKey);
 
     return ResponseResult(
       content: content,
@@ -183,7 +109,38 @@ class PetResponseGenerator {
     );
   }
 
+  /// 从配置获取回复内容
+  /// [scene] 场景名称
+  /// [emotionKey] 情感类型键名
+  String _getResponseFromConfig(String scene, String emotionKey) {
+    // 从配置服务获取回复模板
+    final responses = _configService.petResponses.getResponsesForScene(scene);
+    
+    if (responses != null) {
+      // 尝试获取对应情感的回复
+      final emotionResponses = responses.getResponsesForEmotion(emotionKey);
+      
+      if (emotionResponses != null && emotionResponses.isNotEmpty) {
+        return emotionResponses[DateTime.now().millisecondsSinceEpoch % emotionResponses.length];
+      }
+      
+      // 降级到普通状态
+      final normalResponses = responses.normal;
+      if (normalResponses.isNotEmpty) {
+        return normalResponses[DateTime.now().millisecondsSinceEpoch % normalResponses.length];
+      }
+    }
+    
+    // 默认回复
+    return '咕咕~';
+  }
+
   /// 大模型生成
+  /// [scene] 场景名称
+  /// [emotion] 情感类型
+  /// [bondLevel] 羁绊等级
+  /// [memories] 记忆列表
+  /// [userMessage] 用户消息
   Future<ResponseResult> _generateWithLLM({
     required String scene,
     required PetEmotionType emotion,
@@ -216,6 +173,8 @@ class PetResponseGenerator {
   }
 
   /// 构建系统提示
+  /// [emotion] 情感类型
+  /// [bondTitle] 羁绊等级标题
   String _buildSystemPrompt(PetEmotionType emotion, String bondTitle) {
     return '''你是一只名叫"咕咕"的宠物鸟，正在陪伴一位求职中的用户。
 
@@ -234,6 +193,9 @@ class PetResponseGenerator {
   }
 
   /// 构建上下文消息
+  /// [scene] 场景名称
+  /// [memories] 记忆列表
+  /// [userMessage] 用户消息
   String _buildContextMessage({
     required String scene,
     List<PetMemoryModel>? memories,
@@ -259,6 +221,7 @@ class PetResponseGenerator {
   }
 
   /// 获取情感描述
+  /// [emotion] 情感类型
   String _getEmotionDescription(PetEmotionType emotion) {
     return switch (emotion) {
       PetEmotionType.happy => '开心、愉悦',

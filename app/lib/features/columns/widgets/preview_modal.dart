@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
 import '../data/column_data.dart';
 
 /// 预览弹窗组件
@@ -49,7 +50,7 @@ class PreviewModal extends StatelessWidget {
                     maxHeight: MediaQuery.of(context).size.height * 0.72,
                   ),
                   decoration: BoxDecoration(
-                    color: isOffline ? const Color(0xFFF5F5F5) : const Color(0xFFFDFAF4),
+                    color: isOffline ? AppColors.offlineBackground : AppColors.archiveModalBackground,
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(24),
                     ),
@@ -96,7 +97,7 @@ class PreviewModal extends StatelessWidget {
           bottom: BorderSide(
             color: isOffline
                 ? Colors.grey.withValues(alpha: 0.15)
-                : const Color(0xFFA0783C).withValues(alpha: 0.15),
+                : AppColors.archiveBorder.withValues(alpha: 0.15),
             width: 1,
           ),
         ),
@@ -129,7 +130,7 @@ class PreviewModal extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: isOffline ? Colors.grey : const Color(0xFF2A1A0A),
+                    color: isOffline ? Colors.grey : AppColors.archiveTextDark,
                     height: 1.4,
                   ),
                 ),
@@ -138,7 +139,7 @@ class PreviewModal extends StatelessWidget {
                   isOffline ? '内容正在准备中' : '前 20% 内容免费预览',
                   style: TextStyle(
                     fontSize: 11,
-                    color: isOffline ? Colors.grey : const Color(0xFFA08050),
+                    color: isOffline ? Colors.grey : AppColors.archiveTextMedium,
                   ),
                 ),
               ],
@@ -151,7 +152,7 @@ class PreviewModal extends StatelessWidget {
               child: Icon(
                 Icons.close,
                 size: 20,
-                color: isOffline ? Colors.grey : const Color(0xFFC0A880),
+                color: isOffline ? Colors.grey : AppColors.archiveIcon,
               ),
             ),
           ),
@@ -230,9 +231,9 @@ class PreviewModal extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: 12),
                     child: Text(
                       entry.value,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
-                        color: Color(0xFF4A3A2A),
+                        color: AppColors.archiveContentText,
                         height: 1.8,
                       ),
                     ),
@@ -254,8 +255,8 @@ class PreviewModal extends StatelessWidget {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      const Color(0xFFFDFAF4).withValues(alpha: 0),
-                      const Color(0xFFFDFAF4),
+                      AppColors.archiveModalBackground.withValues(alpha: 0),
+                      AppColors.archiveModalBackground,
                     ],
                   ),
                 ),
@@ -366,7 +367,7 @@ class _ShimmerButtonState extends State<_ShimmerButton>
           gradient: const LinearGradient(
             begin: Alignment(-1, -1),
             end: Alignment(1, 1),
-            colors: [Color(0xFF8B6040), Color(0xFF6A4020)],
+            colors: [AppColors.archiveDetailButtonStart, AppColors.archiveDetailButtonEnd],
           ),
           borderRadius: BorderRadius.circular(16),
         ),

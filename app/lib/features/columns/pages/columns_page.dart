@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/constants/app_constants.dart';
 import '../data/column_data.dart';
 import '../widgets/column_card.dart';
 import '../widgets/preview_modal.dart';
@@ -57,7 +58,7 @@ class _ColumnsPageState extends State<ColumnsPage>
   /// 初始化装饰点动画
   void _initDotAnimations() {
     _dotAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 3000),
+      duration: AnimationDurations.bannerCarousel,
       vsync: this,
     )..repeat();
 
@@ -227,7 +228,7 @@ class _ColumnsPageState extends State<ColumnsPage>
           children: [
             TweenAnimationBuilder<double>(
               tween: Tween(begin: 0.0, end: 1.0),
-              duration: const Duration(milliseconds: 400),
+              duration: AnimationDurations.slow,
               curve: Curves.easeOut,
               builder: (context, value, child) {
                 return Transform.translate(

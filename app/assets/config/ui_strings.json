@@ -69,7 +69,21 @@
     "versionInfo": "版本信息",
     "userAgreement": "用户协议",
     "privacyPolicy": "隐私政策",
-    "aboutUs": "关于我们"
+    "aboutUs": "关于我们",
+    "security": {
+      "title": "安全设置",
+      "deviceSecurity": "设备安全",
+      "deviceSecure": "设备安全已启用",
+      "deviceNotSecure": "设备安全未启用",
+      "securityScore": "安全评分",
+      "critical": "严重",
+      "warning": "警告",
+      "info": "信息",
+      "securityEvents": "安全事件",
+      "deviceSecureMessage": "✅ 您的设备安全，未检测到Root/越狱",
+      "deviceNotSecureMessage": "⚠️ 检测到设备已Root/越狱，数据安全风险较高",
+      "deviceNotSecureAdvice": "建议：不要在Root/越狱设备上使用VIP等付费功能"
+    }
   },
   "profile": {
     "title": "个人中心",
@@ -210,7 +224,43 @@
     "responseDefault1": "嗯嗯,我都听到了,说出来感觉好一点了吗? 🐧",
     "responseDefault2": "你已经很棒了,不管怎样咕咕都支持你 ✨",
     "responseDefault3": "今天的委屈,明天变成铠甲,加油!",
-    "responseDefault4": "咕咕在这里,轻轻抱抱你 🤍"
+    "responseDefault4": "咕咕在这里,轻轻抱抱你 🤍",
+    "emotionKeywords": {
+      "positive": ["开心", "高兴", "棒", "好消息", "发", "拿到", "通过", "过了", "谢谢", "感谢", "喜欢"],
+      "negative": ["累", "疲", "倦", "撑", "崩", "烦", "难", "苦", "压力", "生气", "愤怒", "气死", "讨厌"],
+      "rejected": ["拒", "没过", "挂", "凉", "凉凉", "拒绝", "失败", "不行"],
+      "lost": ["不知道", "迷茫", "迷失", "找不到", "方向"],
+      "interview": ["面试", "hr", "HR", "笔试", "offer", "Offer", "OFFER", "工作"]
+    },
+    "positiveResponses": [
+      "太棒了！为你开心！咕咕~",
+      "哇！真好！我就知道你可以的！",
+      "恭喜恭喜！咕咕~我们一起庆祝！"
+    ],
+    "negativeResponses": [
+      "没关系，我会一直陪着你的，咕...",
+      "别难过，一切都会好起来的",
+      "我在这里，随时听你说，咕~"
+    ],
+    "tiredResponses": [
+      "辛苦了，记得休息一下，咕~",
+      "你已经很努力了，给自己一点时间",
+      "咕...抱抱你，会好起来的"
+    ],
+    "interviewResponses": [
+      "求职路上不容易，但我相信你！咕~",
+      "加油！每一步都是成长",
+      "咕咕~我会一直陪着你的"
+    ],
+    "tokenExhausted": "咕...感觉脑袋有点晕晕的，让我休息一下，我们继续聊天吧~",
+    "networkError": "咕...网络好像有点问题，稍后再试试吧~",
+    "emotionNames": {
+      "happy": "开心",
+      "sad": "难过",
+      "angry": "生气",
+      "excited": "兴奋",
+      "normal": "平静"
+    }
   },
   "stats": {
     "title": "求职数据",

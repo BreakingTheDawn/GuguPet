@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/constants/app_constants.dart';
 import '../data/column_data.dart';
 
 /// 底部CTA按钮组件
@@ -20,7 +22,7 @@ class _BottomCTAState extends State<BottomCTA>
   void initState() {
     super.initState();
     _shimmerController = AnimationController(
-      duration: const Duration(milliseconds: 2800),
+      duration: AnimationDurations.bottomCta,
       vsync: this,
     )..repeat();
     _shimmerAnimation = Tween<double>(begin: -1.5, end: 2.5).animate(
@@ -43,8 +45,8 @@ class _BottomCTAState extends State<BottomCTA>
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            const Color(0xFFF7F4EF).withValues(alpha: 0),
-            const Color(0xFFF7F4EF),
+            AppColors.archiveBackground.withValues(alpha: 0),
+            AppColors.archiveBackground,
           ],
           stops: const [0.0, 0.6],
         ),
@@ -58,7 +60,7 @@ class _BottomCTAState extends State<BottomCTA>
         onTapCancel: () => setState(() => _isTapped = false),
         child: AnimatedScale(
           scale: _isTapped ? 0.97 : 1.0,
-          duration: const Duration(milliseconds: 100),
+          duration: AnimationDurations.fast,
           child: Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 16),
@@ -66,17 +68,17 @@ class _BottomCTAState extends State<BottomCTA>
               gradient: const LinearGradient(
                 begin: Alignment(-1, -1),
                 end: Alignment(1, 1),
-                colors: [Color(0xFF7A5030), Color(0xFF5A3318)],
+                colors: [AppColors.archiveButtonStart, AppColors.archiveButtonEnd],
               ),
               borderRadius: BorderRadius.circular(28),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF5A3218).withValues(alpha: 0.4),
+                  color: AppColors.archiveButtonShadow.withValues(alpha: 0.4),
                   blurRadius: 28,
                   offset: const Offset(0, 8),
                 ),
                 BoxShadow(
-                  color: const Color(0xFF5A3218).withValues(alpha: 0.2),
+                  color: AppColors.archiveButtonShadow.withValues(alpha: 0.2),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -119,7 +121,7 @@ class _BottomCTAState extends State<BottomCTA>
                       gradient: LinearGradient(
                         colors: [
                           Colors.transparent,
-                          const Color(0xFFFFF0D0).withValues(alpha: 0.28),
+                          AppColors.archiveHighlight.withValues(alpha: 0.28),
                           Colors.transparent,
                         ],
                       ),
@@ -159,7 +161,7 @@ class _BottomCTAState extends State<BottomCTA>
               '8册合集 · 原价 ${ColumnData.originalPrice} · 现仅 ${ColumnData.bundlePrice}',
               style: TextStyle(
                 fontSize: 11,
-                color: const Color(0xFFFFDCB4).withValues(alpha: 0.85),
+                color: AppColors.archiveDecorative.withValues(alpha: 0.85),
               ),
             ),
           ],
@@ -167,10 +169,10 @@ class _BottomCTAState extends State<BottomCTA>
         const SizedBox(width: 4),
         AnimatedScale(
           scale: _isTapped ? 1.4 : 1.0,
-          duration: const Duration(milliseconds: 150),
+          duration: AnimationDurations.fast,
           child: AnimatedRotation(
             turns: _isTapped ? 0.04 : 0,
-            duration: const Duration(milliseconds: 150),
+            duration: AnimationDurations.fast,
             child: const Text('✨', style: TextStyle(fontSize: 18)),
           ),
         ),

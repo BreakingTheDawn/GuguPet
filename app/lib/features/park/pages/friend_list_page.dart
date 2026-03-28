@@ -93,27 +93,57 @@ class _FriendListPageState extends State<FriendListPage>
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
-        leading: Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: Colors.blue.shade100,
-            shape: BoxShape.circle,
-          ),
-          child: const Center(
-            child: Text('🐧', style: TextStyle(fontSize: 24)),
-          ),
+        leading: Stack(
+          children: [
+            // 头像
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: Colors.blue.shade100,
+                shape: BoxShape.circle,
+              ),
+              child: const Center(
+                child: Text('🐧', style: TextStyle(fontSize: 24)),
+              ),
+            ),
+            
+            // 在线状态指示器
+            Positioned(
+              right: 0,
+              bottom: 0,
+              child: _buildOnlineIndicator(friend),
+            ),
+          ],
         ),
-        title: Text(friend.friendName),
-        subtitle: friend.friendTitle != null
-            ? Text(
+        title: Row(
+          children: [
+            Text(friend.friendName),
+            const SizedBox(width: 8),
+            _buildOnlineBadge(friend),
+          ],
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (friend.friendTitle != null)
+              Text(
                 friend.friendTitle!,
                 style: TextStyle(
                   fontSize: 12,
                   color: Colors.grey.shade600,
                 ),
-              )
-            : null,
+              ),
+            const SizedBox(height: 2),
+            Text(
+              friend.onlineStatusText,
+              style: TextStyle(
+                fontSize: 11,
+                color: friend.isOnline ? Colors.green : Colors.grey.shade500,
+              ),
+            ),
+          ],
+        ),
         trailing: PopupMenuButton<String>(
           onSelected: (value) {
             if (value == 'delete') {
@@ -126,6 +156,77 @@ class _FriendListPageState extends State<FriendListPage>
               child: Text('删除好友'),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// 构建在线状态指示器（小圆点）
+  Widget _buildOnlineIndicator(Friend friend) {
+    Color color;
+    switch (friend.onlineStatus) {
+      case OnlineStatus.online:
+        color = Colors.green;
+        break;
+      case OnlineStatus.busy:
+        color = Colors.orange;
+        break;
+      case OnlineStatus.away:
+        color = Colors.yellow;
+        break;
+      case OnlineStatus.offline:
+        color = Colors.grey;
+        break;
+    }
+
+    return Container(
+      width: 12,
+      height: 12,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 2),
+      ),
+    );
+  }
+
+  /// 构建在线状态标签
+  Widget _buildOnlineBadge(Friend friend) {
+    if (friend.onlineStatus == OnlineStatus.offline) {
+      return const SizedBox.shrink();
+    }
+
+    Color bgColor;
+    String text;
+    
+    switch (friend.onlineStatus) {
+      case OnlineStatus.online:
+        bgColor = Colors.green.shade100;
+        text = '在线';
+        break;
+      case OnlineStatus.busy:
+        bgColor = Colors.orange.shade100;
+        text = '忙碌';
+        break;
+      case OnlineStatus.away:
+        bgColor = Colors.yellow.shade100;
+        text = '离开';
+        break;
+      case OnlineStatus.offline:
+        return const SizedBox.shrink();
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 10,
+          color: Colors.grey.shade700,
         ),
       ),
     );

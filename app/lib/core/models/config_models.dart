@@ -781,6 +781,30 @@ class ConfideStrings {
   final String responseDefault3;
   final String responseDefault4;
   
+  /// 情绪关键词配置
+  final EmotionKeywordsConfig emotionKeywords;
+  
+  /// 积极情绪回复列表
+  final List<String> positiveResponses;
+  
+  /// 消极情绪回复列表
+  final List<String> negativeResponses;
+  
+  /// 疲惫情绪回复列表
+  final List<String> tiredResponses;
+  
+  /// 面试相关回复列表
+  final List<String> interviewResponses;
+  
+  /// Token耗尽提示
+  final String tokenExhausted;
+  
+  /// 网络错误提示
+  final String networkError;
+  
+  /// 情绪类型名称映射
+  final Map<String, String> emotionNames;
+  
   ConfideStrings({
     required this.title,
     required this.waitingHint,
@@ -798,6 +822,14 @@ class ConfideStrings {
     required this.responseDefault2,
     required this.responseDefault3,
     required this.responseDefault4,
+    required this.emotionKeywords,
+    required this.positiveResponses,
+    required this.negativeResponses,
+    required this.tiredResponses,
+    required this.interviewResponses,
+    required this.tokenExhausted,
+    required this.networkError,
+    required this.emotionNames,
   });
   
   factory ConfideStrings.fromJson(Map<String, dynamic> json) {
@@ -818,7 +850,65 @@ class ConfideStrings {
       responseDefault2: json['responseDefault2'] as String,
       responseDefault3: json['responseDefault3'] as String,
       responseDefault4: json['responseDefault4'] as String,
+      emotionKeywords: EmotionKeywordsConfig.fromJson(json['emotionKeywords'] as Map<String, dynamic>),
+      positiveResponses: List<String>.from(json['positiveResponses'] as List),
+      negativeResponses: List<String>.from(json['negativeResponses'] as List),
+      tiredResponses: List<String>.from(json['tiredResponses'] as List),
+      interviewResponses: List<String>.from(json['interviewResponses'] as List),
+      tokenExhausted: json['tokenExhausted'] as String,
+      networkError: json['networkError'] as String,
+      emotionNames: Map<String, String>.from(json['emotionNames'] as Map),
     );
+  }
+  
+  /// 获取默认回复列表
+  List<String> get defaultResponses => [
+    responseDefault1,
+    responseDefault2,
+    responseDefault3,
+    responseDefault4,
+  ];
+}
+
+/// 情绪关键词配置
+class EmotionKeywordsConfig {
+  /// 积极情绪关键词
+  final List<String> positive;
+  
+  /// 消极情绪关键词
+  final List<String> negative;
+  
+  /// 被拒绝关键词
+  final List<String> rejected;
+  
+  /// 迷茫关键词
+  final List<String> lost;
+  
+  /// 面试相关关键词
+  final List<String> interview;
+  
+  const EmotionKeywordsConfig({
+    required this.positive,
+    required this.negative,
+    required this.rejected,
+    required this.lost,
+    required this.interview,
+  });
+  
+  factory EmotionKeywordsConfig.fromJson(Map<String, dynamic> json) {
+    return EmotionKeywordsConfig(
+      positive: List<String>.from(json['positive'] as List),
+      negative: List<String>.from(json['negative'] as List),
+      rejected: List<String>.from(json['rejected'] as List),
+      lost: List<String>.from(json['lost'] as List),
+      interview: List<String>.from(json['interview'] as List),
+    );
+  }
+  
+  /// 检查消息是否匹配关键词列表
+  bool matchesKeywords(String message, List<String> keywords) {
+    final lowerMessage = message.toLowerCase();
+    return keywords.any((keyword) => lowerMessage.contains(keyword.toLowerCase()));
   }
 }
 

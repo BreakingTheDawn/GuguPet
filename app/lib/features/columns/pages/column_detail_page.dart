@@ -176,7 +176,7 @@ class _ColumnDetailPageState extends State<ColumnDetailPage> {
               : Icons.favorite_border_outlined,
           size: 22,
           color: provider.isFavorited
-              ? const Color(0xFFE74C3C)
+              ? AppColors.error
               : AppColors.archiveTextMuted,
         ),
       ),

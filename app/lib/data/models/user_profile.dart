@@ -20,6 +20,15 @@ class UserProfile {
   final bool isOnboarded;
   final String? industryTag;
   final String? onboardingReport;
+  
+  /// 公园是否已解锁
+  final bool isParkUnlocked;
+  
+  /// 公园解锁时间
+  final DateTime? parkUnlockedAt;
+  
+  /// 公园解锁来源（offer, manual, pro_vip）
+  final String? parkUnlockSource;
 
   UserProfile({
     required this.userId,
@@ -33,6 +42,9 @@ class UserProfile {
     this.isOnboarded = false,
     this.industryTag,
     this.onboardingReport,
+    this.isParkUnlocked = false,
+    this.parkUnlockedAt,
+    this.parkUnlockSource,
   });
 
   Map<String, dynamic> toJson() {
@@ -48,6 +60,9 @@ class UserProfile {
       'isOnboarded': isOnboarded,
       'industryTag': industryTag,
       'onboardingReport': onboardingReport,
+      'isParkUnlocked': isParkUnlocked,
+      'parkUnlockedAt': parkUnlockedAt?.toIso8601String(),
+      'parkUnlockSource': parkUnlockSource,
     };
   }
 
@@ -69,6 +84,11 @@ class UserProfile {
       isOnboarded: json['isOnboarded'] as bool? ?? false,
       industryTag: json['industryTag'] as String?,
       onboardingReport: json['onboardingReport'] as String?,
+      isParkUnlocked: json['isParkUnlocked'] as bool? ?? false,
+      parkUnlockedAt: json['parkUnlockedAt'] != null
+          ? DateTime.parse(json['parkUnlockedAt'] as String)
+          : null,
+      parkUnlockSource: json['parkUnlockSource'] as String?,
     );
   }
 
@@ -79,6 +99,7 @@ class UserProfile {
       isOnboarded: false,
       vipStatus: false,
       petMemory: [],
+      isParkUnlocked: false,
     );
   }
 
@@ -96,6 +117,9 @@ class UserProfile {
     bool? isOnboarded,
     String? industryTag,
     String? onboardingReport,
+    bool? isParkUnlocked,
+    Optional<DateTime>? parkUnlockedAt,
+    String? parkUnlockSource,
   }) {
     return UserProfile(
       userId: userId ?? this.userId,
@@ -111,6 +135,11 @@ class UserProfile {
       isOnboarded: isOnboarded ?? this.isOnboarded,
       industryTag: industryTag ?? this.industryTag,
       onboardingReport: onboardingReport ?? this.onboardingReport,
+      isParkUnlocked: isParkUnlocked ?? this.isParkUnlocked,
+      parkUnlockedAt: parkUnlockedAt != null
+          ? parkUnlockedAt.value
+          : this.parkUnlockedAt,
+      parkUnlockSource: parkUnlockSource ?? this.parkUnlockSource,
     );
   }
 

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/post_provider.dart';
 import '../widgets/post_card.dart';
 import '../data/models/models.dart';
+import '../../../shared/widgets/image_picker_widget.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 /// 动态流页面
@@ -16,6 +17,15 @@ class PostFeedPage extends StatefulWidget {
 }
 
 class _PostFeedPageState extends State<PostFeedPage> {
+  /// Tab选项列表
+  final List<_TabItem> _tabs = [
+    _TabItem(label: '全部', type: null),
+    _TabItem(label: '💡 求职经验', type: PostType.experience),
+    _TabItem(label: '🎯 面试分享', type: PostType.interview),
+    _TabItem(label: '🎉 Offer', type: PostType.offer),
+    _TabItem(label: '📝 日常', type: PostType.daily),
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -39,39 +49,104 @@ class _PostFeedPageState extends State<PostFeedPage> {
           ),
         ],
       ),
-      body: Consumer<PostProvider>(
-        builder: (context, provider, child) {
-          if (provider.isLoading && provider.posts.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: Column(
+        children: [
+          // 筛选Tab栏
+          _buildFilterTabs(),
+          
+          // 动态列表
+          Expanded(
+            child: Consumer<PostProvider>(
+              builder: (context, provider, child) {
+                if (provider.isLoading && provider.posts.isEmpty) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-          if (provider.posts.isEmpty) {
-            return _buildEmptyState();
-          }
+                final posts = provider.filteredPosts;
+                
+                if (posts.isEmpty) {
+                  return _buildEmptyState();
+                }
 
-          return RefreshIndicator(
-            onRefresh: () => provider.refresh(),
-            child: ListView.builder(
-              padding: const EdgeInsets.only(top: 8, bottom: 80),
-              itemCount: provider.posts.length,
-              itemBuilder: (context, index) {
-                final post = provider.posts[index];
-                final isCurrentUserPost = post.userId == provider.currentUserId;
-                return PostCard(
-                  post: post,
-                  isLiked: provider.isPostLiked(post.id),
-                  onLike: () => provider.toggleLike(post.id),
-                  onComment: () => _navigateToDetail(context, post),
-                  onTap: () => _navigateToDetail(context, post),
-                  onDelete: isCurrentUserPost 
-                      ? () => _showDeleteConfirmDialog(context, post, provider)
-                      : null,
+                return RefreshIndicator(
+                  onRefresh: () => provider.refresh(),
+                  child: ListView.builder(
+                    padding: const EdgeInsets.only(top: 8, bottom: 80),
+                    itemCount: posts.length,
+                    itemBuilder: (context, index) {
+                      final post = posts[index];
+                      final isCurrentUserPost = post.userId == provider.currentUserId;
+                      return PostCard(
+                        post: post,
+                        isLiked: provider.isPostLiked(post.id),
+                        onLike: () => provider.toggleLike(post.id),
+                        onComment: () => _navigateToDetail(context, post),
+                        onTap: () => _navigateToDetail(context, post),
+                        onDelete: isCurrentUserPost 
+                            ? () => _showDeleteConfirmDialog(context, post, provider)
+                            : null,
+                      );
+                    },
+                  ),
                 );
               },
             ),
-          );
-        },
+          ),
+        ],
       ),
+    );
+  }
+
+  /// 构建筛选Tab栏
+  Widget _buildFilterTabs() {
+    return Consumer<PostProvider>(
+      builder: (context, provider, child) {
+        return Container(
+          height: 48,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: _tabs.length,
+            itemBuilder: (context, index) {
+              final tab = _tabs[index];
+              final isSelected = provider.filterType == tab.type;
+              
+              return GestureDetector(
+                onTap: () {
+                  provider.setFilterType(tab.type);
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isSelected ? Colors.blue : Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    tab.label,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      color: isSelected ? Colors.white : Colors.grey.shade700,
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 
@@ -167,53 +242,67 @@ class _PostFeedPageState extends State<PostFeedPage> {
   void _showPublishDialog(BuildContext context) {
     final contentController = TextEditingController();
     PostType selectedType = PostType.daily;
+    List<String> selectedImages = [];
     
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
           title: const Text('发布动态'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 动态类型选择
-              const Text(
-                '动态类型',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey,
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 动态类型选择
+                const Text(
+                  '动态类型',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: PostType.values.map((type) {
-                  return ChoiceChip(
-                    label: Text(_getPostTypeLabel(type)),
-                    selected: selectedType == type,
-                    onSelected: (selected) {
-                      if (selected) {
-                        setState(() => selectedType = type);
-                      }
-                    },
-                  );
-                }).toList(),
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // 内容输入框
-              TextField(
-                controller: contentController,
-                maxLines: 4,
-                maxLength: 500,
-                decoration: const InputDecoration(
-                  hintText: '分享你的求职故事...',
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  children: PostType.values.map((type) {
+                    return ChoiceChip(
+                      label: Text(_getPostTypeLabel(type)),
+                      selected: selectedType == type,
+                      onSelected: (selected) {
+                        if (selected) {
+                          setState(() => selectedType = type);
+                        }
+                      },
+                    );
+                  }).toList(),
                 ),
-              ),
-            ],
+                
+                const SizedBox(height: 16),
+                
+                // 内容输入框
+                TextField(
+                  controller: contentController,
+                  maxLines: 4,
+                  maxLength: 500,
+                  decoration: const InputDecoration(
+                    hintText: '分享你的求职故事...',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                
+                const SizedBox(height: 16),
+                
+                // 图片选择器
+                ImagePickerWidget(
+                  maxImages: 9,
+                  initialImages: selectedImages,
+                  onImagesChanged: (images) {
+                    selectedImages = images;
+                  },
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -234,6 +323,7 @@ class _PostFeedPageState extends State<PostFeedPage> {
                 final success = await context.read<PostProvider>().publishPost(
                   content: contentController.text.trim(),
                   type: selectedType,
+                  images: selectedImages,
                 );
                 
                 if (success && mounted) {
@@ -519,4 +609,14 @@ class CommentItem extends StatelessWidget {
       ),
     );
   }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+/// Tab项数据类
+// ═══════════════════════════════════════════════════════════════════════════════
+class _TabItem {
+  final String label;
+  final PostType? type;
+
+  const _TabItem({required this.label, this.type});
 }

@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import '../models/ai_config_models.dart';
+import '../constants/app_constants.dart';
 
 /// AI配置加载服务
 /// 负责从assets/config/ai_config.json加载AI配置
@@ -36,7 +37,7 @@ class AIConfigLoaderService {
       debugPrint('=== 加载AI配置JSON ===');
       
       // 从assets加载JSON文件
-      final jsonString = await rootBundle.loadString('assets/config/ai_config.json');
+      final jsonString = await rootBundle.loadString(AssetPaths.aiConfig);
       final jsonMap = jsonDecode(jsonString) as Map<String, dynamic>;
       
       _cachedConfig = AIConfigModel.fromJson(jsonMap);

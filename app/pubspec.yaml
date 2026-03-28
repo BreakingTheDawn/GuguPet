@@ -34,6 +34,10 @@ dependencies:
   url_launcher: ^6.2.5
   crypto: ^3.0.3
 
+  # 图片选择和压缩
+  image_picker: ^1.0.7
+  flutter_image_compress: ^2.1.0
+
   # 安全相关依赖
   flutter_secure_storage: ^9.0.0
   device_info_plus: ^9.1.0

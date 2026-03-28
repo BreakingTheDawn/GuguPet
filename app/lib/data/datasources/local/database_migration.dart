@@ -21,6 +21,8 @@ class DatabaseMigration {
         return _version6;
       case 7:
         return _version7;
+      case 8:
+        return _version8;
       default:
         return null;
     }
@@ -576,6 +578,27 @@ class DatabaseMigration {
     // 对话消息表索引 - 按时间戳查询
     '''
     CREATE INDEX idx_chat_messages_timestamp ON chat_messages (timestamp)
+    ''',
+  ];
+
+  // ==================== 版本8迁移脚本 ====================
+
+  /// 版本8的迁移脚本
+  /// 为用户表添加公园解锁相关字段
+  static final List<String> _version8 = [
+    // 为用户表添加公园解锁状态字段
+    '''
+    ALTER TABLE users ADD COLUMN is_park_unlocked INTEGER DEFAULT 0
+    ''',
+    
+    // 为用户表添加公园解锁时间字段
+    '''
+    ALTER TABLE users ADD COLUMN park_unlocked_at TEXT
+    ''',
+    
+    // 为用户表添加公园解锁来源字段
+    '''
+    ALTER TABLE users ADD COLUMN park_unlock_source TEXT
     ''',
   ];
 }

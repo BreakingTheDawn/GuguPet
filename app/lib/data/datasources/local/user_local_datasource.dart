@@ -196,6 +196,9 @@ class SqliteUserLocalDatasource implements UserLocalDatasource {
       DatabaseHelper.columnIsOnboarded: user.isOnboarded ? 1 : 0,
       DatabaseHelper.columnIndustryTag: user.industryTag,
       DatabaseHelper.columnOnboardingReport: user.onboardingReport,
+      'is_park_unlocked': user.isParkUnlocked ? 1 : 0,
+      'park_unlocked_at': user.parkUnlockedAt?.toIso8601String(),
+      'park_unlock_source': user.parkUnlockSource,
       DatabaseHelper.columnCreatedAt: createdAt,
       DatabaseHelper.columnUpdatedAt: updatedAt,
     };
@@ -231,6 +234,11 @@ class SqliteUserLocalDatasource implements UserLocalDatasource {
       isOnboarded: (map[DatabaseHelper.columnIsOnboarded] as int?) == 1,
       industryTag: map[DatabaseHelper.columnIndustryTag] as String?,
       onboardingReport: map[DatabaseHelper.columnOnboardingReport] as String?,
+      isParkUnlocked: (map['is_park_unlocked'] as int?) == 1,
+      parkUnlockedAt: map['park_unlocked_at'] != null
+          ? DateTime.parse(map['park_unlocked_at'] as String)
+          : null,
+      parkUnlockSource: map['park_unlock_source'] as String?,
     );
   }
 

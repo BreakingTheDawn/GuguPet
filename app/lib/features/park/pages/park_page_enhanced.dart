@@ -29,15 +29,15 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
   // 状态变量
   // ────────────────────────────────────────────────────────────────────────────
 
-  final int _selectedZone = 0;
+  int _selectedZone = 0;
   bool _showZoneMenu = false;
 
   // 区域配置
   static const List<Map<String, dynamic>> _zones = [
-    {'name': '码农森林', 'icon': '🌲', 'color': Color(0xFF4CAF50)},
-    {'name': '金币湖畔', 'icon': '💰', 'color': Color(0xFFFFC107)},
-    {'name': '设计师草原', 'icon': '🎨', 'color': Color(0xFF9C27B0)},
-    {'name': '产品家园', 'icon': '📱', 'color': Color(0xFF2196F3)},
+    {'name': '码农森林', 'icon': '🌲', 'color': Color(0xFF4CAF50), 'id': '码农森林'},
+    {'name': '金币湖畔', 'icon': '💰', 'color': Color(0xFFFFC107), 'id': '金币湖畔'},
+    {'name': '设计师草原', 'icon': '🎨', 'color': Color(0xFF9C27B0), 'id': '设计师草原'},
+    {'name': '产品家园', 'icon': '📱', 'color': Color(0xFF2196F3), 'id': '产品家园'},
   ];
 
   // ────────────────────────────────────────────────────────────────────────────
@@ -96,6 +96,9 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
           
           // 区域头部
           _buildZoneHeader(),
+          
+          // 区域选择菜单
+          if (_showZoneMenu) _buildZoneMenu(),
           
           // 主要内容区域
           _buildMainContent(),
@@ -238,6 +241,116 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
         ],
       ),
     );
+  }
+
+  /// 构建区域选择菜单
+  Widget _buildZoneMenu() {
+    return Positioned(
+      top: 100,
+      left: 20,
+      right: 20,
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: List.generate(_zones.length, (index) {
+                final zone = _zones[index];
+                final isSelected = index == _selectedZone;
+                final zoneColor = zone['color'] as Color;
+                
+                return InkWell(
+                  onTap: () => _handleZoneSwitch(index),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                    decoration: BoxDecoration(
+                      color: isSelected ? zoneColor.withValues(alpha: 0.1) : null,
+                      border: index < _zones.length - 1
+                          ? Border(bottom: BorderSide(color: Colors.grey.shade100))
+                          : null,
+                    ),
+                    child: Row(
+                      children: [
+                        // 区域图标
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: zoneColor.withValues(alpha: 0.15),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Center(
+                            child: Text(
+                              zone['icon'] as String,
+                              style: const TextStyle(fontSize: 18),
+                            ),
+                          ),
+                        ),
+                        
+                        const SizedBox(width: 12),
+                        
+                        // 区域名称
+                        Expanded(
+                          child: Text(
+                            zone['name'] as String,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                              color: isSelected ? zoneColor : Colors.grey.shade700,
+                            ),
+                          ),
+                        ),
+                        
+                        // 选中标识
+                        if (isSelected)
+                          Icon(
+                            Icons.check_circle,
+                            color: zoneColor,
+                            size: 22,
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 处理区域切换
+  void _handleZoneSwitch(int index) {
+    if (index == _selectedZone) {
+      // 点击当前区域，只关闭菜单
+      setState(() => _showZoneMenu = false);
+      return;
+    }
+    
+    final zoneName = _zones[index]['name'] as String;
+    final parkProvider = context.read<ParkProvider>();
+    
+    setState(() {
+      _selectedZone = index;
+      _showZoneMenu = false;
+    });
+    
+    // 通知Provider切换区域
+    parkProvider.switchZone(zoneName);
   }
 
   /// 构建主要内容区域

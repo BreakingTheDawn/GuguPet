@@ -9,6 +9,19 @@ enum FriendStatus {
   blocked,
 }
 
+/// 在线状态枚举
+/// 定义用户的在线状态
+enum OnlineStatus {
+  /// 离线
+  offline,
+  /// 在线
+  online,
+  /// 忙碌
+  busy,
+  /// 离开
+  away,
+}
+
 /// 好友关系模型
 /// 用于存储用户之间的好友关系
 class Friend {
@@ -33,6 +46,12 @@ class Friend {
   /// 好友状态
   final FriendStatus status;
   
+  /// 在线状态
+  final OnlineStatus onlineStatus;
+  
+  /// 最后活跃时间
+  final DateTime? lastActiveAt;
+  
   /// 添加时间
   final DateTime? addedAt;
   
@@ -51,6 +70,8 @@ class Friend {
     this.friendAvatar,
     this.friendTitle,
     required this.status,
+    this.onlineStatus = OnlineStatus.offline,
+    this.lastActiveAt,
     this.addedAt,
     this.lastInteract,
     required this.createdAt,
@@ -69,6 +90,13 @@ class Friend {
         (e) => e.name == json['status'],
         orElse: () => FriendStatus.pending,
       ),
+      onlineStatus: OnlineStatus.values.firstWhere(
+        (e) => e.name == json['onlineStatus'],
+        orElse: () => OnlineStatus.offline,
+      ),
+      lastActiveAt: json['lastActiveAt'] != null
+          ? DateTime.parse(json['lastActiveAt'] as String)
+          : null,
       addedAt: json['addedAt'] != null
           ? DateTime.parse(json['addedAt'] as String)
           : null,
@@ -93,6 +121,13 @@ class Friend {
         (e) => e.name == map['status'],
         orElse: () => FriendStatus.pending,
       ),
+      onlineStatus: OnlineStatus.values.firstWhere(
+        (e) => e.name == map['online_status'],
+        orElse: () => OnlineStatus.offline,
+      ),
+      lastActiveAt: map['last_active_at'] != null
+          ? DateTime.parse(map['last_active_at'] as String)
+          : null,
       addedAt: map['added_at'] != null
           ? DateTime.parse(map['added_at'] as String)
           : null,
@@ -113,6 +148,8 @@ class Friend {
       'friendAvatar': friendAvatar,
       'friendTitle': friendTitle,
       'status': status.name,
+      'onlineStatus': onlineStatus.name,
+      'lastActiveAt': lastActiveAt?.toIso8601String(),
       'addedAt': addedAt?.toIso8601String(),
       'lastInteract': lastInteract?.toIso8601String(),
       'createdAt': createdAt.toIso8601String(),
@@ -129,6 +166,8 @@ class Friend {
       'friend_avatar': friendAvatar,
       'friend_title': friendTitle,
       'status': status.name,
+      'online_status': onlineStatus.name,
+      'last_active_at': lastActiveAt?.toIso8601String(),
       'added_at': addedAt?.toIso8601String(),
       'last_interact': lastInteract?.toIso8601String(),
       'created_at': createdAt.toIso8601String(),
@@ -144,6 +183,8 @@ class Friend {
     String? friendAvatar,
     String? friendTitle,
     FriendStatus? status,
+    OnlineStatus? onlineStatus,
+    DateTime? lastActiveAt,
     DateTime? addedAt,
     DateTime? lastInteract,
     DateTime? createdAt,
@@ -156,10 +197,50 @@ class Friend {
       friendAvatar: friendAvatar ?? this.friendAvatar,
       friendTitle: friendTitle ?? this.friendTitle,
       status: status ?? this.status,
+      onlineStatus: onlineStatus ?? this.onlineStatus,
+      lastActiveAt: lastActiveAt ?? this.lastActiveAt,
       addedAt: addedAt ?? this.addedAt,
       lastInteract: lastInteract ?? this.lastInteract,
       createdAt: createdAt ?? this.createdAt,
     );
+  }
+
+  /// 检查是否在线
+  bool get isOnline => onlineStatus == OnlineStatus.online;
+
+  /// 获取在线状态显示文本
+  String get onlineStatusText {
+    switch (onlineStatus) {
+      case OnlineStatus.online:
+        return '在线';
+      case OnlineStatus.busy:
+        return '忙碌';
+      case OnlineStatus.away:
+        return '离开';
+      case OnlineStatus.offline:
+        if (lastActiveAt != null) {
+          return '上次在线: ${_formatLastActive(lastActiveAt!)}';
+        }
+        return '离线';
+    }
+  }
+
+  /// 格式化最后活跃时间
+  String _formatLastActive(DateTime time) {
+    final now = DateTime.now();
+    final diff = now.difference(time);
+    
+    if (diff.inMinutes < 1) {
+      return '刚刚';
+    } else if (diff.inMinutes < 60) {
+      return '${diff.inMinutes}分钟前';
+    } else if (diff.inHours < 24) {
+      return '${diff.inHours}小时前';
+    } else if (diff.inDays < 7) {
+      return '${diff.inDays}天前';
+    } else {
+      return '${time.month}月${time.day}日';
+    }
   }
 
   @override

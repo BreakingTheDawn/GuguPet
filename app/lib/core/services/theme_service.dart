@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/theme_config_models.dart';
 import 'config_service.dart';
+import '../constants/app_constants.dart';
 
 /// 主题服务
 /// 提供主题配置的访问和切换功能
@@ -13,7 +14,7 @@ class ThemeService extends ConfigService<ThemeConfig> {
   factory ThemeService() => _instance;
   
   /// 私有构造函数
-  ThemeService._internal() : super(configPath: 'assets/config/theme_config.json');
+  ThemeService._internal() : super(configPath: AssetPaths.themeConfig);
   
   /// SharedPreferences实例
   SharedPreferences? _prefs;

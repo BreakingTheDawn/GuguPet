@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 /// 收藏按钮组件
@@ -162,8 +163,8 @@ class _FavoriteButtonState extends State<FavoriteButton>
   /// 构建按钮内容
   Widget _buildButtonContent() {
     // 默认颜色配置
-    final defaultFavoriteColor = const Color(0xFFE53935); // 红色
-    final defaultUnfavoriteColor = const Color(0xFF9E9E9E); // 灰色
+    final defaultFavoriteColor = AppColors.favoriteRed;
+    final defaultUnfavoriteColor = AppColors.unfavoriteGray;
 
     // 使用自定义颜色或默认颜色
     final favoriteColor = widget.favoriteColor ?? defaultFavoriteColor;
@@ -256,8 +257,8 @@ class FavoriteButtonStyle {
     this.showText = false,
     this.favoriteIcon = Icons.favorite,
     this.unfavoriteIcon = Icons.favorite_border,
-    this.favoriteColor = const Color(0xFFE53935),
-    this.unfavoriteColor = const Color(0xFF9E9E9E),
+    this.favoriteColor = AppColors.favoriteRed,
+    this.unfavoriteColor = AppColors.unfavoriteGray,
     this.animationDuration = const Duration(milliseconds: 300),
   });
 

@@ -2,9 +2,11 @@ import 'package:flutter/foundation.dart';
 import '../../features/confide/services/ai_config_service.dart';
 import '../../features/confide/services/chat_service.dart';
 import '../../features/confide/providers/confide_provider.dart';
+import '../../features/park/services/park_unlock_service.dart';
 import '../services/llm_config.dart';
 import '../services/llm_provider.dart';
 import '../services/multi_llm_service.dart';
+import 'repository_provider.dart';
 
 /// 全局服务提供者
 /// 管理应用级别的服务实例，确保单例模式
@@ -25,6 +27,9 @@ class ServiceProvider {
   
   // 多模型LLM服务（新增）
   MultiLLMService? _multiLLMService;
+  
+  // 公园解锁服务（新增）
+  ParkUnlockService? _parkUnlockService;
 
   /// 初始化服务
   /// [userId] 当前登录用户的ID，用于隔离用户数据
@@ -55,6 +60,9 @@ class ServiceProvider {
     // 将多模型服务传递给ChatService
     _chatService.updateMultiLLMService(_multiLLMService);
     
+    // 初始化公园解锁服务
+    _initializeParkUnlockService();
+    
     debugPrint('=== ServiceProvider初始化完成 ===');
     debugPrint('canUseAIMode: $canUseAIMode');
   }
@@ -78,6 +86,23 @@ class ServiceProvider {
     } catch (e) {
       debugPrint('多模型LLM服务初始化失败: $e');
       _multiLLMService = null;
+    }
+  }
+  
+  /// 初始化公园解锁服务
+  void _initializeParkUnlockService() {
+    try {
+      debugPrint('>>> 初始化公园解锁服务');
+      
+      _parkUnlockService = ParkUnlockService();
+      _parkUnlockService!.initialize(
+        userRepository: repositoryProvider.userRepository,
+      );
+      
+      debugPrint('公园解锁服务初始化完成');
+    } catch (e) {
+      debugPrint('公园解锁服务初始化失败: $e');
+      _parkUnlockService = null;
     }
   }
 
@@ -155,6 +180,9 @@ class ServiceProvider {
   
   /// 获取多模型LLM服务
   MultiLLMService? get multiLLMService => _multiLLMService;
+  
+  /// 获取公园解锁服务
+  ParkUnlockService? get parkUnlockService => _parkUnlockService;
 
   /// 检查是否可以使用AI模式（优先检查多模型服务）
   bool get canUseAIMode {

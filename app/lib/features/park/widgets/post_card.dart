@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../data/models/models.dart';
 
@@ -202,31 +203,183 @@ class PostCard extends StatelessWidget {
 
   /// 构建图片区域
   Widget _buildImages() {
+    final imageCount = post.images.length;
+    
+    // 根据图片数量选择不同的布局
+    if (imageCount == 1) {
+      return _buildSingleImage();
+    } else if (imageCount == 2) {
+      return _buildTwoImages();
+    } else if (imageCount <= 4) {
+      return _buildFourImages();
+    } else {
+      return _buildNineImages();
+    }
+  }
+
+  /// 构建单张图片
+  Widget _buildSingleImage() {
     return Padding(
-      padding: const EdgeInsets.only(top: 12),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(12),
-          bottomRight: Radius.circular(12),
-        ),
-        child: Image.network(
-          post.images.first,
-          width: double.infinity,
-          height: 200,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            return Container(
-              width: double.infinity,
-              height: 200,
-              color: Colors.grey.shade200,
-              child: const Center(
-                child: Icon(Icons.image, size: 40, color: Colors.grey),
-              ),
-            );
-          },
+      padding: const EdgeInsets.only(top: 12, left: 16, right: 16),
+      child: GestureDetector(
+        onTap: () => _showImagePreview(0),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: _buildImageWidget(post.images.first, 200, double.infinity),
         ),
       ),
     );
+  }
+
+  /// 构建两张图片
+  Widget _buildTwoImages() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 12, left: 16, right: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: () => _showImagePreview(0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: _buildImageWidget(post.images[0], 120, double.infinity),
+              ),
+            ),
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: GestureDetector(
+              onTap: () => _showImagePreview(1),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: _buildImageWidget(post.images[1], 120, double.infinity),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 构建四张图片（2x2网格）
+  Widget _buildFourImages() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 12, left: 16, right: 16),
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 4,
+          mainAxisSpacing: 4,
+          childAspectRatio: 1,
+        ),
+        itemCount: post.images.length,
+        itemBuilder: (context, index) {
+          return GestureDetector(
+            onTap: () => _showImagePreview(index),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: _buildImageWidget(post.images[index], 100, 100),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  /// 构建九张图片（3x3网格）
+  Widget _buildNineImages() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 12, left: 16, right: 16),
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          crossAxisSpacing: 4,
+          mainAxisSpacing: 4,
+          childAspectRatio: 1,
+        ),
+        itemCount: post.images.length > 9 ? 9 : post.images.length,
+        itemBuilder: (context, index) {
+          final isLast = index == 8 && post.images.length > 9;
+          return GestureDetector(
+            onTap: () => _showImagePreview(index),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  _buildImageWidget(post.images[index], 80, 80),
+                  if (isLast)
+                    Container(
+                      color: Colors.black.withValues(alpha: 0.5),
+                      child: Center(
+                        child: Text(
+                          '+${post.images.length - 9}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  /// 构建图片组件
+  Widget _buildImageWidget(String imagePath, double height, double width) {
+    // 检查是否为本地文件路径
+    if (imagePath.startsWith('/') || imagePath.startsWith('file://')) {
+      return Image.file(
+        File(imagePath.replaceFirst('file://', '')),
+        height: height,
+        width: width,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            height: height,
+            width: width,
+            color: Colors.grey.shade200,
+            child: const Center(
+              child: Icon(Icons.broken_image, size: 40, color: Colors.grey),
+            ),
+          );
+        },
+      );
+    }
+
+    // 网络图片
+    return Image.network(
+      imagePath,
+      height: height,
+      width: width,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          height: height,
+          width: width,
+          color: Colors.grey.shade200,
+          child: const Center(
+            child: Icon(Icons.broken_image, size: 40, color: Colors.grey),
+          ),
+        );
+      },
+    );
+  }
+
+  /// 显示图片预览
+  void _showImagePreview(int initialIndex) {
+    // 这里简化处理，实际可以跳转到专门的图片预览页面
+    // 或者使用 photo_view 等库实现更好的预览效果
   }
 
   /// 构建底部操作栏

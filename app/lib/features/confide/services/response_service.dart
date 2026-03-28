@@ -9,7 +9,10 @@ enum EmotionType {
 
 /// 响应结果
 class ResponseResult {
+  /// 响应文本
   final String text;
+  
+  /// 情感类型
   final EmotionType emotion;
 
   const ResponseResult({
@@ -20,8 +23,13 @@ class ResponseResult {
 
 /// 响应模式匹配类
 class ResponsePattern {
+  /// 正则表达式模式
   final RegExp pattern;
+  
+  /// 获取文本的回调函数
   final String Function() getText;
+  
+  /// 情感类型
   final EmotionType emotion;
 
   const ResponsePattern({
@@ -34,44 +42,43 @@ class ResponsePattern {
 /// 响应服务
 /// 根据用户输入匹配对应的响应文本和情感类型
 class ResponseService {
-  /// 响应模式列表
-  static List<ResponsePattern> get _patterns => [
-    // 消极情感 - 触发生气/担忧动画
-    ResponsePattern(
-      pattern: RegExp(r'累|疲|倦|撑|崩|烦|难|苦|压力|生气|愤怒|气死|讨厌'),
-      getText: () => AppStrings().confide.responseTired,
-      emotion: EmotionType.negative,
-    ),
-    ResponsePattern(
-      pattern: RegExp(r'拒|没过|挂|凉|凉凉|拒绝|失败|不行'),
-      getText: () => AppStrings().confide.responseRejected,
-      emotion: EmotionType.negative,
-    ),
-    ResponsePattern(
-      pattern: RegExp(r'不知道|迷茫|迷失|找不到|方向'),
-      getText: () => AppStrings().confide.responseLost,
-      emotion: EmotionType.negative,
-    ),
-    // 积极情感 - 触发高兴动画
-    ResponsePattern(
-      pattern: RegExp(r'开心|高兴|棒|好消息|发|拿到|通过|过了|谢谢|感谢|喜欢'),
-      getText: () => AppStrings().confide.responseHappy,
-      emotion: EmotionType.positive,
-    ),
-    ResponsePattern(
-      pattern: RegExp(r'面试|hr|HR|笔试|offer|Offer|OFFER'),
-      getText: () => AppStrings().confide.responseInterview,
-      emotion: EmotionType.positive,
-    ),
-  ];
-
-  /// 默认响应列表
-  static List<String> get _defaultResponses => [
-    AppStrings().confide.responseDefault1,
-    AppStrings().confide.responseDefault2,
-    AppStrings().confide.responseDefault3,
-    AppStrings().confide.responseDefault4,
-  ];
+  /// 获取响应模式列表（使用配置化的关键词）
+  List<ResponsePattern> get _patterns {
+    final keywords = AppStrings().confide.emotionKeywords;
+    
+    return [
+      // 消极情感 - 触发生气/担忧动画
+      ResponsePattern(
+        pattern: RegExp(keywords.negative.join('|')),
+        getText: () => AppStrings().confide.responseTired,
+        emotion: EmotionType.negative,
+      ),
+      ResponsePattern(
+        pattern: RegExp(keywords.rejected.join('|')),
+        getText: () => AppStrings().confide.responseRejected,
+        emotion: EmotionType.negative,
+      ),
+      ResponsePattern(
+        pattern: RegExp(keywords.lost.join('|')),
+        getText: () => AppStrings().confide.responseLost,
+        emotion: EmotionType.negative,
+      ),
+      // 积极情感 - 触发高兴动画
+      ResponsePattern(
+        pattern: RegExp(keywords.positive.join('|')),
+        getText: () => AppStrings().confide.responseHappy,
+        emotion: EmotionType.positive,
+      ),
+      ResponsePattern(
+        pattern: RegExp(keywords.interview.join('|')),
+        getText: () => AppStrings().confide.responseInterview,
+        emotion: EmotionType.positive,
+      ),
+    ];
+  }
+  
+  /// 获取默认响应列表
+  List<String> get _defaultResponses => AppStrings().confide.defaultResponses;
 
   /// 根据用户输入获取响应结果（包含文本和情感类型）
   ResponseResult getResponseWithEmotion(String input) {

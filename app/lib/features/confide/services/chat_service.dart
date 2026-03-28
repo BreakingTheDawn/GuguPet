@@ -3,9 +3,10 @@ import 'package:flutter/foundation.dart';
 import '../../../core/services/llm_service.dart';
 import '../../../core/services/ai_config_loader_service.dart';
 import '../../../core/services/multi_llm_service.dart';
-import '../../../core/models/ai_config_models.dart';
+import '../../../core/services/app_strings.dart';
 import '../data/models/chat_message.dart';
 import '../data/models/chat_session.dart';
+import '../data/models/emotion_response.dart';
 import '../data/datasources/chat_local_datasource.dart';
 import 'ai_config_service.dart';
 
@@ -17,15 +18,27 @@ enum ChatMode {
 
 /// 对话结果
 class ChatResult {
+  /// 显示给用户的文本内容
   final String content;
+  
+  /// 对话模式
   final ChatMode mode;
+  
+  /// Token是否已耗尽
   final bool isTokenExhausted;
+  
+  /// 情感响应（包含情感类型和纯净内容）
+  final EmotionResponse? emotionResponse;
 
   const ChatResult({
     required this.content,
     required this.mode,
     this.isTokenExhausted = false,
+    this.emotionResponse,
   });
+  
+  /// 获取情感类型
+  AIEmotionType get emotion => emotionResponse?.emotion ?? AIEmotionType.normal;
 }
 
 /// 对话服务
@@ -226,15 +239,20 @@ class ChatService extends ChangeNotifier {
       // 回复长度控制：超过60字自动截断（兜底机制）
       const maxLength = 60;
       if (responseContent.length > maxLength) {
-        debugPrint('⚠️ AI回复过长(${responseContent.length}字)，自动截断到${maxLength}字');
+        debugPrint('⚠️ AI回复过长(${responseContent.length}字)，自动截断到$maxLength字');
         responseContent = '${responseContent.substring(0, maxLength)}...';
       }
 
-      // 添加AI回复
+      // 解析情感响应（提取情感标签并移除）
+      final emotionResponse = EmotionResponse.fromRawResponse(responseContent);
+      debugPrint('🎭 AI情感解析: ${emotionResponse.emotionName}');
+      debugPrint('📝 纯净内容: ${emotionResponse.content}');
+
+      // 添加AI回复（存储纯净内容，不含情感标签）
       final assistantMsg = ChatMessage(
         messageId: 'msg_${DateTime.now().millisecondsSinceEpoch}',
         role: ChatRole.assistant,
-        content: responseContent,
+        content: emotionResponse.content,
         timestamp: DateTime.now(),
       );
       
@@ -246,8 +264,9 @@ class ChatService extends ChangeNotifier {
       notifyListeners();
 
       return ChatResult(
-        content: responseContent,
+        content: emotionResponse.content,
         mode: ChatMode.ai,
+        emotionResponse: emotionResponse,
       );
     } on TokenExhaustedException {
       // Token不足，标记为已耗尽，切换到简单模式
@@ -257,7 +276,7 @@ class ChatService extends ChangeNotifier {
       notifyListeners();
 
       return ChatResult(
-        content: '咕...感觉脑袋有点晕晕的，让我休息一下，我们继续聊天吧~',
+        content: AppStrings().confide.tokenExhausted,
         mode: ChatMode.simple,
         isTokenExhausted: true,
       );
@@ -325,58 +344,34 @@ class ChatService extends ChangeNotifier {
     return templates[random.nextInt(templates.length)];
   }
 
-  /// 根据消息获取回复模板
+  /// 根据消息获取回复模板（使用配置化的情绪关键词）
   List<String> _getTemplatesForMessage(String message) {
-    final lowerMessage = message.toLowerCase();
+    final confideStrings = AppStrings().confide;
+    final keywords = confideStrings.emotionKeywords;
     
-    // 检测情绪关键词
-    if (lowerMessage.contains('开心') || 
-        lowerMessage.contains('高兴') || 
-        lowerMessage.contains('好消息')) {
-      return [
-        '太棒了！为你开心！咕咕~',
-        '哇！真好！我就知道你可以的！',
-        '恭喜恭喜！咕咕~我们一起庆祝！',
-      ];
+    // 检测情绪关键词（按优先级匹配）
+    if (keywords.matchesKeywords(message, keywords.positive)) {
+      return confideStrings.positiveResponses;
     }
     
-    if (lowerMessage.contains('难过') || 
-        lowerMessage.contains('伤心') || 
-        lowerMessage.contains('失落')) {
-      return [
-        '没关系，我会一直陪着你的，咕...',
-        '别难过，一切都会好起来的',
-        '我在这里，随时听你说，咕~',
-      ];
+    if (keywords.matchesKeywords(message, keywords.negative)) {
+      return confideStrings.negativeResponses;
     }
     
-    if (lowerMessage.contains('累') || 
-        lowerMessage.contains('疲惫') || 
-        lowerMessage.contains('压力')) {
-      return [
-        '辛苦了，记得休息一下，咕~',
-        '你已经很努力了，给自己一点时间',
-        '咕...抱抱你，会好起来的',
-      ];
+    if (keywords.matchesKeywords(message, keywords.rejected)) {
+      return confideStrings.negativeResponses;
     }
     
-    if (lowerMessage.contains('面试') || 
-        lowerMessage.contains('offer') || 
-        lowerMessage.contains('工作')) {
-      return [
-        '求职路上不容易，但我相信你！咕~',
-        '加油！每一步都是成长',
-        '咕咕~我会一直陪着你的',
-      ];
+    if (keywords.matchesKeywords(message, keywords.lost)) {
+      return confideStrings.negativeResponses;
+    }
+    
+    if (keywords.matchesKeywords(message, keywords.interview)) {
+      return confideStrings.interviewResponses;
     }
     
     // 默认回复
-    return [
-      '咕咕~我在听呢',
-      '嗯嗯，我明白，咕~',
-      '谢谢你跟我分享，咕咕',
-      '我会一直陪着你的，咕~',
-    ];
+    return confideStrings.defaultResponses;
   }
 
   /// 结束当前会话

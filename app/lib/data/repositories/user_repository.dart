@@ -23,4 +23,12 @@ abstract class UserRepository {
   
   /// 设置用户入职状态
   Future<void> setOnboarded(String userId, bool value);
+  
+  /// 检查公园是否已解锁
+  Future<bool> isParkUnlocked(String userId);
+  
+  /// 解锁公园
+  /// [userId] 用户ID
+  /// [source] 解锁来源（offer, manual, pro_vip）
+  Future<void> unlockPark(String userId, {String source = 'offer'});
 }

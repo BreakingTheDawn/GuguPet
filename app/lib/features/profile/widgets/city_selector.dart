@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/theme.dart';
+import '../../../core/services/business_config_service.dart';
 
 /// 城市选择器组件
 /// 提供常用城市列表，支持多选和搜索功能
@@ -30,66 +31,14 @@ class _CitySelectorState extends State<CitySelector> {
   
   /// 搜索控制器
   final TextEditingController _searchController = TextEditingController();
-
-  /// 常用城市列表（按热门程度分组）
-  /// 注意：某些城市可能同时出现在多个分组中（如杭州既是热门城市也是新一线城市）
-  static const Map<String, List<String>> cityGroups = {
-    '热门城市': [
-      '北京',
-      '上海',
-      '广州',
-      '深圳',
-      '杭州',
-      '成都',
-      '武汉',
-      '西安',
-    ],
-    '一线城市': [
-      '北京',
-      '上海',
-      '广州',
-      '深圳',
-    ],
-    '新一线城市': [
-      '杭州',
-      '成都',
-      '武汉',
-      '西安',
-      '南京',
-      '苏州',
-      '天津',
-      '重庆',
-      '长沙',
-      '郑州',
-      '东莞',
-      '青岛',
-      '沈阳',
-      '宁波',
-      '昆明',
-    ],
-    '二线城市': [
-      '合肥',
-      '福州',
-      '厦门',
-      '哈尔滨',
-      '济南',
-      '大连',
-      '长春',
-      '石家庄',
-      '南宁',
-      '贵阳',
-      '南昌',
-      '太原',
-      '珠海',
-      '中山',
-      '佛山',
-      '无锡',
-      '常州',
-      '南通',
-      '徐州',
-      '温州',
-    ],
-  };
+  
+  /// 从配置服务获取城市分组
+  Map<String, List<String>> get _cityGroups => 
+      BusinessConfigService().cityGroups.groupedCities;
+  
+  /// 获取所有城市列表
+  List<String> get _allCities => 
+      BusinessConfigService().cityGroups.allCities;
 
   @override
   void dispose() {
@@ -264,8 +213,7 @@ class _CitySelectorState extends State<CitySelector> {
 
   /// 构建搜索结果
   Widget _buildSearchResults() {
-    final allCities = cityGroups.values.expand((list) => list).toSet().toList();
-    final filteredCities = allCities
+    final filteredCities = _allCities
         .where((city) => city.toLowerCase().contains(_searchKeyword.toLowerCase()))
         .toList();
 
@@ -296,6 +244,8 @@ class _CitySelectorState extends State<CitySelector> {
 
   /// 构建分组列表
   Widget _buildGroupedList() {
+    final cityGroups = _cityGroups;
+    
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),

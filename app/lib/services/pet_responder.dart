@@ -1,6 +1,7 @@
 import 'package:lottie/lottie.dart';
 
 import 'intent_engine.dart';
+import '../core/constants/app_constants.dart';
 
 class PetAction {
   final String id;
@@ -46,37 +47,37 @@ class PetResponder {
     'resume_submit': PetAction(
       id: 'resume_submit',
       name: '投递简历',
-      animationPath: 'assets/animations/pet_submit.json',
+      animationPath: AssetPaths.petSubmitAnimation,
     ),
     'interview_received': PetAction(
       id: 'interview_received',
       name: '收到面试',
-      animationPath: 'assets/animations/pet_interview.json',
+      animationPath: AssetPaths.petInterviewAnimation,
     ),
     'job_rejected': PetAction(
       id: 'job_rejected',
       name: '求职被拒',
-      animationPath: 'assets/animations/pet_rejected.json',
+      animationPath: AssetPaths.petRejectedAnimation,
     ),
     'offer_received': PetAction(
       id: 'offer_received',
       name: '拿到Offer',
-      animationPath: 'assets/animations/pet_offer.json',
+      animationPath: AssetPaths.petOfferAnimation,
     ),
     'slacking': PetAction(
       id: 'slacking',
       name: '摆烂休息',
-      animationPath: 'assets/animations/pet_slacking.json',
+      animationPath: AssetPaths.petSlackingAnimation,
     ),
     'anxiety': PetAction(
       id: 'anxiety',
       name: '焦虑低落',
-      animationPath: 'assets/animations/pet_anxiety.json',
+      animationPath: AssetPaths.petAnxietyAnimation,
     ),
     'unknown': PetAction(
       id: 'unknown',
       name: '默认',
-      animationPath: 'assets/animations/pet_default.json',
+      animationPath: AssetPaths.petDefaultAnimation,
     ),
   };
 

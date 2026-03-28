@@ -54,6 +54,18 @@ class PostProvider extends ChangeNotifier {
   String? _error;
   String? get error => _error;
 
+  /// 当前筛选类型（null表示全部）
+  PostType? _filterType;
+  PostType? get filterType => _filterType;
+
+  /// 筛选后的动态列表
+  List<UserPost> get filteredPosts {
+    if (_filterType == null) {
+      return _posts;
+    }
+    return _posts.where((post) => post.type == _filterType).toList();
+  }
+
   // ────────────────────────────────────────────────────────────────────────────
   // 初始化方法
   // ────────────────────────────────────────────────────────────────────────────
@@ -151,6 +163,19 @@ class PostProvider extends ChangeNotifier {
   /// 刷新动态流
   Future<void> refresh() async {
     await loadFeed();
+  }
+
+  /// 设置筛选类型
+  /// [type] 动态类型，null表示全部
+  void setFilterType(PostType? type) {
+    _filterType = type;
+    notifyListeners();
+  }
+
+  /// 清除筛选
+  void clearFilter() {
+    _filterType = null;
+    notifyListeners();
   }
 
   // ────────────────────────────────────────────────────────────────────────────

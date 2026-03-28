@@ -6,6 +6,7 @@ import 'package:flame/sprite.dart';
 import 'dart:ui' as ui;
 import 'dart:math';
 import 'pet_animation_config_service.dart';
+import '../../core/constants/app_constants.dart';
 
 /// 宠物动画类型枚举
 enum PetAnimationTypeV2 {
@@ -44,12 +45,12 @@ class PetAnimationWidgetV2 extends StatefulWidget {
 
 class PetAnimationWidgetV2State extends State<PetAnimationWidgetV2> {
   /// 默认配置路径
-  static const String _defaultConfigPath = 'assets/animations/pet_animations.json';
+  static const String _defaultConfigPath = AssetPaths.petAnimations;
 
   /// 默认配置（当JSON加载失败时使用）
   static const Map<PetAnimationTypeV2, PetAnimationConfig> _defaultConfigs = {
     PetAnimationTypeV2.idle: PetAnimationConfig(
-      spritesheetPath: 'assets/images/pet/pet_idle_spritesheet.png',
+      spritesheetPath: AssetPaths.petIdleSpritesheet,
       frames: 36,
       frameWidth: 256,
       frameHeight: 256,
@@ -62,7 +63,7 @@ class PetAnimationWidgetV2State extends State<PetAnimationWidgetV2> {
       framesPerVariant: 36,
     ),
     PetAnimationTypeV2.happy: PetAnimationConfig(
-      spritesheetPath: 'assets/images/pet/pet_happy_spritesheet.png',
+      spritesheetPath: AssetPaths.petHappySpritesheet,
       frames: 24,
       frameWidth: 256,
       frameHeight: 256,
@@ -73,7 +74,7 @@ class PetAnimationWidgetV2State extends State<PetAnimationWidgetV2> {
       description: '宠物高兴动画',
     ),
     PetAnimationTypeV2.move: PetAnimationConfig(
-      spritesheetPath: 'assets/images/pet/pet_move_spritesheet.png',
+      spritesheetPath: AssetPaths.petMoveSpritesheet,
       frames: 46,
       frameWidth: 256,
       frameHeight: 256,
@@ -135,7 +136,7 @@ class PetAnimationWidgetV2State extends State<PetAnimationWidgetV2> {
       },
     ),
     PetAnimationTypeV2.angry: PetAnimationConfig(
-      spritesheetPath: 'assets/images/pet/pet_angry_spritesheet.png',
+      spritesheetPath: AssetPaths.petAngrySpritesheet,
       frames: 36,
       frameWidth: 256,
       frameHeight: 256,
@@ -146,7 +147,7 @@ class PetAnimationWidgetV2State extends State<PetAnimationWidgetV2> {
       description: '宠物生气动画',
     ),
     PetAnimationTypeV2.sad: PetAnimationConfig(
-      spritesheetPath: 'assets/images/pet/pet_sad_spritesheet.png',
+      spritesheetPath: AssetPaths.petSadSpritesheet,
       frames: 24,
       frameWidth: 256,
       frameHeight: 256,
@@ -157,7 +158,7 @@ class PetAnimationWidgetV2State extends State<PetAnimationWidgetV2> {
       description: '宠物难过动画',
     ),
     PetAnimationTypeV2.excited: PetAnimationConfig(
-      spritesheetPath: 'assets/images/pet/pet_excited_spritesheet.png',
+      spritesheetPath: AssetPaths.petExcitedSpritesheet,
       frames: 30,
       frameWidth: 256,
       frameHeight: 256,

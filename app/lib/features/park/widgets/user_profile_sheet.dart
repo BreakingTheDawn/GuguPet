@@ -3,7 +3,12 @@ import '../data/models/models.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 /// 用户资料弹窗组件
-/// 展示用户的详细资料信息
+/// 展示用户的详细资料信息，包括：
+/// - 用户基本信息
+/// - 宠物形象和配饰
+/// - 求职进度摘要
+/// - 最近动态列表
+/// - 操作按钮
 // ═══════════════════════════════════════════════════════════════════════════════
 class UserProfileSheet extends StatelessWidget {
   // ────────────────────────────────────────────────────────────────────────────
@@ -15,6 +20,12 @@ class UserProfileSheet extends StatelessWidget {
   
   /// 是否已是好友
   final bool isFriend;
+  
+  /// 求职进度数据（投递数、面试数、Offer数）
+  final Map<String, int>? jobStats;
+  
+  /// 最近动态列表
+  final List<UserPost>? recentPosts;
   
   /// 互动按钮回调
   final VoidCallback? onInteract;
@@ -33,6 +44,8 @@ class UserProfileSheet extends StatelessWidget {
     super.key,
     required this.user,
     this.isFriend = false,
+    this.jobStats,
+    this.recentPosts,
     this.onInteract,
     this.onAddFriend,
     this.onViewPosts,
@@ -47,6 +60,8 @@ class UserProfileSheet extends StatelessWidget {
     required BuildContext context,
     required ParkUser user,
     bool isFriend = false,
+    Map<String, int>? jobStats,
+    List<UserPost>? recentPosts,
     VoidCallback? onInteract,
     VoidCallback? onAddFriend,
     VoidCallback? onViewPosts,
@@ -56,12 +71,14 @@ class UserProfileSheet extends StatelessWidget {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.5,
-        minChildSize: 0.3,
-        maxChildSize: 0.8,
+        initialChildSize: 0.6,
+        minChildSize: 0.4,
+        maxChildSize: 0.9,
         builder: (context, scrollController) => UserProfileSheet(
           user: user,
           isFriend: isFriend,
+          jobStats: jobStats,
+          recentPosts: recentPosts,
           onInteract: onInteract,
           onAddFriend: onAddFriend,
           onViewPosts: onViewPosts,
@@ -98,16 +115,21 @@ class UserProfileSheet extends StatelessWidget {
             // 用户头像和信息
             _buildUserHeader(),
             
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+            
+            // 求职进度摘要
+            _buildJobProgressSection(),
+            
+            const SizedBox(height: 16),
             
             // 操作按钮
             _buildActionButtons(),
             
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
             
-            // 用户简介区域（预留）
+            // 最近动态列表
             Expanded(
-              child: _buildUserInfoSection(),
+              child: _buildRecentPostsSection(),
             ),
           ],
         ),
@@ -289,75 +311,102 @@ class UserProfileSheet extends StatelessWidget {
     );
   }
 
-  /// 构建用户信息区域
-  Widget _buildUserInfoSection() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+  /// 构建求职进度摘要区域
+  Widget _buildJobProgressSection() {
+    final stats = jobStats ?? {'submitted': 0, 'interview': 0, 'offer': 0};
+    
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 24),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 简介
-          const Text(
-            '简介',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          
-          const SizedBox(height: 8),
-          
-          Text(
-            '这是一位正在求职的小伙伴，正在使用职宠小窝APP陪伴求职之旅。',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade600,
-              height: 1.5,
-            ),
-          ),
-          
-          const SizedBox(height: 24),
-          
-          // 统计信息（预留）
-          const Text(
-            '动态统计',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+          // 标题
+          Row(
+            children: [
+              Icon(
+                Icons.work_outline,
+                size: 18,
+                color: Colors.grey.shade700,
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                '求职进度',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
           ),
           
           const SizedBox(height: 12),
           
+          // 进度条
           Row(
             children: [
-              _buildStatItem('动态', '0'),
-              const SizedBox(width: 24),
-              _buildStatItem('好友', '0'),
-              const SizedBox(width: 24),
-              _buildStatItem('互动', '0'),
+              _buildProgressItem(
+                label: '投递',
+                count: stats['submitted'] ?? 0,
+                color: Colors.blue,
+              ),
+              _buildProgressConnector(),
+              _buildProgressItem(
+                label: '面试',
+                count: stats['interview'] ?? 0,
+                color: Colors.orange,
+              ),
+              _buildProgressConnector(),
+              _buildProgressItem(
+                label: 'Offer',
+                count: stats['offer'] ?? 0,
+                color: Colors.green,
+              ),
             ],
           ),
-          
-          const SizedBox(height: 24),
-          
-          // 最近活跃
-          const Text(
-            '最近活跃',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
+        ],
+      ),
+    );
+  }
+
+  /// 构建进度项
+  Widget _buildProgressItem({
+    required String label,
+    required int count,
+    required Color color,
+  }) {
+    return Expanded(
+      child: Column(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+              border: Border.all(color: color, width: 2),
+            ),
+            child: Center(
+              child: Text(
+                count.toString(),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
             ),
           ),
-          
-          const SizedBox(height: 8),
-          
+          const SizedBox(height: 6),
           Text(
-            user.lastActiveAt != null
-                ? _formatLastActive(user.lastActiveAt!)
-                : '刚刚在线',
+            label,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 12,
               color: Colors.grey.shade600,
             ),
           ),
@@ -366,42 +415,199 @@ class UserProfileSheet extends StatelessWidget {
     );
   }
 
-  /// 构建统计项
-  Widget _buildStatItem(String label, String value) {
+  /// 构建进度连接线
+  Widget _buildProgressConnector() {
+    return Container(
+      width: 20,
+      height: 2,
+      color: Colors.grey.shade300,
+    );
+  }
+
+  /// 构建最近动态区域
+  Widget _buildRecentPostsSection() {
+    final posts = recentPosts ?? [];
+    
+    if (posts.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.article_outlined,
+              size: 48,
+              color: Colors.grey.shade300,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              '暂无动态',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey.shade400,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+        // 标题
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                '最近动态',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (posts.length > 3)
+                TextButton(
+                  onPressed: onViewPosts,
+                  child: const Text('查看全部'),
+                ),
+            ],
           ),
         ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey.shade600,
+        
+        const SizedBox(height: 8),
+        
+        // 动态列表
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            itemCount: posts.length > 3 ? 3 : posts.length,
+            itemBuilder: (context, index) {
+              return _buildPostItem(posts[index]);
+            },
           ),
         ),
       ],
     );
   }
 
-  /// 格式化最后活跃时间
-  String _formatLastActive(DateTime time) {
+  /// 构建动态项
+  Widget _buildPostItem(UserPost post) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 动态类型标签
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: _getPostTypeColor(post.type).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              _getPostTypeLabel(post.type),
+              style: TextStyle(
+                fontSize: 11,
+                color: _getPostTypeColor(post.type),
+              ),
+            ),
+          ),
+          
+          const SizedBox(height: 8),
+          
+          // 动态内容
+          Text(
+            post.content,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 13,
+              height: 1.4,
+            ),
+          ),
+          
+          const SizedBox(height: 8),
+          
+          // 时间和互动
+          Row(
+            children: [
+              Text(
+                _formatPostTime(post.createdAt),
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey.shade500,
+                ),
+              ),
+              const Spacer(),
+              Icon(
+                Icons.favorite_border,
+                size: 14,
+                color: Colors.grey.shade400,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                post.likeCount.toString(),
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey.shade500,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 获取动态类型颜色
+  Color _getPostTypeColor(PostType type) {
+    switch (type) {
+      case PostType.experience:
+        return Colors.blue;
+      case PostType.interview:
+        return Colors.orange;
+      case PostType.offer:
+        return Colors.green;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  /// 获取动态类型标签
+  String _getPostTypeLabel(PostType type) {
+    switch (type) {
+      case PostType.experience:
+        return '求职经验';
+      case PostType.interview:
+        return '面试分享';
+      case PostType.offer:
+        return 'Offer庆祝';
+      default:
+        return '日常动态';
+    }
+  }
+
+  /// 格式化动态时间
+  String _formatPostTime(DateTime time) {
     final now = DateTime.now();
     final diff = now.difference(time);
     
-    if (diff.inMinutes < 5) {
-      return '刚刚在线';
-    } else if (diff.inMinutes < 60) {
-      return '${diff.inMinutes}分钟前在线';
+    if (diff.inMinutes < 60) {
+      return '${diff.inMinutes}分钟前';
     } else if (diff.inHours < 24) {
-      return '${diff.inHours}小时前在线';
+      return '${diff.inHours}小时前';
+    } else if (diff.inDays < 7) {
+      return '${diff.inDays}天前';
     } else {
-      return '${diff.inDays}天前在线';
+      return '${time.month}月${time.day}日';
     }
   }
 }

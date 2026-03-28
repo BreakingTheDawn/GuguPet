@@ -1,5 +1,6 @@
 import '../models/config_models.dart';
 import 'config_service.dart';
+import '../constants/app_constants.dart';
 
 /// UI文本服务
 /// 提供类型安全的UI文本访问接口
@@ -11,7 +12,7 @@ class AppStrings extends ConfigService<UIStringsConfig> {
   factory AppStrings() => _instance;
   
   /// 私有构造函数
-  AppStrings._internal() : super(configPath: 'assets/config/ui_strings.json');
+  AppStrings._internal() : super(configPath: AssetPaths.uiStrings);
   
   /// 从JSON转换为配置对象
   @override

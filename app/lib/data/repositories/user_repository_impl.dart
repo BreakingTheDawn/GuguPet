@@ -108,6 +108,28 @@ class UserRepositoryImpl implements UserRepository {
         isOnboarded: value,
         industryTag: user.industryTag,
         onboardingReport: user.onboardingReport,
+        isParkUnlocked: user.isParkUnlocked,
+        parkUnlockedAt: user.parkUnlockedAt,
+        parkUnlockSource: user.parkUnlockSource,
+      );
+      await updateUser(updated);
+    }
+  }
+
+  @override
+  Future<bool> isParkUnlocked(String userId) async {
+    final user = await getUser(userId);
+    return user?.isParkUnlocked ?? false;
+  }
+
+  @override
+  Future<void> unlockPark(String userId, {String source = 'offer'}) async {
+    final user = await getUser(userId);
+    if (user != null && !user.isParkUnlocked) {
+      final updated = user.copyWith(
+        isParkUnlocked: true,
+        parkUnlockedAt: Optional(DateTime.now()),
+        parkUnlockSource: source,
       );
       await updateUser(updated);
     }

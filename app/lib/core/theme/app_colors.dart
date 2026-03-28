@@ -90,6 +90,57 @@ class AppColors {
   /// 档案馆弹窗背景
   static const Color archiveModalBackground = Color(0xFFFDFAF4);
 
+  /// 档案馆按钮渐变起始色
+  static const Color archiveButtonStart = Color(0xFF7A5030);
+
+  /// 档案馆按钮渐变结束色
+  static const Color archiveButtonEnd = Color(0xFF5A3318);
+
+  /// 档案馆按钮阴影色
+  static const Color archiveButtonShadow = Color(0xFF5A3218);
+
+  /// 档案馆高亮色
+  static const Color archiveHighlight = Color(0xFFFFF0D0);
+
+  /// 档案馆装饰色
+  static const Color archiveDecorative = Color(0xFFFFDCB4);
+
+  /// 档案馆边框色
+  static const Color archiveBorder = Color(0xFFA0783C);
+
+  /// 档案馆深色文字
+  static const Color archiveTextDark = Color(0xFF2A1A0A);
+
+  /// 档案馆中等文字色
+  static const Color archiveTextMedium = Color(0xFFA08050);
+
+  /// 档案馆图标色
+  static const Color archiveIcon = Color(0xFFC0A880);
+
+  /// 档案馆内容文字色
+  static const Color archiveContentText = Color(0xFF4A3A2A);
+
+  /// 档案馆详情按钮起始色
+  static const Color archiveDetailButtonStart = Color(0xFF8B6040);
+
+  /// 档案馆详情按钮结束色
+  static const Color archiveDetailButtonEnd = Color(0xFF6A4020);
+
+  /// 离线状态背景色
+  static const Color offlineBackground = Color(0xFFF5F5F5);
+
+  /// 档案馆卡片阴影色
+  static const Color archiveCardShadow = Color(0xFF644614);
+
+  /// 档案馆卡片边框色
+  static const Color archiveCardBorder = Color(0xFFB4823C);
+
+  /// 收藏红色
+  static const Color favoriteRed = Color(0xFFE53935);
+
+  /// 未收藏灰色
+  static const Color unfavoriteGray = Color(0xFF9E9E9E);
+
   /// 档案馆卡片渐变
   static const LinearGradient archiveCardGradient = LinearGradient(
     begin: Alignment.topLeft,

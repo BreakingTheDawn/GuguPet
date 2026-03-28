@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/theme.dart';
 import '../../../core/services/app_strings.dart';
+import '../../../core/constants/app_constants.dart';
 import '../../../shared/widgets/widgets.dart';
 import '../../pet/providers/pet_provider.dart';
 import '../../pet/widgets/pet_interaction_bar.dart';
@@ -54,7 +55,7 @@ class _ConfidePageState extends State<ConfidePage>
     
     _responseController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 400),
+      duration: AnimationDurations.slow,
     );
     _scheduleNextMove();
     
@@ -244,7 +245,7 @@ class _ConfidePageState extends State<ConfidePage>
         debugPrint('AI对话失败: $e');
         if (mounted) {
           setState(() {
-            _response = '咕...网络好像有点问题，稍后再试试吧~';
+            _response = AppStrings().confide.networkError;
           });
           _responseBubbleKey.currentState?.updateText(_response, isDone: true);
         }

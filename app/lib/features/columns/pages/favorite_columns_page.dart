@@ -3,8 +3,13 @@ import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/services/app_strings.dart';
 import '../providers/favorite_provider.dart';
+import '../providers/column_provider.dart';
+import '../services/column_service.dart';
 import '../data/column_data.dart';
 import '../data/models/favorite_column.dart';
+import '../../../data/repositories/column_repository_impl.dart';
+import '../../../data/datasources/local/column_local_datasource.dart';
+import '../../../features/auth/data/datasources/auth_local_datasource.dart';
 import 'column_detail_page.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -26,12 +31,24 @@ class FavoriteColumnsPage extends StatefulWidget {
 
 class _FavoriteColumnsPageState extends State<FavoriteColumnsPage> {
   // ────────────────────────────────────────────────────────────────────────────
+  // 依赖注入
+  // ────────────────────────────────────────────────────────────────────────────
+
+  /// 专栏仓库实例
+  late final ColumnRepositoryImpl _columnRepository;
+
+  // ────────────────────────────────────────────────────────────────────────────
   // 生命周期方法
   // ────────────────────────────────────────────────────────────────────────────
 
   @override
   void initState() {
     super.initState();
+    // 初始化专栏仓库
+    _columnRepository = ColumnRepositoryImpl(
+      localDatasource: SqliteColumnLocalDatasource(),
+      authDatasource: AuthLocalDatasource(),
+    );
     // 页面加载时获取收藏列表
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadFavorites();
@@ -211,15 +228,11 @@ class _FavoriteColumnsPageState extends State<FavoriteColumnsPage> {
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFFEDD8A8), Color(0xFFE3C47E)],
-          ),
+          gradient: AppColors.archiveCardGradient,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF644614).withValues(alpha: 0.15),
+              color: AppColors.archiveCardShadow.withValues(alpha: 0.15),
               blurRadius: 16,
               offset: const Offset(0, 4),
             ),
@@ -230,7 +243,7 @@ class _FavoriteColumnsPageState extends State<FavoriteColumnsPage> {
             ),
           ],
           border: Border.all(
-            color: const Color(0xFFB4823C).withValues(alpha: 0.22),
+            color: AppColors.archiveCardBorder.withValues(alpha: 0.22),
             width: 1,
           ),
         ),
@@ -397,7 +410,7 @@ class _FavoriteColumnsPageState extends State<FavoriteColumnsPage> {
             Icon(
               Icons.favorite,
               size: 14,
-              color: const Color(0xFFE74C3C),
+              color: AppColors.error,
             ),
             const SizedBox(width: 4),
             Text(
@@ -635,9 +648,16 @@ class _FavoriteColumnsPageState extends State<FavoriteColumnsPage> {
   void _navigateToDetail(String columnId) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => ColumnDetailPage(
-          columnId: columnId,
-          userId: widget.userId,
+        builder: (context) => ChangeNotifierProvider(
+          create: (_) => ColumnProvider(
+            columnService: ColumnService(
+              repository: _columnRepository,
+            ),
+          ),
+          child: ColumnDetailPage(
+            columnId: columnId,
+            userId: widget.userId,
+          ),
         ),
       ),
     );

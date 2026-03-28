@@ -1,5 +1,6 @@
 import '../models/business_config_models.dart';
 import 'config_service.dart';
+import '../constants/app_constants.dart';
 
 /// 业务配置服务
 /// 提供业务数据的访问接口
@@ -11,7 +12,7 @@ class BusinessConfigService extends ConfigService<BusinessConfig> {
   factory BusinessConfigService() => _instance;
   
   /// 私有构造函数
-  BusinessConfigService._internal() : super(configPath: 'assets/config/business_config.json');
+  BusinessConfigService._internal() : super(configPath: AssetPaths.businessConfig);
   
   /// 从JSON转换为配置对象
   @override
@@ -27,6 +28,14 @@ class BusinessConfigService extends ConfigService<BusinessConfig> {
   
   /// 获取城市分组
   CityGroupsConfig get cityGroups => cachedConfig.cityGroups;
+  
+  /// 获取LLM触发场景列表
+  List<String> get llmTriggerScenes => cachedConfig.llmTriggerScenes;
+  
+  /// 检查是否为LLM触发场景
+  bool isLLMTriggerScene(String scene) {
+    return llmTriggerScenes.contains(scene);
+  }
   
   /// 初始化服务
   /// 在应用启动时调用

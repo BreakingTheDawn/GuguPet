@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../data/models/models.dart';
+import 'interaction_animations.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 /// 互动操作面板组件
@@ -119,6 +120,7 @@ class InteractionSheet extends StatelessWidget {
                     icon: '🐾',
                     title: '抚摸宠物',
                     subtitle: '摸摸${targetUser.name}的宠物',
+                    animationType: 'pet',
                     onTap: onPet,
                   ),
                   
@@ -128,6 +130,7 @@ class InteractionSheet extends StatelessWidget {
                     icon: '👋',
                     title: '打个招呼',
                     subtitle: '向${targetUser.name}问好',
+                    animationType: 'greet',
                     onTap: onGreet,
                   ),
                   
@@ -137,6 +140,7 @@ class InteractionSheet extends StatelessWidget {
                     icon: '🎁',
                     title: '送份礼物',
                     subtitle: '送给${targetUser.name}一份礼物',
+                    animationType: 'gift',
                     onTap: onGift,
                   ),
                   
@@ -258,6 +262,7 @@ class InteractionSheet extends StatelessWidget {
     required String icon,
     required String title,
     required String subtitle,
+    String? animationType,
     VoidCallback? onTap,
   }) {
     return ListTile(
@@ -283,8 +288,37 @@ class InteractionSheet extends StatelessWidget {
       trailing: const Icon(Icons.chevron_right, size: 20),
       onTap: () {
         Navigator.pop(context);
-        onTap?.call();
+        
+        // 播放动画
+        if (animationType != null) {
+          _playInteractionAnimation(context, animationType);
+        }
+        
+        // 延迟执行回调，让动画先播放
+        Future.delayed(const Duration(milliseconds: 300), () {
+          onTap?.call();
+        });
       },
     );
+  }
+
+  /// 播放互动动画
+  void _playInteractionAnimation(BuildContext context, String type) {
+    try {
+      // 获取屏幕中心位置
+      final screenSize = MediaQuery.of(context).size;
+      final position = Offset(
+        screenSize.width / 2,
+        screenSize.height / 2,
+      );
+      
+      InteractionAnimationManager.showAnimation(
+        context: context,
+        type: type,
+        position: position,
+      );
+    } catch (e) {
+      debugPrint('播放动画失败: $e');
+    }
   }
 }

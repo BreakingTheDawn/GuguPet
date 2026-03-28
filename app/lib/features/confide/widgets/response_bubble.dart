@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/theme.dart';
+import '../../../core/constants/app_constants.dart';
 
 /// 流式响应气泡组件
 /// 支持逐字显示文本效果
@@ -153,7 +154,7 @@ class ResponseBubbleState extends State<ResponseBubble> {
   Widget _buildCursor() {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
-      duration: const Duration(milliseconds: 500),
+      duration: AnimationDurations.slow,
       builder: (context, value, child) {
         return Opacity(
           opacity: value < 0.5 ? value * 2 : (1 - value) * 2,

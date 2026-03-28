@@ -14,6 +14,9 @@ class ConfideService {
   
   /// 宠物系统回调 - 当倾诉发生时通知宠物系统
   final Function(String content, String actionType, String emotionType)? onPetInteraction;
+  
+  /// 公园解锁回调 - 当获得Offer时触发公园解锁检查
+  final Function(String userId)? onOfferReceived;
 
   ConfideService({
     IntentEngine? intentEngine,
@@ -21,6 +24,7 @@ class ConfideService {
     this.onSaveLocal,
     this.onCreateJobEvent,
     this.onPetInteraction,
+    this.onOfferReceived,
   })  : _intentEngine = intentEngine ?? IntentEngine(),
         _petResponder = petResponder ?? PetResponder();
 
@@ -58,6 +62,12 @@ class ConfideService {
           eventTime: DateTime.now(),
         );
         onCreateJobEvent?.call(jobEvent);
+        
+        // 检查是否获得Offer，触发公园解锁
+        if (intent.actionType == 'offer_received') {
+          AppLogger.info('检测到Offer事件，触发公园解锁检查');
+          onOfferReceived?.call(userId);
+        }
       }
 
       AppLogger.info('Confide submitted successfully');
