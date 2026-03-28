@@ -39,7 +39,7 @@ class _InputAreaState extends State<InputArea> {
         Text(
           AppStrings().confide.inputPlaceholder,
           style: AppTypography.labelSmall.copyWith(
-            color: const Color(0xFFB8B0D0),
+            color: AppColors.confideInputBorder,
             letterSpacing: 0.05,
           ),
         ),
@@ -54,7 +54,7 @@ class _InputAreaState extends State<InputArea> {
                   controller: _controller,
                   focusNode: _focusNode,
                   style: AppTypography.bodyMedium.copyWith(
-                    color: const Color(0xFF5A5A7A),
+                    color: AppColors.confideInputText,
                   ),
                   decoration: InputDecoration(
                     hintText: AppStrings().confide.inputHint,

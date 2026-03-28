@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
 import 'models/content_section.dart';
 
 /// 专栏数据模型
@@ -121,8 +122,8 @@ class ColumnData {
     ColumnItem(
       id: 1,
       category: '补贴·领取',
-      catBg: Color(0xFFC8F0D4),
-      catColor: Color(0xFF1E6640),
+      catBg: AppColors.categoryCareerBg,
+      catColor: AppColors.categoryCareerText,
       title: '《一线城市大学生补贴申领攻略》',
       benefits: '包含：求职补贴+租房补贴+创业补贴+申领指南',
       price: '¥5.9',
@@ -138,8 +139,8 @@ class ColumnData {
     ColumnItem(
       id: 2,
       category: '考公·入门',
-      catBg: Color(0xFFC2D9FF),
-      catColor: Color(0xFF1A3E7A),
+      catBg: AppColors.categoryJobHuntBg,
+      catColor: AppColors.categoryJobHuntText,
       title: '《考公小白完全入门手册》',
       benefits: '包含：全流程图解+报名模板+备考计划',
       price: '¥5.9',
@@ -156,8 +157,8 @@ class ColumnData {
     ColumnItem(
       id: 3,
       category: '五险·一金',
-      catBg: Color(0xFFE8D4FF),
-      catColor: Color(0xFF4A1A7A),
+      catBg: AppColors.categoryInterviewBg,
+      catColor: AppColors.categoryInterviewText,
       title: '《五险一金详解与实操指南》',
       benefits: '包含：缴纳比例+使用指南+避坑清单+维权流程',
       price: '¥5.9',
@@ -173,8 +174,8 @@ class ColumnData {
     ColumnItem(
       id: 4,
       category: '毕业·手续',
-      catBg: Color(0xFFC8F0F8),
-      catColor: Color(0xFF0A4A5A),
+      catBg: AppColors.categoryWorkplaceBg,
+      catColor: AppColors.categoryWorkplaceText,
       title: '《毕业手续办理全流程指南》',
       benefits: '包含：离校手续+档案转递+户口迁移+避坑指南',
       price: '¥5.9',
@@ -190,8 +191,8 @@ class ColumnData {
     ColumnItem(
       id: 5,
       category: '劳动·合同',
-      catBg: Color(0xFFFFE2CC),
-      catColor: Color(0xFF7A3A10),
+      catBg: AppColors.categoryRightsBg,
+      catColor: AppColors.categoryRightsText,
       title: '《劳动合同避坑指南》',
       benefits: '包含：避坑清单+合同模板+维权指南',
       price: '¥5.9',
@@ -208,8 +209,8 @@ class ColumnData {
     ColumnItem(
       id: 6,
       category: '情绪·陪伴',
-      catBg: Color(0xFFFFD4E4),
-      catColor: Color(0xFF7A1A3A),
+      catBg: AppColors.categoryMindsetBg,
+      catColor: AppColors.categoryMindsetText,
       title: '《情绪陪伴成长计划》',
       benefits: '包含：音频课+打卡计划+调适技巧',
       price: '¥5.9',
@@ -226,8 +227,8 @@ class ColumnData {
     ColumnItem(
       id: 7,
       category: '简历·优化',
-      catBg: Color(0xFFD4F0C0),
-      catColor: Color(0xFF1A5A2A),
+      catBg: AppColors.categoryGrowthBg,
+      catColor: AppColors.categoryGrowthText,
       title: '《简历从0到1写作攻略》',
       benefits: '包含：模板×8+HR点评+AI提示词',
       price: '¥5.9',
@@ -244,8 +245,8 @@ class ColumnData {
     ColumnItem(
       id: 8,
       category: '求职·技巧',
-      catBg: Color(0xFFE8D4FF),
-      catColor: Color(0xFF4A1A7A),
+      catBg: AppColors.categoryInterviewBg,
+      catColor: AppColors.categoryInterviewText,
       title: '《一线城市求职技巧全攻略》',
       benefits: '包含：简历优化+面试技巧+薪资谈判+避坑指南',
       price: '¥5.9',

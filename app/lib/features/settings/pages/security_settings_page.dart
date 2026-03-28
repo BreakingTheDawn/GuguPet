@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/services/security_service.dart';
 import '../../../core/services/security_monitor_service.dart';
 
@@ -98,7 +99,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
               children: [
                 Icon(
                   _isDeviceSecure ? Icons.security : Icons.warning,
-                  color: _isDeviceSecure ? Colors.green : Colors.orange,
+                  color: _isDeviceSecure ? AppColors.success : AppColors.warning,
                   size: 32,
                 ),
                 const SizedBox(width: 12),
@@ -114,14 +115,14 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
                   ? '✅ 您的设备安全，未检测到Root/越狱'
                   : '⚠️ 检测到设备已Root/越狱，数据安全风险较高',
               style: TextStyle(
-                color: _isDeviceSecure ? Colors.green : Colors.orange,
+                color: _isDeviceSecure ? AppColors.success : AppColors.warning,
               ),
             ),
             if (!_isDeviceSecure) ...[
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 '建议：不要在Root/越狱设备上使用VIP等付费功能',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+                style: TextStyle(fontSize: 12, color: AppColors.mutedForeground),
               ),
             ],
           ],
@@ -138,13 +139,13 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
 
     Color scoreColor;
     if (score >= 90) {
-      scoreColor = Colors.green;
+      scoreColor = AppColors.success;
     } else if (score >= 70) {
-      scoreColor = Colors.blue;
+      scoreColor = AppColors.info;
     } else if (score >= 50) {
-      scoreColor = Colors.orange;
+      scoreColor = AppColors.warning;
     } else {
-      scoreColor = Colors.red;
+      scoreColor = AppColors.error;
     }
 
     return Card(
@@ -201,9 +202,9 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildStatRow('总事件', report.totalEvents),
-                    _buildStatRow('严重', report.criticalEvents, color: Colors.red),
-                    _buildStatRow('警告', report.warningEvents, color: Colors.orange),
-                    _buildStatRow('信息', report.infoEvents, color: Colors.blue),
+                    _buildStatRow('严重', report.criticalEvents, color: AppColors.error),
+                    _buildStatRow('警告', report.warningEvents, color: AppColors.warning),
+                    _buildStatRow('信息', report.infoEvents, color: AppColors.info),
                   ],
                 ),
               ],
@@ -230,7 +231,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
-              color: (color ?? Colors.grey).withOpacity(0.2),
+              color: (color ?? AppColors.mutedForeground).withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
@@ -238,7 +239,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: color ?? Colors.black,
+                color: color ?? AppColors.foreground,
               ),
             ),
           ),

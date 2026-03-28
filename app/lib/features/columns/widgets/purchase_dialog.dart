@@ -325,13 +325,13 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            const Color(0xFFFFF8E1).withValues(alpha: 0.8),
-            const Color(0xFFFFECB3).withValues(alpha: 0.6),
+            AppColors.warning.withValues(alpha: 0.8),
+            AppColors.warning.withValues(alpha: 0.6),
           ],
         ),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: const Color(0xFFFFB300).withValues(alpha: 0.3),
+          color: AppColors.warning.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -345,11 +345,7 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
                 width: 28,
                 height: 28,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [Color(0xFFFFB300), Color(0xFFFF8F00)],
-                  ),
+                  gradient: AppColors.purchaseDialogGradient,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
@@ -359,23 +355,23 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
                 ),
               ),
               const SizedBox(width: 10),
-              const Text(
+              Text(
                 'VIP会员特权',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFFE65100),
+                  color: AppColors.error,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 10),
           // VIP说明
-          const Text(
+          Text(
             'VIP会员可免费阅读所有专栏',
             style: TextStyle(
               fontSize: 12,
-              color: Color(0xFFBF360C),
+              color: AppColors.destructive,
               height: 1.4,
             ),
           ),
@@ -390,11 +386,7 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 10),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFFFFB300), Color(0xFFFF8F00)],
-                ),
+                gradient: AppColors.purchaseDialogGradient,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Center(
@@ -419,10 +411,10 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFE8F5E9).withValues(alpha: 0.6),
+        color: AppColors.success.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: const Color(0xFF4CAF50).withValues(alpha: 0.3),
+          color: AppColors.emotionHappy.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -432,23 +424,23 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: const Color(0xFF4CAF50).withValues(alpha: 0.2),
+              color: AppColors.emotionHappy.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.check_circle,
-              color: Color(0xFF4CAF50),
+              color: AppColors.emotionHappy,
               size: 20,
             ),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Text(
               'VIP会员免费阅读',
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF2E7D32),
+                color: AppColors.success,
               ),
             ),
           ),
@@ -748,15 +740,11 @@ class _ShimmerPurchaseButtonState extends State<_ShimmerPurchaseButton>
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment(-1, -1),
-            end: Alignment(1, 1),
-            colors: [Color(0xFF8B6040), Color(0xFF6A4020)],
-          ),
+          gradient: AppColors.archiveBannerGradient,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF8B6040).withValues(alpha: 0.3),
+              color: AppColors.archiveAccent.withValues(alpha: 0.3),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),

@@ -14,6 +14,7 @@ import '../widgets/input_area.dart';
 import '../widgets/ai_unlock_dialog.dart';
 import '../services/response_service.dart';
 import '../providers/confide_provider.dart';
+import '../data/models/emotion_response.dart';
 
 class ConfidePage extends StatefulWidget {
   const ConfidePage({super.key});
@@ -158,6 +159,23 @@ class _ConfidePageState extends State<ConfidePage>
     }
   }
 
+  /// 根据AI情感类型获取宠物状态
+  /// 将AI返回的情感标签映射到宠物动画状态
+  PetState _getPetStateFromAIEmotion(AIEmotionType emotion) {
+    switch (emotion) {
+      case AIEmotionType.happy:
+        return PetState.happy;
+      case AIEmotionType.sad:
+        return PetState.angry; // 暂时用angry表示难过（可后续添加sad动画）
+      case AIEmotionType.angry:
+        return PetState.angry;
+      case AIEmotionType.excited:
+        return PetState.happy; // 暂时用happy表示兴奋（可后续添加excited动画）
+      case AIEmotionType.normal:
+        return PetState.idle;
+    }
+  }
+
   /// 处理用户倾诉提交
   Future<void> _handleSubmit(String input) async {
     _randomMoveTimer?.cancel();
@@ -187,14 +205,16 @@ class _ConfidePageState extends State<ConfidePage>
       
       try {
         // 设置流式响应回调
+        // 注意：流式响应中可能包含情感标签，需要在显示时过滤
         final chatService = _confideProvider!.chatService;
         chatService?.onStreamResponse = (chunk, isDone) {
           if (mounted) {
             setState(() {
               _response += chunk;
             });
-            // 直接更新气泡内容
-            _responseBubbleKey.currentState?.updateText(_response, isDone: isDone);
+            // 过滤情感标签后显示内容
+            final displayText = EmotionResponse.fromRawResponse(_response).content;
+            _responseBubbleKey.currentState?.updateText(displayText, isDone: isDone);
           }
         };
         
@@ -208,12 +228,15 @@ class _ConfidePageState extends State<ConfidePage>
         if (mounted) {
           setState(() {
             _response = result.content;
-            // 如果Token不足，可以显示特殊提示
+            // 根据AI情感类型设置宠物动画状态
             if (result.isTokenExhausted) {
               _petState = PetState.angry;
+            } else if (result.emotionResponse != null) {
+              _petState = _getPetStateFromAIEmotion(result.emotion);
+              debugPrint('🎭 触发宠物动画: $_petState (情感: ${result.emotionResponse!.emotionName})');
             }
           });
-          // 最终更新气泡内容
+          // 最终更新气泡内容（已过滤情感标签）
           _responseBubbleKey.currentState?.updateText(_response, isDone: true);
         }
       } catch (e) {
@@ -336,7 +359,7 @@ class _ConfidePageState extends State<ConfidePage>
                         {'count': _messageCount.toString()}
                       ),
                 style: AppTypography.caption.copyWith(
-                  color: const Color(0xFFBBB0D0),
+                  color: AppColors.confideBubbleBg,
                 ),
               ),
               // 显示AI状态指示

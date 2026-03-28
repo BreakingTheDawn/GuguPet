@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../core/theme/app_colors.dart';
 import '../data/column_data.dart';
 import '../widgets/column_card.dart';
 import '../widgets/preview_modal.dart';
 import '../widgets/bottom_cta.dart';
 import 'column_detail_page.dart';
+import '../providers/column_provider.dart';
+import '../services/column_service.dart';
 import '../../../data/repositories/column_repository_impl.dart';
 import '../../../data/datasources/local/column_local_datasource.dart';
 import '../../../features/auth/data/datasources/auth_local_datasource.dart';
@@ -111,7 +115,7 @@ class _ColumnsPageState extends State<ColumnsPage>
     return Stack(
       children: [
         Container(
-          color: const Color(0xFFF7F4EF),
+          color: AppColors.archiveBackground,
           child: Column(
             children: [
               _buildHeroBanner(),
@@ -161,9 +165,9 @@ class _ColumnsPageState extends State<ColumnsPage>
             begin: Alignment(-1, -1),
             end: Alignment(1, 1),
             colors: [
-              Color(0xFF5A3318),
-              Color(0xFF8B5A2A),
-              Color(0xFF8B5A2A),
+              AppColors.archiveAccentDark,
+              AppColors.archiveAccent,
+              AppColors.archiveAccent,
             ],
             stops: [0.0, 0.5, 1.0],
           ),
@@ -200,7 +204,7 @@ class _ColumnsPageState extends State<ColumnsPage>
                   width: size,
                   height: size,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFDCA0).withValues(alpha: 0.2),
+                    color: AppColors.archiveCardStart.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -256,10 +260,10 @@ class _ColumnsPageState extends State<ColumnsPage>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFDCA0).withValues(alpha: 0.2),
+        color: AppColors.archiveCardStart.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: const Color(0xFFFFDCA0).withValues(alpha: 0.3),
+          color: AppColors.archiveCardStart.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -273,7 +277,7 @@ class _ColumnsPageState extends State<ColumnsPage>
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w600,
-              color: Color(0xFFFFDCA0),
+              color: AppColors.archiveCardStart,
             ),
           ),
         ],
@@ -301,7 +305,7 @@ class _ColumnsPageState extends State<ColumnsPage>
       '${ColumnData.columns.length} 份干货手册 · 陪你迈过每道坎',
       style: TextStyle(
         fontSize: 11,
-        color: const Color(0xFFFFDCA0).withValues(alpha: 0.8),
+        color: AppColors.archiveCardStart.withValues(alpha: 0.8),
       ),
     );
   }
@@ -321,7 +325,7 @@ class _ColumnsPageState extends State<ColumnsPage>
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF2A1A08),
+                  color: AppColors.archiveText,
                 ),
               ),
               const SizedBox(height: 2),
@@ -329,7 +333,7 @@ class _ColumnsPageState extends State<ColumnsPage>
                 '共 ${ColumnData.columns.length} 份专栏 · 持续更新中',
                 style: const TextStyle(
                   fontSize: 11,
-                  color: Color(0xFFA08050),
+                  color: AppColors.archiveTextMuted,
                 ),
               ),
             ],
@@ -337,7 +341,7 @@ class _ColumnsPageState extends State<ColumnsPage>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: const Color(0xFFEDD8A8),
+              color: AppColors.archiveCardStart,
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Text(
@@ -345,7 +349,7 @@ class _ColumnsPageState extends State<ColumnsPage>
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF7A5030),
+                color: AppColors.archiveTextMuted,
               ),
             ),
           ),
@@ -384,8 +388,8 @@ class _ColumnsPageState extends State<ColumnsPage>
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? const Color(0xFF8B5A2A)
-                      : const Color(0xFFB4823C).withValues(alpha: 0.12),
+                      ? AppColors.archiveAccent
+                      : AppColors.archiveAccent.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Text(
@@ -393,7 +397,7 @@ class _ColumnsPageState extends State<ColumnsPage>
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                    color: isSelected ? Colors.white : const Color(0xFF8A6A40),
+                    color: isSelected ? Colors.white : AppColors.archiveTextMuted,
                   ),
                 ),
               ),
@@ -452,8 +456,15 @@ class _ColumnsPageState extends State<ColumnsPage>
   void _navigateToDetail(ColumnItem column) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => ColumnDetailPage(
-          columnId: column.id.toString(),
+        builder: (context) => ChangeNotifierProvider(
+          create: (_) => ColumnProvider(
+            columnService: ColumnService(
+              repository: _columnRepository,
+            ),
+          ),
+          child: ColumnDetailPage(
+            columnId: column.id.toString(),
+          ),
         ),
       ),
     );

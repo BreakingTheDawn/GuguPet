@@ -201,7 +201,7 @@ class _JobPetAppState extends State<JobPetApp> {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Color(0xFFF8F7FC), Color(0xFFEEE8F5)],
+                  colors: [AppColors.pageGradientStart, AppColors.pageGradientEnd],
                 ),
               ),
               child: const Center(
@@ -209,13 +209,13 @@ class _JobPetAppState extends State<JobPetApp> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF6366F1)),
+                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.loadingIndicator),
                     ),
                     SizedBox(height: 16),
                     Text(
                       '加载中...',
                       style: TextStyle(
-                        color: Color(0xFF6366F1),
+                        color: AppColors.loadingIndicator,
                         fontSize: 16,
                       ),
                     ),

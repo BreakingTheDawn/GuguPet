@@ -132,7 +132,7 @@ class ResponseBubbleState extends State<ResponseBubble> {
                   _displayText,
                   textAlign: TextAlign.center,
                   style: AppTypography.bodyMedium.copyWith(
-                    color: const Color(0xFF5A5A7A),
+                    color: AppColors.confideBubbleText,
                     height: 1.7,
                   ),
                 ),
@@ -161,7 +161,7 @@ class ResponseBubbleState extends State<ResponseBubble> {
             width: 2,
             height: 16,
             decoration: BoxDecoration(
-              color: const Color(0xFF5A5A7A),
+              color: AppColors.confideBubbleText,
               borderRadius: BorderRadius.circular(1),
             ),
           ),

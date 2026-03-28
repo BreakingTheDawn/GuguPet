@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
 import '../data/column_data.dart';
 
 /// 专栏卡片组件
@@ -62,15 +63,15 @@ class ColumnCard extends StatelessWidget {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: isOffline
-                      ? [const Color(0xFFD0D0D0), const Color(0xFFB8B8B8)]
-                      : [const Color(0xFFEDD8A8), const Color(0xFFE3C47E)],
+                      ? [AppColors.muted, AppColors.mutedForeground]
+                      : [AppColors.archiveCardStart, AppColors.archiveCardEnd],
                 ),
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
                     color: isOffline
                         ? Colors.black.withValues(alpha: 0.08)
-                        : const Color(0xFF644614).withValues(alpha: 0.15),
+                        : AppColors.archiveAccentDark.withValues(alpha: 0.15),
                     blurRadius: 16,
                     offset: const Offset(0, 4),
                   ),
@@ -83,7 +84,7 @@ class ColumnCard extends StatelessWidget {
                 border: Border.all(
                   color: isOffline
                       ? Colors.grey.withValues(alpha: 0.3)
-                      : const Color(0xFFB4823C).withValues(alpha: 0.22),
+                      : AppColors.archiveAccent.withValues(alpha: 0.22),
                   width: 1,
                 ),
               ),
@@ -167,7 +168,7 @@ class ColumnCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: isOffline
               ? Colors.grey.withValues(alpha: 0.15)
-              : const Color(0xFF785014).withValues(alpha: 0.12),
+              : AppColors.archiveTextMuted.withValues(alpha: 0.12),
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(16),
             bottomLeft: Radius.circular(16),
@@ -248,7 +249,7 @@ class ColumnCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: const Color(0xFF4CAF50).withValues(alpha: 0.9),
+        color: AppColors.emotionHappy.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(8),
       ),
       child: const Row(
@@ -281,7 +282,7 @@ class ColumnCard extends StatelessWidget {
       style: TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.w700,
-        color: isOffline ? Colors.grey.withValues(alpha: 0.6) : const Color(0xFF2A1A08),
+        color: isOffline ? Colors.grey.withValues(alpha: 0.6) : AppColors.archiveText,
         height: 1.5,
       ),
       maxLines: 2,
@@ -296,7 +297,7 @@ class ColumnCard extends StatelessWidget {
       column.benefits,
       style: TextStyle(
         fontSize: 9.5,
-        color: isOffline ? Colors.grey.withValues(alpha: 0.5) : const Color(0xFF8A6A40),
+        color: isOffline ? Colors.grey.withValues(alpha: 0.5) : AppColors.archiveTextMuted,
         height: 1.5,
       ),
       maxLines: 1,
@@ -317,12 +318,12 @@ class ColumnCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: isOffline
               ? Colors.grey.withValues(alpha: 0.08)
-              : const Color(0xFF785014).withValues(alpha: 0.07),
+              : AppColors.archiveTextMuted.withValues(alpha: 0.07),
           border: Border(
             top: BorderSide(
               color: isOffline
                   ? Colors.grey.withValues(alpha: 0.15)
-                  : const Color(0xFF785014).withValues(alpha: 0.1),
+                  : AppColors.archiveTextMuted.withValues(alpha: 0.1),
               width: 1,
             ),
           ),
@@ -345,10 +346,10 @@ class ColumnCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: const Color(0xFF4CAF50).withValues(alpha: 0.9),
+          color: AppColors.emotionHappy.withValues(alpha: 0.9),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: const Color(0xFF4CAF50).withValues(alpha: 0.3),
+            color: AppColors.emotionHappy.withValues(alpha: 0.3),
             width: 1,
           ),
         ),
@@ -388,7 +389,7 @@ class ColumnCard extends StatelessWidget {
           border: Border.all(
             color: isOffline
                 ? Colors.grey.withValues(alpha: 0.2)
-                : const Color(0xFF785014).withValues(alpha: 0.2),
+                : AppColors.archiveTextMuted.withValues(alpha: 0.2),
             width: 1,
           ),
         ),
@@ -398,7 +399,7 @@ class ColumnCard extends StatelessWidget {
             Icon(
               Icons.visibility_outlined,
               size: 10,
-              color: isOffline ? Colors.grey : const Color(0xFF8A6A40),
+              color: isOffline ? Colors.grey : AppColors.archiveTextMuted,
             ),
             const SizedBox(width: 4),
             Text(
@@ -406,7 +407,7 @@ class ColumnCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 9,
                 fontWeight: FontWeight.w600,
-                color: isOffline ? Colors.grey : const Color(0xFF8A6A40),
+                color: isOffline ? Colors.grey : AppColors.archiveTextMuted,
               ),
             ),
           ],
@@ -423,7 +424,7 @@ class ColumnCard extends StatelessWidget {
       style: TextStyle(
         fontSize: 13,
         fontWeight: FontWeight.w700,
-        color: isOffline ? Colors.grey.withValues(alpha: 0.5) : const Color(0xFF3A2A18),
+        color: isOffline ? Colors.grey.withValues(alpha: 0.5) : AppColors.archiveText,
       ),
     );
   }
@@ -442,7 +443,7 @@ class _FoldCornerPainter extends CustomPainter {
     final paint = Paint()
       ..color = isOffline
           ? Colors.grey.withValues(alpha: 0.2)
-          : const Color(0xFF785014).withValues(alpha: 0.18)
+          : AppColors.archiveTextMuted.withValues(alpha: 0.18)
       ..style = PaintingStyle.fill;
 
     final path = Path()
@@ -460,7 +461,7 @@ class _FoldCornerPainter extends CustomPainter {
         end: Alignment.bottomRight,
         colors: isOffline
             ? [Colors.grey.withValues(alpha: 0.3), Colors.transparent]
-            : [const Color(0xFFD4A860), Colors.transparent],
+            : [AppColors.archiveCardStart, Colors.transparent],
       ).createShader(Rect.fromLTWH(0, 0, 14, 14));
 
     final highlightPath = Path()

@@ -104,4 +104,158 @@ class AppColors {
     colors: [archiveAccentDark, archiveAccent, archiveAccent],
     stops: [0.0, 0.5, 1.0],
   );
+
+  // ═══════════════════════════════════════════════════════════
+  // 错误状态颜色
+  // ═══════════════════════════════════════════════════════════
+
+  /// 错误状态颜色
+  static const Color error = Color(0xFFE74C3C);
+
+  // ═══════════════════════════════════════════════════════════
+  // 情绪颜色
+  // ═══════════════════════════════════════════════════════════
+
+  /// 开心情绪颜色
+  static const Color emotionHappy = Color(0xFF4CAF50);
+
+  /// 难过情绪颜色
+  static const Color emotionSad = Color(0xFF5A5A7A);
+
+  /// 生气情绪颜色
+  static const Color emotionAngry = Color(0xFFE74C3C);
+
+  /// 兴奋情绪颜色
+  static const Color emotionExcited = Color(0xFFFFB300);
+
+  // ═══════════════════════════════════════════════════════════
+  // 宠物颜色预设
+  // ═══════════════════════════════════════════════════════════
+
+  /// 宠物灰色
+  static const Color petGray = Color(0xFF6B7280);
+
+  /// 宠物灰色次要
+  static const Color petGraySecondary = Color(0xFF9CA3AF);
+
+  /// 宠物橙色
+  static const Color petOrange = Color(0xFFF59E0B);
+
+  /// 宠物橙色次要
+  static const Color petOrangeSecondary = Color(0xFFFBBF24);
+
+  /// 宠物粉色
+  static const Color petPink = Color(0xFFEC4899);
+
+  /// 宠物粉色次要
+  static const Color petPinkSecondary = Color(0xFFF472B6);
+
+  /// 宠物蓝色
+  static const Color petBlue = Color(0xFF3B82F6);
+
+  /// 宠物蓝色次要
+  static const Color petBlueSecondary = Color(0xFF60A5FA);
+
+  // ═══════════════════════════════════════════════════════════
+  // 专栏分类颜色
+  // ═══════════════════════════════════════════════════════════
+
+  /// 职场入门分类背景色
+  static const Color categoryCareerBg = Color(0xFFC8F0D4);
+
+  /// 职场入门分类文字色
+  static const Color categoryCareerText = Color(0xFF1E6640);
+
+  /// 求职技巧分类背景色
+  static const Color categoryJobHuntBg = Color(0xFFC2D9FF);
+
+  /// 求职技巧分类文字色
+  static const Color categoryJobHuntText = Color(0xFF1A3E7A);
+
+  /// 面试攻略分类背景色
+  static const Color categoryInterviewBg = Color(0xFFE8D4FF);
+
+  /// 面试攻略分类文字色
+  static const Color categoryInterviewText = Color(0xFF4A1A7A);
+
+  /// 职场生存分类背景色
+  static const Color categoryWorkplaceBg = Color(0xFFC8F0F8);
+
+  /// 职场生存分类文字色
+  static const Color categoryWorkplaceText = Color(0xFF0A4A5A);
+
+  /// 权益保障分类背景色
+  static const Color categoryRightsBg = Color(0xFFFFE2CC);
+
+  /// 权益保障分类文字色
+  static const Color categoryRightsText = Color(0xFF7A3A10);
+
+  /// 心态调节分类背景色
+  static const Color categoryMindsetBg = Color(0xFFFFD4E4);
+
+  /// 心态调节分类文字色
+  static const Color categoryMindsetText = Color(0xFF7A1A3A);
+
+  /// 成长进阶分类背景色
+  static const Color categoryGrowthBg = Color(0xFFD4F0C0);
+
+  /// 成长进阶分类文字色
+  static const Color categoryGrowthText = Color(0xFF1A5A2A);
+
+  // ═══════════════════════════════════════════════════════════
+  // 倾诉模块颜色
+  // ═══════════════════════════════════════════════════════════
+
+  /// 倾诉气泡背景色
+  static const Color confideBubbleBg = Color(0xFFBBB0D0);
+
+  /// 倾诉气泡文字色
+  static const Color confideBubbleText = Color(0xFF5A5A7A);
+
+  /// 倾诉输入区边框色
+  static const Color confideInputBorder = Color(0xFFB8B0D0);
+
+  /// 倾诉输入区文字色
+  static const Color confideInputText = Color(0xFF5A5A7A);
+
+  // ═══════════════════════════════════════════════════════════
+  // 页面背景色
+  // ═══════════════════════════════════════════════════════════
+
+  /// 页面浅灰背景色
+  static const Color pageBackgroundLight = Color(0xFFF8F7FC);
+
+  /// 页面渐变起始色
+  static const Color pageGradientStart = Color(0xFFF8F7FC);
+
+  /// 页面渐变结束色
+  static const Color pageGradientEnd = Color(0xFFEEE8F5);
+
+  /// 加载指示器颜色
+  static const Color loadingIndicator = Color(0xFF6366F1);
+
+  // ═══════════════════════════════════════════════════════════
+  // 渐变
+  // ═══════════════════════════════════════════════════════════
+
+  /// 页面背景渐变
+  static const LinearGradient pageBackgroundGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [pageGradientStart, pageGradientEnd],
+  );
+
+  /// 购买对话框渐变
+  static const LinearGradient purchaseDialogGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFFFFB300), Color(0xFFFF8F00)],
+  );
+
+  /// 成功状态渐变
+  static const LinearGradient successGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFFE8F5E9), Color(0xFFC8E6C9)],
+  );
 }
