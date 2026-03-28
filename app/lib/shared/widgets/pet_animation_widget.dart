@@ -14,6 +14,8 @@ class PetAnimationConfig {
   final int rows;
   final int fps;
   final bool loop;
+  final int variants; // 动画变体数量（用于idle动画随机选择）
+  final int framesPerVariant; // 每个变体的帧数
 
   const PetAnimationConfig({
     required this.spritesheetPath,
@@ -24,6 +26,8 @@ class PetAnimationConfig {
     required this.rows,
     required this.fps,
     this.loop = true,
+    this.variants = 1,
+    this.framesPerVariant = 0,
   });
 
   /// 获取每帧的时间间隔（毫秒）
@@ -62,13 +66,15 @@ class _PetAnimationWidgetState extends State<PetAnimationWidget>
   static const Map<PetAnimationType, PetAnimationConfig> _animationConfigs = {
     PetAnimationType.idle: PetAnimationConfig(
       spritesheetPath: 'assets/images/pet/pet_idle_spritesheet.png',
-      frames: 18,
+      frames: 36,
       frameWidth: 256,
       frameHeight: 256,
-      columns: 18,
-      rows: 1,
+      columns: 36,
+      rows: 3,
       fps: 12,
       loop: true,
+      variants: 3,
+      framesPerVariant: 36,
     ),
     PetAnimationType.happy: PetAnimationConfig(
       spritesheetPath: 'assets/images/pet/pet_happy_spritesheet.png',
@@ -126,6 +132,12 @@ class _PetAnimationWidgetState extends State<PetAnimationWidget>
   
   /// 当前动画类型（用于检测变化）
   PetAnimationType? _currentAnimationType;
+  
+  /// 当前idle动画变体索引（0-2，对应三行）
+  int _currentIdleVariant = 0;
+  
+  /// 随机数生成器
+  final Random _random = Random();
 
   @override
   void initState() {
@@ -202,6 +214,11 @@ class _PetAnimationWidgetState extends State<PetAnimationWidget>
   void _startAnimation() {
     final config = _animationConfigs[widget.animationType]!;
     
+    // 如果是idle动画且有多个变体，随机选择一个
+    if (widget.animationType == PetAnimationType.idle && config.variants > 1) {
+      _currentIdleVariant = _random.nextInt(config.variants);
+    }
+    
     _animationTimer?.cancel();
     
     _animationTimer = Timer.periodic(
@@ -214,11 +231,20 @@ class _PetAnimationWidgetState extends State<PetAnimationWidget>
         
         setState(() {
           _currentFrame++;
-          if (_currentFrame >= config.frames) {
+          // 对于有变体的动画，帧数是每个变体的帧数
+          final effectiveFrames = config.framesPerVariant > 0 
+              ? config.framesPerVariant 
+              : config.frames;
+          
+          if (_currentFrame >= effectiveFrames) {
             if (config.loop) {
               _currentFrame = 0;
+              // idle动画循环完成后，随机选择新的变体
+              if (widget.animationType == PetAnimationType.idle && config.variants > 1) {
+                _currentIdleVariant = _random.nextInt(config.variants);
+              }
             } else {
-              _currentFrame = config.frames - 1;
+              _currentFrame = effectiveFrames - 1;
               timer.cancel();
               widget.onAnimationComplete?.call();
             }
@@ -255,6 +281,7 @@ class _PetAnimationWidgetState extends State<PetAnimationWidget>
           image: _spritesheetImage!,
           config: config,
           currentFrame: _currentFrame,
+          variantIndex: _currentIdleVariant,
         ),
       ),
     );
@@ -284,16 +311,22 @@ class _SpritesheetPainter extends CustomPainter {
   final ui.Image image;
   final PetAnimationConfig config;
   final int currentFrame;
+  final int variantIndex; // 动画变体索引（用于多行spritesheet）
 
   _SpritesheetPainter({
     required this.image,
     required this.config,
     required this.currentFrame,
+    this.variantIndex = 0,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final row = currentFrame ~/ config.columns;
+    // 对于有变体的动画，行号由变体索引决定
+    // 对于无变体的动画，按原有逻辑计算行号
+    final row = config.variants > 1 
+        ? variantIndex 
+        : currentFrame ~/ config.columns;
     final col = currentFrame % config.columns;
     
     final srcRect = Rect.fromLTWH(
@@ -320,7 +353,8 @@ class _SpritesheetPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _SpritesheetPainter oldDelegate) {
-    return oldDelegate.currentFrame != currentFrame;
+    return oldDelegate.currentFrame != currentFrame || 
+           oldDelegate.variantIndex != variantIndex;
   }
 }
 

@@ -50,6 +50,8 @@ class PetAnimationConfig {
   final bool loop;
   final String description;
   final Map<String, AnimationSegment>? segments;
+  final int variants; // 动画变体数量（用于idle动画随机选择）
+  final int framesPerVariant; // 每个变体的帧数
 
   const PetAnimationConfig({
     required this.spritesheetPath,
@@ -62,6 +64,8 @@ class PetAnimationConfig {
     required this.loop,
     required this.description,
     this.segments,
+    this.variants = 1,
+    this.framesPerVariant = 0,
   });
 
   /// 获取每帧时间（秒）
@@ -69,6 +73,9 @@ class PetAnimationConfig {
 
   /// 是否有片段配置
   bool get hasSegments => segments != null && segments!.isNotEmpty;
+  
+  /// 是否有多个变体
+  bool get hasVariants => variants > 1;
 
   /// 获取指定片段
   AnimationSegment? getSegment(String segmentName) {
@@ -96,6 +103,8 @@ class PetAnimationConfig {
       loop: json['loop'] as bool? ?? true,
       description: json['description'] as String? ?? '',
       segments: segmentsMap,
+      variants: json['variants'] as int? ?? 1,
+      framesPerVariant: json['framesPerVariant'] as int? ?? 0,
     );
   }
 
@@ -111,6 +120,8 @@ class PetAnimationConfig {
       'loop': loop,
       'description': description,
       'segments': segments?.map((key, value) => MapEntry(key, value.toJson())),
+      'variants': variants,
+      'framesPerVariant': framesPerVariant,
     };
   }
 }

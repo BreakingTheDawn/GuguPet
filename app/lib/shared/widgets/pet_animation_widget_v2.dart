@@ -4,6 +4,7 @@ import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flame/sprite.dart';
 import 'dart:ui' as ui;
+import 'dart:math';
 import 'pet_animation_config_service.dart';
 
 /// 宠物动画类型枚举
@@ -49,14 +50,16 @@ class PetAnimationWidgetV2State extends State<PetAnimationWidgetV2> {
   static const Map<PetAnimationTypeV2, PetAnimationConfig> _defaultConfigs = {
     PetAnimationTypeV2.idle: PetAnimationConfig(
       spritesheetPath: 'assets/images/pet/pet_idle_spritesheet.png',
-      frames: 18,
+      frames: 36,
       frameWidth: 256,
       frameHeight: 256,
-      columns: 18,
-      rows: 1,
+      columns: 36,
+      rows: 3,
       fps: 12,
       loop: true,
-      description: '宠物待机动画',
+      description: '宠物待机动画 - 3种随机待机动作',
+      variants: 3,
+      framesPerVariant: 36,
     ),
     PetAnimationTypeV2.happy: PetAnimationConfig(
       spritesheetPath: 'assets/images/pet/pet_happy_spritesheet.png',
@@ -370,6 +373,12 @@ class _PetSpriteGameV2 extends FlameGame {
   bool _isPlaying = false;
   double _elapsedTime = 0;
   VoidCallback? _segmentCompleteCallback;
+  
+  /// 当前idle动画变体索引
+  int _currentVariant = 0;
+  
+  /// 随机数生成器
+  final Random _random = Random();
 
   _PetSpriteGameV2({
     required this.spritesheetImage,
@@ -418,6 +427,13 @@ class _PetSpriteGameV2 extends FlameGame {
     int endFrame = config.frames - 1;
     bool loop = config.loop;
 
+    // 对于有变体的动画（如idle），使用每个变体的帧数
+    if (config.hasVariants) {
+      endFrame = config.framesPerVariant > 0 ? config.framesPerVariant - 1 : config.frames - 1;
+      // 随机选择一个变体
+      _currentVariant = _random.nextInt(config.variants);
+    }
+
     if (segmentName != null && config.hasSegments) {
       final segment = config.getSegment(segmentName);
       if (segment != null) {
@@ -429,7 +445,7 @@ class _PetSpriteGameV2 extends FlameGame {
     }
 
     return _spriteSheet.createAnimation(
-      row: 0,
+      row: _currentVariant, // 使用变体索引作为行号
       stepTime: config.stepTime,
       from: startFrame,
       to: endFrame + 1,
@@ -455,7 +471,7 @@ class _PetSpriteGameV2 extends FlameGame {
 
       // 创建新动画
       _animationComponent.animation = _spriteSheet.createAnimation(
-        row: 0,
+        row: _currentVariant, // 使用变体索引作为行号
         stepTime: config.stepTime,
         from: segment.startFrame,
         to: segment.endFrame + 1,
@@ -494,6 +510,27 @@ class _PetSpriteGameV2 extends FlameGame {
         _isPlaying = false;
         _segmentCompleteCallback?.call();
         onAnimationComplete?.call();
+      }
+    }
+    
+    // 对于有变体的循环动画（如idle），检查是否需要切换变体
+    if (_isPlaying && config.hasVariants && config.loop) {
+      _elapsedTime += dt;
+      final effectiveFrames = config.framesPerVariant > 0 ? config.framesPerVariant : config.frames;
+      final totalDuration = effectiveFrames * config.stepTime;
+
+      if (_elapsedTime >= totalDuration) {
+        _elapsedTime = 0;
+        // 随机选择新的变体
+        _currentVariant = _random.nextInt(config.variants);
+        // 重新创建动画
+        _animationComponent.animation = _spriteSheet.createAnimation(
+          row: _currentVariant,
+          stepTime: config.stepTime,
+          from: 0,
+          to: effectiveFrames,
+          loop: true,
+        );
       }
     }
   }
