@@ -117,19 +117,4 @@ class ApiKeyInitializer {
 /// ```
 /// 
 /// ⚠️ 注意：生产环境请使用更安全的方式获取API Key
-const String _glmApiKeyGuide = '''
-GLM-4.7 API Key配置
 
-模型: glm-4.7-flash
-接口: https://open.bigmodel.cn/api/paas/v4/chat/completions
-
-配置方法:
-1. 在应用启动时调用 ApiKeyInitializer.configureGLM(apiKey)
-2. 或在设置页面由用户输入
-3. API Key将被加密存储到 flutter_secure_storage
-
-安全提示:
-- API Key使用AES加密存储
-- 每个用户的Key独立存储
-- 支持自动故障转移到备用模型
-''';

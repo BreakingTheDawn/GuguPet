@@ -7,7 +7,6 @@ import '../data/models/notification.dart' as model;
 import '../widgets/notification_item.dart';
 import '../widgets/notification_empty.dart';
 import '../widgets/notification_badge.dart';
-import 'notification_settings_page.dart';
 import '../../jobs/pages/submissions_page.dart';
 import '../../jobs/providers/submissions_provider.dart';
 import '../../profile/pages/vip_upgrade_page.dart';
@@ -136,16 +135,6 @@ class _NotificationCenterPageState extends State<NotificationCenterPage>
         _showSnackBar(AppStrings().notifications.operationFailed);
       }
     }
-  }
-
-  /// 导航到通知设置页面
-  void _handleNavigateToSettings() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const NotificationSettingsPage(),
-      ),
-    );
   }
 
   /// 点击通知项
@@ -323,12 +312,7 @@ class _NotificationCenterPageState extends State<NotificationCenterPage>
                   ],
                 ),
               ),
-              // 设置按钮
-              IconButton(
-                icon: const Icon(Icons.settings_outlined, size: 24),
-                onPressed: _handleNavigateToSettings,
-                padding: EdgeInsets.zero,
-              ),
+              const SizedBox(width: 48), // 移除设置按钮
             ],
           ),
         ),

@@ -20,11 +20,13 @@ abstract class SocialService {
   
   /// 发送好友申请
   /// [currentUserId] 当前用户ID
+  /// [currentUserName] 当前用户名称
   /// [targetUserId] 目标用户ID
   /// [targetUserName] 目标用户昵称
   /// [targetUserTitle] 目标用户职位标签
   Future<void> sendFriendRequest(
     String currentUserId,
+    String currentUserName,
     String targetUserId,
     String targetUserName, {
     String? targetUserTitle,
@@ -42,6 +44,10 @@ abstract class SocialService {
   /// [userId] 用户ID
   /// [status] 状态过滤
   Future<List<Friend>> getFriends(String userId, {FriendStatus? status});
+  
+  /// 获取收到的好友申请列表
+  /// [userId] 当前用户ID（作为接收方）
+  Future<List<Friend>> getReceivedFriendRequests(String userId);
   
   /// 删除好友
   /// [friendId] 好友ID

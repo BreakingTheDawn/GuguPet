@@ -25,6 +25,8 @@ class DatabaseMigration {
         return _version8;
       case 9:
         return _version9;
+      case 10:
+        return _version10;
       default:
         return null;
     }
@@ -667,6 +669,20 @@ class DatabaseMigration {
     // 为好友表添加最后活跃时间字段
     '''
     ALTER TABLE friends ADD COLUMN last_active_at TEXT
+    ''',
+  ];
+
+  /// 版本10的迁移脚本
+  /// 为好友表添加发送者名称字段，修复好友申请显示问题
+  static final List<String> _version10 = [
+    // 为好友表添加发送者名称字段（用于显示谁发送了好友申请）
+    '''
+    ALTER TABLE friends ADD COLUMN user_name TEXT
+    ''',
+    
+    // 为好友表添加索引，用于查询收到的好友申请
+    '''
+    CREATE INDEX idx_friends_friend_id ON friends (friend_id)
     ''',
   ];
 }

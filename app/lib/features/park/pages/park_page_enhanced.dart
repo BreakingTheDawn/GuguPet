@@ -68,11 +68,11 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
     final friendProvider = context.read<FriendProvider>();
     final postProvider = context.read<PostProvider>();
     
-    // 设置当前用户（使用登录用户的ID）
+    // 设置当前用户（使用登录用户的ID和名称）
     final userId = authProvider.currentUser?.userId ?? 'current_user';
     final userName = authProvider.currentUser?.userName ?? '求职者';
     
-    friendProvider.setCurrentUserId(userId);
+    friendProvider.setCurrentUserId(userId, userName: userName);
     postProvider.setCurrentUser(userId, userName);
     
     // 加载公园用户
@@ -94,14 +94,14 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
           // 背景渐变
           _buildBackground(),
           
+          // 主要内容区域（用户卡片）
+          _buildMainContent(),
+          
           // 区域头部
           _buildZoneHeader(),
           
-          // 区域选择菜单
+          // 区域选择菜单（位于用户卡片之上）
           if (_showZoneMenu) _buildZoneMenu(),
-          
-          // 主要内容区域
-          _buildMainContent(),
         ],
       ),
     );

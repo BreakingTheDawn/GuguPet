@@ -153,6 +153,7 @@ class MockSocialService implements SocialService {
   @override
   Future<void> sendFriendRequest(
     String currentUserId,
+    String currentUserName,
     String targetUserId,
     String targetUserName, {
     String? targetUserTitle,
@@ -160,6 +161,7 @@ class MockSocialService implements SocialService {
     final friend = Friend(
       id: 'friend_${currentUserId}_$targetUserId',
       userId: currentUserId,
+      userName: currentUserName,
       friendId: targetUserId,
       friendName: targetUserName,
       friendTitle: targetUserTitle,
@@ -186,6 +188,11 @@ class MockSocialService implements SocialService {
   @override
   Future<List<Friend>> getFriends(String userId, {FriendStatus? status}) {
     return _datasource.getFriends(userId, status: status);
+  }
+
+  @override
+  Future<List<Friend>> getReceivedFriendRequests(String userId) {
+    return _datasource.getReceivedFriendRequests(userId);
   }
 
   @override

@@ -501,7 +501,9 @@ class _GiftBoxAnimationState extends State<GiftBoxAnimation>
           left: 30 + x,
           top: 30 + y,
           child: Opacity(
-            opacity: 1 - _bounceAnimation.value,
+            // 使用clamp确保opacity在有效范围[0.0, 1.0]内
+            // _bounceAnimation从1.2开始，所以1 - 1.2 = -0.2会超出范围
+            opacity: (1 - _bounceAnimation.value).clamp(0.0, 1.0),
             child: Text(
               ['⭐', '✨', '🌟', '💫', '✨', '⭐'][i],
               style: TextStyle(

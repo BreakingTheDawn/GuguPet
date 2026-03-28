@@ -22,6 +22,10 @@ class FriendProvider extends ChangeNotifier {
   /// 当前用户ID
   String? _currentUserId;
   String? get currentUserId => _currentUserId;
+  
+  /// 当前用户名称
+  String? _currentUserName;
+  String? get currentUserName => _currentUserName;
 
   /// 好友列表（已接受）
   List<Friend> _friends = [];
@@ -43,9 +47,10 @@ class FriendProvider extends ChangeNotifier {
   // 初始化方法
   // ────────────────────────────────────────────────────────────────────────────
 
-  /// 设置当前用户ID
-  void setCurrentUserId(String userId) {
+  /// 设置当前用户ID和名称
+  void setCurrentUserId(String userId, {String? userName}) {
     _currentUserId = userId;
+    _currentUserName = userName;
     notifyListeners();
   }
 
@@ -62,10 +67,10 @@ class FriendProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      // 并行加载好友和待处理申请
+      // 并行加载好友和收到的待处理申请
       final results = await Future.wait([
         _socialService.getFriends(_currentUserId!, status: FriendStatus.accepted),
-        _socialService.getFriends(_currentUserId!, status: FriendStatus.pending),
+        _socialService.getReceivedFriendRequests(_currentUserId!),
       ]);
       
       _friends = results[0];
@@ -104,6 +109,7 @@ class FriendProvider extends ChangeNotifier {
     try {
       await _socialService.sendFriendRequest(
         _currentUserId!,
+        _currentUserName ?? '求职者',
         targetUserId,
         targetUserName,
         targetUserTitle: targetUserTitle,

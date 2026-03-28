@@ -24,7 +24,7 @@ class DatabaseHelper {
 
   // 数据库配置常量
   static const String _databaseName = 'gugupet.db';
-  static const int _databaseVersion = 9;
+  static const int _databaseVersion = 10;
 
   /// 获取数据库实例
   /// 使用 Completer 确保并发安全，避免竞态条件

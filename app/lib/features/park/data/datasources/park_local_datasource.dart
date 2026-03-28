@@ -53,6 +53,46 @@ class ParkLocalDatasource {
     return maps.map((map) => Friend.fromDatabase(map)).toList();
   }
 
+  /// 获取收到的好友申请列表
+  /// [userId] 当前用户ID（作为接收方）
+  /// 查询 friend_id = userId 的记录，即别人发给自己的申请
+  Future<List<Friend>> getReceivedFriendRequests(String userId) async {
+    final db = await DatabaseHelper().database;
+    
+    // 查询发给当前用户的待处理申请
+    // friend_id = userId 表示当前用户是接收方
+    final List<Map<String, dynamic>> maps = await db.query(
+      _tableFriends,
+      where: 'friend_id = ? AND status = ?',
+      whereArgs: [userId, FriendStatus.pending.name],
+      orderBy: 'created_at DESC',
+    );
+    
+    // 转换为Friend对象
+    // 注意：这里user_id是发送者，friend_id是接收者（当前用户）
+    // 所以显示时，发送者的信息在user_name字段中
+    return maps.map((map) {
+      // 创建一个新的Map，交换角色以便前端显示
+      final displayMap = Map<String, dynamic>.from(map);
+      
+      // 发送者ID（原user_id）
+      final senderId = map['user_id'] as String;
+      // 发送者名称（原user_name）
+      final senderName = map['user_name'] as String? ?? '未知用户';
+      // 发送者职位（原friend_title，这里可能没有发送者的职位信息）
+      final senderTitle = map['user_title'] as String?;
+      
+      // 交换角色：让当前用户成为userId，发送者成为friend
+      // 这样前端显示时，friendName就是发送申请的人
+      displayMap['user_id'] = userId;
+      displayMap['friend_id'] = senderId;
+      displayMap['friend_name'] = senderName;
+      displayMap['friend_title'] = senderTitle;
+      
+      return Friend.fromDatabase(displayMap);
+    }).toList();
+  }
+
   /// 获取单个好友关系
   /// [userId] 当前用户ID
   /// [friendId] 好友ID

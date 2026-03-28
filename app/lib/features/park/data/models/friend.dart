@@ -31,6 +31,9 @@ class Friend {
   /// 当前用户ID
   final String userId;
   
+  /// 当前用户名称（发送者名称）
+  final String? userName;
+  
   /// 好友用户ID
   final String friendId;
   
@@ -65,6 +68,7 @@ class Friend {
   const Friend({
     required this.id,
     required this.userId,
+    this.userName,
     required this.friendId,
     required this.friendName,
     this.friendAvatar,
@@ -82,6 +86,7 @@ class Friend {
     return Friend(
       id: json['id'] as String,
       userId: json['userId'] as String,
+      userName: json['userName'] as String?,
       friendId: json['friendId'] as String,
       friendName: json['friendName'] as String,
       friendAvatar: json['friendAvatar'] as String?,
@@ -113,6 +118,7 @@ class Friend {
     return Friend(
       id: map['id'] as String,
       userId: map['user_id'] as String,
+      userName: map['user_name'] as String?,
       friendId: map['friend_id'] as String,
       friendName: map['friend_name'] as String,
       friendAvatar: map['friend_avatar'] as String?,
@@ -143,6 +149,7 @@ class Friend {
     return {
       'id': id,
       'userId': userId,
+      'userName': userName,
       'friendId': friendId,
       'friendName': friendName,
       'friendAvatar': friendAvatar,
@@ -161,6 +168,7 @@ class Friend {
     return {
       'id': id,
       'user_id': userId,
+      'user_name': userName,
       'friend_id': friendId,
       'friend_name': friendName,
       'friend_avatar': friendAvatar,
@@ -178,6 +186,7 @@ class Friend {
   Friend copyWith({
     String? id,
     String? userId,
+    String? userName,
     String? friendId,
     String? friendName,
     String? friendAvatar,
@@ -192,6 +201,7 @@ class Friend {
     return Friend(
       id: id ?? this.id,
       userId: userId ?? this.userId,
+      userName: userName ?? this.userName,
       friendId: friendId ?? this.friendId,
       friendName: friendName ?? this.friendName,
       friendAvatar: friendAvatar ?? this.friendAvatar,

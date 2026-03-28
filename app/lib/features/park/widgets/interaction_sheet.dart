@@ -287,11 +287,33 @@ class InteractionSheet extends StatelessWidget {
       ),
       trailing: const Icon(Icons.chevron_right, size: 20),
       onTap: () {
+        // 先获取动画需要的信息
+        final localAnimationType = animationType;
+        final screenSize = MediaQuery.of(context).size;
+        final position = Offset(
+          screenSize.width / 2,
+          screenSize.height / 2,
+        );
+        
+        // 关闭 BottomSheet
         Navigator.pop(context);
         
-        // 播放动画
-        if (animationType != null) {
-          _playInteractionAnimation(context, animationType);
+        // 播放动画（使用 rootNavigator 的 context）
+        if (localAnimationType != null) {
+          // 使用 Future.delayed 确保 BottomSheet 完全关闭后再播放动画
+          Future.delayed(const Duration(milliseconds: 100), () {
+            try {
+              // 使用 Navigator.of(context, rootNavigator: true) 获取正确的 Overlay
+              final overlayContext = Navigator.of(context, rootNavigator: true).context;
+              InteractionAnimationManager.showAnimation(
+                context: overlayContext,
+                type: localAnimationType,
+                position: position,
+              );
+            } catch (e) {
+              debugPrint('播放动画失败: $e');
+            }
+          });
         }
         
         // 延迟执行回调，让动画先播放
@@ -300,25 +322,5 @@ class InteractionSheet extends StatelessWidget {
         });
       },
     );
-  }
-
-  /// 播放互动动画
-  void _playInteractionAnimation(BuildContext context, String type) {
-    try {
-      // 获取屏幕中心位置
-      final screenSize = MediaQuery.of(context).size;
-      final position = Offset(
-        screenSize.width / 2,
-        screenSize.height / 2,
-      );
-      
-      InteractionAnimationManager.showAnimation(
-        context: context,
-        type: type,
-        position: position,
-      );
-    } catch (e) {
-      debugPrint('播放动画失败: $e');
-    }
   }
 }
