@@ -29,6 +29,8 @@ class DatabaseMigration {
         return _version10;
       case 11:
         return _version11;
+      case 12:
+        return _version12;
       default:
         return null;
     }
@@ -763,6 +765,50 @@ class DatabaseMigration {
     // 提醒事件表索引 - 按是否已触发查询
     '''
     CREATE INDEX idx_alert_events_is_triggered ON alert_events (is_triggered)
+    ''',
+  ];
+
+  /// 版本12的迁移脚本
+  /// 添加用户反馈表，支持本地存储反馈
+  static final List<String> _version12 = [
+    // ==================== 用户反馈表 ====================
+    // 存储用户提交的反馈和Bug报告
+    '''
+    CREATE TABLE user_feedbacks (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      type TEXT NOT NULL,
+      title TEXT NOT NULL,
+      content TEXT NOT NULL,
+      rating INTEGER DEFAULT 0,
+      image_urls TEXT,
+      device_info TEXT,
+      app_info TEXT,
+      status TEXT DEFAULT 'pending',
+      admin_reply TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT
+    )
+    ''',
+
+    // 用户反馈表索引 - 按用户ID查询
+    '''
+    CREATE INDEX idx_user_feedbacks_user_id ON user_feedbacks (user_id)
+    ''',
+
+    // 用户反馈表索引 - 按反馈类型查询
+    '''
+    CREATE INDEX idx_user_feedbacks_type ON user_feedbacks (type)
+    ''',
+
+    // 用户反馈表索引 - 按状态查询
+    '''
+    CREATE INDEX idx_user_feedbacks_status ON user_feedbacks (status)
+    ''',
+
+    // 用户反馈表索引 - 按创建时间查询
+    '''
+    CREATE INDEX idx_user_feedbacks_created_at ON user_feedbacks (created_at DESC)
     ''',
   ];
 }

@@ -1,11 +1,13 @@
 import 'package:flutter/foundation.dart';
+import 'package:sqflite/sqflite.dart';
 import '../data/models/user_feedback.dart';
 import '../data/models/error_record.dart';
 import '../services/feedback_service.dart';
 import '../services/error_capture_service.dart';
+import '../data/datasources/feedback_local_datasource.dart';
 
 /// 反馈状态枚举
-enum FeedbackStatus {
+enum FeedbackProviderStatus {
   /// 初始状态
   initial,
   /// 提交中
@@ -22,7 +24,7 @@ class FeedbackProvider extends ChangeNotifier {
   final FeedbackService _feedbackService;
   final ErrorCaptureService _errorCaptureService;
 
-  FeedbackStatus _status = FeedbackStatus.initial;
+  FeedbackProviderStatus _status = FeedbackProviderStatus.initial;
   String? _errorMessage;
   List<UserFeedback> _feedbackHistory = [];
   ErrorRecord? _lastError;
@@ -35,13 +37,20 @@ class FeedbackProvider extends ChangeNotifier {
     _init();
   }
 
+  /// 创建本地反馈Provider
+  factory FeedbackProvider.local({required Database database}) {
+    final localDatasource = FeedbackLocalDatasource(database);
+    final feedbackService = LocalFeedbackService(localDatasource: localDatasource);
+    return FeedbackProvider(feedbackService: feedbackService);
+  }
+
   /// 初始化
   void _init() {
     _errorCaptureService.onError = _handleError;
   }
 
   /// 当前状态
-  FeedbackStatus get status => _status;
+  FeedbackProviderStatus get status => _status;
 
   /// 错误消息
   String? get errorMessage => _errorMessage;
@@ -56,7 +65,7 @@ class FeedbackProvider extends ChangeNotifier {
   bool get hasUnhandledError => _lastError != null;
 
   /// 是否正在提交
-  bool get isSubmitting => _status == FeedbackStatus.submitting;
+  bool get isSubmitting => _status == FeedbackProviderStatus.submitting;
 
   /// 提交反馈
   Future<bool> submitFeedback({
@@ -69,7 +78,7 @@ class FeedbackProvider extends ChangeNotifier {
     bool includeDeviceInfo = true,
     bool includeErrorLog = false,
   }) async {
-    _status = FeedbackStatus.submitting;
+    _status = FeedbackProviderStatus.submitting;
     _errorMessage = null;
     notifyListeners();
 
@@ -89,18 +98,18 @@ class FeedbackProvider extends ChangeNotifier {
       final result = await _feedbackService.submit(request);
 
       if (result.success) {
-        _status = FeedbackStatus.success;
+        _status = FeedbackProviderStatus.success;
         _lastError = null;
         notifyListeners();
         return true;
       } else {
-        _status = FeedbackStatus.error;
+        _status = FeedbackProviderStatus.error;
         _errorMessage = result.errorMessage ?? '提交失败';
         notifyListeners();
         return false;
       }
     } catch (e) {
-      _status = FeedbackStatus.error;
+      _status = FeedbackProviderStatus.error;
       _errorMessage = e.toString();
       notifyListeners();
       return false;
@@ -131,7 +140,7 @@ class FeedbackProvider extends ChangeNotifier {
 
   /// 重置状态
   void reset() {
-    _status = FeedbackStatus.initial;
+    _status = FeedbackProviderStatus.initial;
     _errorMessage = null;
     notifyListeners();
   }

@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import '../data/models/user_feedback.dart';
+import '../data/datasources/feedback_local_datasource.dart';
 
 /// 反馈请求
 class FeedbackRequest {
@@ -98,13 +99,112 @@ abstract class FeedbackService {
   Future<List<UserFeedback>> getUserFeedbacks(String userId, {int page, int size});
 }
 
-/// 反馈服务实现
-class FeedbackServiceImpl implements FeedbackService {
+/// 本地反馈服务实现
+/// 将反馈存储在本地SQLite数据库中
+class LocalFeedbackService implements FeedbackService {
+  final FeedbackLocalDatasource _localDatasource;
+  final DeviceInfoPlugin _deviceInfoPlugin;
+
+  LocalFeedbackService({
+    required FeedbackLocalDatasource localDatasource,
+  })  : _localDatasource = localDatasource,
+        _deviceInfoPlugin = DeviceInfoPlugin();
+
+  @override
+  Future<FeedbackResult> submit(FeedbackRequest request) async {
+    try {
+      // 收集设备信息
+      DeviceInfo? deviceInfo;
+      if (request.includeDeviceInfo) {
+        deviceInfo = await _collectDeviceInfo();
+      }
+
+      // 创建反馈ID
+      final feedbackId = 'fb_${DateTime.now().millisecondsSinceEpoch}';
+
+      // 创建反馈对象
+      final feedback = UserFeedback(
+        id: feedbackId,
+        userId: request.userId,
+        type: request.type,
+        title: request.title,
+        content: request.content,
+        rating: request.rating ?? 0,
+        imageUrls: request.imagePaths ?? [],
+        deviceInfo: deviceInfo,
+        appInfo: AppInfo(
+          version: '1.0.0', // TODO: 从package_info获取
+          buildNumber: '1',
+          errorLog: request.includeErrorLog ? request.errorData?.toString() : null,
+        ),
+        status: FeedbackStatus.pending,
+        createdAt: DateTime.now(),
+      );
+
+      // 存储到本地数据库
+      await _localDatasource.insertFeedback(feedback);
+
+      debugPrint('📝 反馈已保存到本地: $feedbackId');
+      return FeedbackResult.success(feedbackId);
+    } catch (e) {
+      debugPrint('❌ 保存反馈失败: $e');
+      return FeedbackResult.failure(e.toString());
+    }
+  }
+
+  @override
+  Future<String?> uploadImage(String filePath) async {
+    // 本地存储模式：返回本地文件路径
+    try {
+      final file = File(filePath);
+      if (!await file.exists()) return null;
+      return filePath; // 返回本地路径
+    } catch (e) {
+      debugPrint('上传图片失败: $e');
+      return null;
+    }
+  }
+
+  @override
+  Future<List<UserFeedback>> getUserFeedbacks(String userId, {int page = 1, int size = 10}) async {
+    return await _localDatasource.getFeedbacksByUserId(userId, page: page, size: size);
+  }
+
+  /// 收集设备信息
+  Future<DeviceInfo?> _collectDeviceInfo() async {
+    try {
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        final info = await _deviceInfoPlugin.androidInfo;
+        return DeviceInfo(
+          platform: 'android',
+          osVersion: info.version.release,
+          deviceModel: '${info.brand} ${info.model}',
+          appVersion: '', // 需要从package_info获取
+        );
+      } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+        final info = await _deviceInfoPlugin.iosInfo;
+        return DeviceInfo(
+          platform: 'ios',
+          osVersion: info.systemVersion,
+          deviceModel: info.model,
+          appVersion: '',
+        );
+      }
+    } catch (e) {
+      debugPrint('收集设备信息失败: $e');
+    }
+    return null;
+  }
+}
+
+/// 云端反馈服务实现（备用）
+/// 当配置了后端服务器时使用
+class CloudFeedbackService implements FeedbackService {
   final Dio _dio;
   final String _baseUrl;
   final DeviceInfoPlugin _deviceInfoPlugin;
 
-  FeedbackServiceImpl({
+  CloudFeedbackService({
     required Dio dio,
     required String baseUrl,
   })  : _dio = dio,

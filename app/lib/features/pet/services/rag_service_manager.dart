@@ -133,7 +133,17 @@ class RAGServiceManager extends ChangeNotifier {
         
         if (apiKey.isNotEmpty) {
           // 根据AI提供商配置嵌入服务
-          if (providerId == 'openai') {
+          // GLM支持嵌入API: https://open.bigmodel.cn/api/paas/v4/embeddings
+          if (providerId == 'glm') {
+            embeddingConfig = EmbeddingConfig(
+              apiKey: apiKey,
+              endpoint: 'https://open.bigmodel.cn/api/paas/v4/embeddings',
+              model: 'embedding-2',  // GLM嵌入模型
+              dimension: 1024,
+            );
+            provider = 'glm';
+            debugPrint('📚 使用GLM嵌入服务');
+          } else if (providerId == 'openai') {
             embeddingConfig = EmbeddingConfig(
               apiKey: apiKey,
               endpoint: 'https://api.openai.com/v1/embeddings',
@@ -141,15 +151,10 @@ class RAGServiceManager extends ChangeNotifier {
               dimension: 1536,
             );
             provider = 'openai';
-          } else if (providerId == 'glm') {
-            embeddingConfig = EmbeddingConfig(
-              apiKey: apiKey,
-              endpoint: 'https://open.bigmodel.cn/api/paas/v4/embeddings',
-              model: 'embedding-3',
-              dimension: 1024,
-            );
-            provider = 'glm';
+            debugPrint('📚 使用OpenAI嵌入服务');
           }
+        } else {
+          debugPrint('📚 API Key未配置，使用本地嵌入服务');
         }
       }
     } catch (e) {
