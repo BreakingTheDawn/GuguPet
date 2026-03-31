@@ -9,6 +9,7 @@ import '../data/models/chat_session.dart';
 import '../data/models/emotion_response.dart';
 import '../data/datasources/chat_local_datasource.dart';
 import 'ai_config_service.dart';
+import '../../pet/services/retrieval_service.dart';
 
 /// 对话模式
 enum ChatMode {
@@ -48,6 +49,12 @@ class ChatService extends ChangeNotifier {
   final AIConfigService _configService;
   LLMService? _llmService;
   MultiLLMService? _multiLLMService;
+  
+  /// RAG检索服务（可选）
+  RetrievalService? _retrievalService;
+  
+  /// 当前宠物ID（用于RAG检索）
+  String? _currentPetId;
 
   ChatSession? _currentSession;
   ChatMode _currentMode = ChatMode.simple;
@@ -100,6 +107,18 @@ class ChatService extends ChangeNotifier {
     _tokenExhausted = false;
     _currentMode = canUseAIMode ? ChatMode.ai : ChatMode.simple;
     notifyListeners();
+  }
+
+  /// 更新RAG检索服务
+  void updateRetrievalService(RetrievalService? service, {String? petId}) {
+    _retrievalService = service;
+    _currentPetId = petId;
+    debugPrint('📚 RAG检索服务已${service != null ? '启用' : '禁用'}');
+  }
+
+  /// 设置当前宠物ID
+  void setCurrentPetId(String? petId) {
+    _currentPetId = petId;
   }
 
   /// 初始化或获取会话
@@ -179,11 +198,38 @@ class ChatService extends ChangeNotifier {
     List<String>? memories,
   }) async {
     try {
+      // === RAG记忆检索 ===
+      List<String> retrievedMemories = memories ?? [];
+      
+      if (_retrievalService != null && _currentPetId != null) {
+        try {
+          final result = await _retrievalService!.search(
+            query: userMessage,
+            petId: _currentPetId!,
+            topK: 5,
+            threshold: 0.6,
+          );
+          
+          if (result.hasResults) {
+            retrievedMemories = result.toContentList();
+            debugPrint('📚 RAG检索到 ${result.length} 条相关记忆');
+            for (var i = 0; i < result.length; i++) {
+              debugPrint('  - [相似度: ${result.scores[i].toStringAsFixed(2)}] ${result.memories[i].content}');
+            }
+          } else {
+            debugPrint('📚 RAG未检索到相关记忆');
+          }
+        } catch (e) {
+          debugPrint('⚠️ RAG检索失败: $e');
+        }
+      }
+      // === RAG集成结束 ===
+      
       // 从JSON配置构建系统提示词
       final systemPrompt = await _buildSystemPrompt(
         bondTitle: bondTitle,
         emotionDescription: emotionDescription,
-        memories: memories,
+        memories: retrievedMemories,
       );
 
       // 从JSON配置获取历史记录限制

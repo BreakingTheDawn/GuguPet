@@ -6,6 +6,7 @@ import '../../../shared/widgets/widgets.dart';
 import '../../../routes/app_routes.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../profile/providers/profile_provider.dart';
+import '../../feedback/pages/feedback_form_page.dart';
 
 /// 设置页面
 /// 包含通知设置、隐私设置、关于信息等功能
@@ -21,27 +22,11 @@ class _SettingsPageState extends State<SettingsPage> {
   // 通知设置状态
   // ═══════════════════════════════════════════════════════════
 
-  /// 求职提醒开关
-  bool _jobReminderEnabled = true;
-
-  /// 面试提醒开关
-  bool _interviewReminderEnabled = true;
-
   /// 宠物互动提醒开关
   bool _petInteractionEnabled = true;
 
   /// 系统通知开关
   bool _systemNotificationEnabled = false;
-
-  // ═══════════════════════════════════════════════════════════
-  // 隐私设置状态
-  // ═══════════════════════════════════════════════════════════
-
-  /// 简历公开状态
-  bool _resumePublic = true;
-
-  /// 联系方式可见性
-  bool _contactVisible = false;
 
   /// 应用版本号
   static const String _appVersion = '1.0.0';
@@ -137,30 +122,6 @@ class _SettingsPageState extends State<SettingsPage> {
       child: Column(
         children: [
           _buildSwitchTile(
-            icon: Icons.work_outline,
-            title: '求职提醒',
-            subtitle: '接收职位推荐和投递状态更新通知',
-            value: _jobReminderEnabled,
-            onChanged: (value) {
-              setState(() {
-                _jobReminderEnabled = value;
-              });
-            },
-          ),
-          _buildDivider(),
-          _buildSwitchTile(
-            icon: Icons.calendar_today_outlined,
-            title: '面试提醒',
-            subtitle: '面试前自动发送提醒通知',
-            value: _interviewReminderEnabled,
-            onChanged: (value) {
-              setState(() {
-                _interviewReminderEnabled = value;
-              });
-            },
-          ),
-          _buildDivider(),
-          _buildSwitchTile(
             icon: Icons.pets_outlined,
             title: '宠物互动提醒',
             subtitle: '宠物状态变化时发送通知',
@@ -198,30 +159,6 @@ class _SettingsPageState extends State<SettingsPage> {
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       child: Column(
         children: [
-          _buildSwitchTile(
-            icon: Icons.description_outlined,
-            title: '简历公开',
-            subtitle: '允许招聘方查看您的简历',
-            value: _resumePublic,
-            onChanged: (value) {
-              setState(() {
-                _resumePublic = value;
-              });
-            },
-          ),
-          _buildDivider(),
-          _buildSwitchTile(
-            icon: Icons.phone_outlined,
-            title: '联系方式可见',
-            subtitle: '允许招聘方获取您的联系方式',
-            value: _contactVisible,
-            onChanged: (value) {
-              setState(() {
-                _contactVisible = value;
-              });
-            },
-          ),
-          _buildDivider(),
           _buildActionTile(
             icon: Icons.auto_awesome,
             title: 'AI对话设置',
@@ -255,6 +192,13 @@ class _SettingsPageState extends State<SettingsPage> {
             icon: Icons.info_outline,
             title: '版本信息',
             value: 'v$_appVersion',
+          ),
+          _buildDivider(),
+          _buildActionTile(
+            icon: Icons.feedback_outlined,
+            title: '意见反馈',
+            subtitle: '帮助我们改进产品',
+            onTap: _handleFeedback,
           ),
           _buildDivider(),
           _buildActionTile(
@@ -536,6 +480,15 @@ class _SettingsPageState extends State<SettingsPage> {
   /// AI对话设置
   void _handleAISettings() {
     Navigator.of(context).pushNamed(AppRoutes.aiSettings);
+  }
+
+  /// 意见反馈
+  void _handleFeedback() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const FeedbackFormPage(),
+      ),
+    );
   }
 
   /// 清除数据

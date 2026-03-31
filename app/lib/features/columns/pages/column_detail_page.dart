@@ -205,6 +205,7 @@ class _ColumnDetailPageState extends State<ColumnDetailPage> {
   /// 构建内容区域
   Widget _buildContent(ColumnProvider provider) {
     final content = provider.columnContent!;
+    final canRead = provider.canReadFullContent;
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
@@ -212,7 +213,7 @@ class _ColumnDetailPageState extends State<ColumnDetailPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 专栏标题区
-          _buildHeader(content),
+          _buildHeader(content, canRead: canRead),
 
           // 分隔线
           _buildDivider(),
@@ -225,7 +226,7 @@ class _ColumnDetailPageState extends State<ColumnDetailPage> {
   }
 
   /// 构建专栏标题区
-  Widget _buildHeader(dynamic content) {
+  Widget _buildHeader(dynamic content, {bool canRead = false}) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -249,8 +250,8 @@ class _ColumnDetailPageState extends State<ColumnDetailPage> {
               // 分类标签
               _buildCategoryTag(content),
 
-              // 价格
-              _buildPriceTag(content),
+              // 价格（已购买后隐藏）
+              if (!canRead) _buildPriceTag(content),
             ],
           ),
 
@@ -495,8 +496,14 @@ class _ColumnDetailPageState extends State<ColumnDetailPage> {
   // ────────────────────────────────────────────────────────────────────────────
 
   /// 构建底部操作栏
+  /// 已购买后不显示底部栏，未购买时显示购买按钮
   Widget _buildBottomBar(ColumnProvider provider) {
     final canRead = provider.canReadFullContent;
+
+    // 已购买后不显示底部栏
+    if (canRead) {
+      return const SizedBox.shrink();
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -513,68 +520,7 @@ class _ColumnDetailPageState extends State<ColumnDetailPage> {
         top: false,
         child: Container(
           padding: const EdgeInsets.all(16),
-          child: canRead
-              ? _buildReadButton(provider)
-              : _buildPurchaseButtons(provider),
-        ),
-      ),
-    );
-  }
-
-  /// 构建阅读按钮（已购买或免费）
-  Widget _buildReadButton(ColumnProvider provider) {
-    return Container(
-      width: double.infinity,
-      height: 50,
-      decoration: BoxDecoration(
-        gradient: AppColors.archiveCardGradient,
-        borderRadius: BorderRadius.circular(25),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.archiveAccent.withValues(alpha: 0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            // 已购买，可以滚动阅读
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(AppStrings().columns.continueReading),
-                backgroundColor: AppColors.archiveAccent,
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            );
-          },
-          borderRadius: BorderRadius.circular(25),
-          child: Center(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.menu_book_outlined,
-                  size: 20,
-                  color: AppColors.archiveText,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  AppStrings().columns.continueReading,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.archiveText,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          child: _buildPurchaseButtons(provider),
         ),
       ),
     );

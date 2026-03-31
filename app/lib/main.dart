@@ -23,6 +23,7 @@ import 'features/park/providers/friend_provider.dart';
 import 'features/park/providers/post_provider.dart';
 import 'features/auth/providers/auth_provider.dart';
 import 'features/confide/providers/confide_provider.dart';
+import 'features/feedback/services/error_capture_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,6 +33,9 @@ void main() async {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }
+  
+  // 初始化错误捕获服务（最先初始化以捕获后续错误）
+  ErrorCaptureService().initialize();
   
   // 初始化安全服务
   await _initializeSecurity();

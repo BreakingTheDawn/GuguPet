@@ -22,21 +22,30 @@ class JobsProvider extends ChangeNotifier {
   // 状态变量
   // ═══════════════════════════════════════════════════════════
   List<Job> _jobs = [];
-  List<Job> _filteredJobs = [];
+  List<Job> _allFilteredJobs = [];  // 所有筛选后的职位
+  List<Job> _displayedJobs = [];    // 当前显示的职位（分页后）
   bool _isLoading = false;
+  bool _isLoadingMore = false;
   String? _error;
   String _searchText = '';
   String _selectedCategory = '全部';
   Set<String> _favoritedJobIds = {};
+  
+  // 分页相关
+  static const int _pageSize = 10;
+  int _currentPage = 0;
+  bool _hasMore = true;
 
   // ═══════════════════════════════════════════════════════════
   // Getters
   // ═══════════════════════════════════════════════════════════
-  List<Job> get jobs => _filteredJobs;
+  List<Job> get jobs => _displayedJobs;
   bool get isLoading => _isLoading;
+  bool get isLoadingMore => _isLoadingMore;
   String? get error => _error;
   String get selectedCategory => _selectedCategory;
   int get newJobsCount => _jobs.where((j) => j.isNew).length;
+  bool get hasMore => _hasMore;
 
   // ═══════════════════════════════════════════════════════════
   // 构造函数
@@ -53,11 +62,13 @@ class JobsProvider extends ChangeNotifier {
   // 公共方法
   // ═══════════════════════════════════════════════════════════
 
-  /// 加载职位列表
+  /// 加载职位列表（首次加载）
   /// [userId] 用户ID
   Future<void> loadJobs(String userId) async {
     _isLoading = true;
     _error = null;
+    _currentPage = 0;
+    _hasMore = true;
     notifyListeners();
 
     try {
@@ -76,6 +87,9 @@ class JobsProvider extends ChangeNotifier {
       await _loadFavorites(userId);
       
       _applyFilters();
+      
+      // 应用分页
+      _applyPagination();
 
       _isLoading = false;
       notifyListeners();
@@ -86,8 +100,27 @@ class JobsProvider extends ChangeNotifier {
       _error = e.toString();
       _isLoading = false;
       _applyFilters();
+      _applyPagination();
       notifyListeners();
     }
+  }
+  
+  /// 加载更多职位
+  /// [userId] 用户ID
+  Future<void> loadMoreJobs(String userId) async {
+    if (_isLoadingMore || !_hasMore) return;
+    
+    _isLoadingMore = true;
+    notifyListeners();
+    
+    // 模拟网络延迟
+    await Future.delayed(const Duration(milliseconds: 500));
+    
+    _currentPage++;
+    _applyPagination();
+    
+    _isLoadingMore = false;
+    notifyListeners();
   }
 
   /// 投递职位
@@ -220,7 +253,7 @@ class JobsProvider extends ChangeNotifier {
 
   /// 应用筛选条件
   void _applyFilters() {
-    _filteredJobs = _jobs.where((job) {
+    _allFilteredJobs = _jobs.where((job) {
       // 搜索过滤
       if (_searchText.isNotEmpty) {
         final searchLower = _searchText.toLowerCase();
@@ -243,6 +276,24 @@ class JobsProvider extends ChangeNotifier {
 
       return true;
     }).toList();
+
+    // 重置分页并应用
+    _currentPage = 0;
+    _applyPagination();
+  }
+  
+  /// 应用分页逻辑
+  void _applyPagination() {
+    final startIndex = _currentPage * _pageSize;
+    final endIndex = startIndex + _pageSize;
+    
+    if (startIndex >= _allFilteredJobs.length) {
+      _hasMore = false;
+      _displayedJobs = List.from(_allFilteredJobs);
+    } else {
+      _displayedJobs = _allFilteredJobs.sublist(0, endIndex.clamp(0, _allFilteredJobs.length));
+      _hasMore = endIndex < _allFilteredJobs.length;
+    }
 
     notifyListeners();
   }

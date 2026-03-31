@@ -22,6 +22,9 @@ class _JobsPageState extends State<JobsPage> {
   // 搜索控制器
   final _searchController = TextEditingController();
   
+  // 滚动控制器（用于分页加载）
+  final _scrollController = ScrollController();
+  
   // 筛选状态Provider
   late final JobFilterProvider _filterProvider;
 
@@ -33,10 +36,23 @@ class _JobsPageState extends State<JobsPage> {
     super.initState();
     _filterProvider = JobFilterProvider();
     
+    // 监听滚动事件，实现分页加载
+    _scrollController.addListener(_onScroll);
+    
     // 页面加载后获取职位数据
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadJobs();
     });
+  }
+  
+  /// 滚动监听，检测是否滚动到底部
+  void _onScroll() {
+    if (_scrollController.position.pixels >= 
+        _scrollController.position.maxScrollExtent - 200) {
+      // 距离底部200像素时开始加载更多
+      const userId = 'default_user';
+      context.read<JobsProvider>().loadMoreJobs(userId);
+    }
   }
 
   /// 加载职位列表
@@ -49,6 +65,7 @@ class _JobsPageState extends State<JobsPage> {
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     _filterProvider.dispose();
     super.dispose();
   }
@@ -387,15 +404,51 @@ class _JobsPageState extends State<JobsPage> {
     }).toList();
 
     return ListView.builder(
+      controller: _scrollController,
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
-      itemCount: filteredJobs.length,
+      itemCount: filteredJobs.length + (provider.hasMore ? 1 : 0),
       itemBuilder: (context, index) {
+        // 加载更多指示器
+        if (index == filteredJobs.length) {
+          return _buildLoadingMoreIndicator();
+        }
+        
         final job = filteredJobs[index];
         return JobCard(
           job: job.toCardMap(),
           onTap: () => _showJobDetail(job, provider),
         );
       },
+    );
+  }
+  
+  /// 构建加载更多指示器
+  Widget _buildLoadingMoreIndicator() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      child: const Center(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.indigo500),
+              ),
+            ),
+            SizedBox(width: 12),
+            Text(
+              '加载更多职位...',
+              style: TextStyle(
+                color: AppColors.mutedForeground,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -562,44 +615,27 @@ class _JobsPageState extends State<JobsPage> {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      // 投递按钮
+                      // 跳转按钮
                       Expanded(
-                        child: ElevatedButton(
-                          onPressed: () => _handleSubmit(job, provider),
+                        child: ElevatedButton.icon(
+                          onPressed: job.sourceUrl != null && job.sourceUrl!.isNotEmpty
+                              ? () => _openSourceUrl(job.sourceUrl!)
+                              : null,
+                          icon: const Icon(Icons.open_in_new, size: 18),
+                          label: Text(AppStrings().jobs.viewOnBoss),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF6450C8),
                             foregroundColor: Colors.white,
+                            disabledBackgroundColor: AppColors.muted,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
                             ),
                           ),
-                          child: Text(AppStrings().jobs.applyNow),
                         ),
                       ),
                     ],
                   ),
-                  // 查看原链接按钮
-                  if (job.sourceUrl != null && job.sourceUrl!.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 12),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton.icon(
-                          onPressed: () => _openSourceUrl(job.sourceUrl!),
-                          icon: const Icon(Icons.open_in_new, size: 18),
-                          label: Text(AppStrings().jobs.viewOnBoss),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: const Color(0xFF6450C8),
-                            side: const BorderSide(color: Color(0xFF6450C8)),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
                 ],
               ),
             ),
@@ -607,24 +643,6 @@ class _JobsPageState extends State<JobsPage> {
         },
       ),
     );
-  }
-
-  /// 处理投递
-  void _handleSubmit(Job job, JobsProvider provider) async {
-    // TODO: 从用户状态获取真实用户ID
-    const userId = 'default_user';
-    
-    final success = await provider.submitJob(userId, job);
-
-    if (success && mounted) {
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppStrings().getStringWithParams(AppStrings().jobs.submitted, {'title': job.title})),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    }
   }
 
   /// 处理收藏切换

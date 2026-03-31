@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/theme.dart';
 import '../../../core/services/app_strings.dart';
 import '../providers/job_detail_provider.dart';
@@ -225,8 +226,11 @@ class _JobDetailPageContent extends StatelessWidget {
   }
 
   /// 构建底部操作栏
-  /// 包含沟通和投递简历按钮
+  /// 包含收藏和跳转到原平台按钮
   Widget _buildBottomBar(BuildContext context) {
+    final sourceUrl = job['sourceUrl'] as String?;
+    final hasSourceUrl = sourceUrl != null && sourceUrl.isNotEmpty;
+    
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
       decoration: BoxDecoration(
@@ -241,46 +245,39 @@ class _JobDetailPageContent extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // 立即沟通按钮
-          Expanded(
-            child: _buildOutlineButton(
-              label: AppStrings().jobs.communicateNow,
-              icon: Icons.chat_bubble_outline,
-              onPressed: () => _handleCommunicate(context),
-            ),
+          // 收藏按钮
+          Consumer<JobDetailProvider>(
+            builder: (context, provider, child) {
+              return GestureDetector(
+                onTap: () => _toggleFavorite(context, provider),
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: provider.isFavorited
+                        ? const Color(0xFFE8605A).withValues(alpha: 0.1)
+                        : const Color(0xFFF5F5F8),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                  ),
+                  child: Icon(
+                    provider.isFavorited ? Icons.favorite : Icons.favorite_border,
+                    color: provider.isFavorited
+                        ? const Color(0xFFE8605A)
+                        : AppColors.mutedForeground,
+                  ),
+                ),
+              );
+            },
           ),
           const SizedBox(width: 12),
-          // 投递简历按钮
+          // 跳转到原平台按钮
           Expanded(
-            flex: 2,
             child: _buildPrimaryButton(
-              label: AppStrings().jobs.submitResume,
-              icon: Icons.send_outlined,
-              onPressed: () => _handleApply(context),
+              label: AppStrings().jobs.viewOnBoss,
+              icon: Icons.open_in_new,
+              onPressed: hasSourceUrl ? () => _openSourceUrl(context, sourceUrl) : null,
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  /// 构建轮廓按钮
-  Widget _buildOutlineButton({
-    required String label,
-    required IconData icon,
-    required VoidCallback onPressed,
-  }) {
-    return OutlinedButton.icon(
-      onPressed: onPressed,
-      icon: Icon(icon, size: 18),
-      label: Text(label),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.indigo500,
-        side: const BorderSide(color: AppColors.indigo500, width: 1.5),
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        ),
       ),
     );
   }
@@ -289,11 +286,13 @@ class _JobDetailPageContent extends StatelessWidget {
   Widget _buildPrimaryButton({
     required String label,
     required IconData icon,
-    required VoidCallback onPressed,
+    required VoidCallback? onPressed,
   }) {
+    final isDisabled = onPressed == null;
     return Container(
       decoration: BoxDecoration(
-        gradient: AppColors.primaryGradient,
+        gradient: isDisabled ? null : AppColors.primaryGradient,
+        color: isDisabled ? AppColors.muted : null,
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
       ),
       child: ElevatedButton.icon(
@@ -360,66 +359,16 @@ class _JobDetailPageContent extends StatelessWidget {
     );
   }
 
-  /// 处理沟通
-  void _handleCommunicate(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(AppStrings().jobs.communicateDeveloping),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
-  /// 处理投递简历
-  void _handleApply(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        ),
-        title: Text(
-          AppStrings().jobs.submitConfirm,
-          style: AppTypography.labelMedium.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        content: Text(
-          AppStrings().jobs.submitConfirmMessage,
-          style: AppTypography.bodyMedium,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text(
-              AppStrings().common.cancel,
-              style: AppTypography.labelSmall.copyWith(
-                color: AppColors.mutedForeground,
-              ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(AppStrings().getStringWithParams(AppStrings().jobs.submitSuccess, {'title': job['title']})),
-                  duration: const Duration(seconds: 2),
-                  backgroundColor: AppColors.success,
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.indigo500,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-              ),
-            ),
-            child: Text(AppStrings().common.confirm),
-          ),
-        ],
-      ),
-    );
+  /// 打开职位原链接
+  Future<void> _openSourceUrl(BuildContext context, String url) async {
+    final uri = Uri.parse(url);
+    final canLaunch = await canLaunchUrl(uri);
+    if (canLaunch) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppStrings().jobs.cannotOpenLink)),
+      );
+    }
   }
 }

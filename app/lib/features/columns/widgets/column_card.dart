@@ -213,19 +213,23 @@ class ColumnCard extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-          decoration: BoxDecoration(
-            color: column.catBg,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            column.category,
-            style: TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.w700,
-              color: column.catColor,
-              letterSpacing: 0.03,
+        // 分类标签使用 Flexible 防止溢出
+        Flexible(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+            decoration: BoxDecoration(
+              color: column.catBg,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              column.category,
+              style: TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w700,
+                color: column.catColor,
+                letterSpacing: 0.03,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ),

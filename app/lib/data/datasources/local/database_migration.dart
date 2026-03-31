@@ -27,6 +27,8 @@ class DatabaseMigration {
         return _version9;
       case 10:
         return _version10;
+      case 11:
+        return _version11;
       default:
         return null;
     }
@@ -683,6 +685,84 @@ class DatabaseMigration {
     // 为好友表添加索引，用于查询收到的好友申请
     '''
     CREATE INDEX idx_friends_friend_id ON friends (friend_id)
+    ''',
+  ];
+
+  /// 版本11的迁移脚本
+  /// 添加向量记忆表和提醒事件表，支持RAG记忆体系
+  static final List<String> _version11 = [
+    // ==================== 向量记忆表 ====================
+    // 存储带向量嵌入的记忆，支持语义检索
+    '''
+    CREATE TABLE vector_memories (
+      id TEXT PRIMARY KEY,
+      pet_id TEXT NOT NULL,
+      type TEXT NOT NULL,
+      category TEXT NOT NULL,
+      content TEXT NOT NULL,
+      embedding BLOB,
+      importance REAL DEFAULT 0.5,
+      created_at TEXT NOT NULL,
+      expires_at TEXT,
+      metadata TEXT,
+      FOREIGN KEY (pet_id) REFERENCES pets(id) ON DELETE CASCADE
+    )
+    ''',
+
+    // 向量记忆表索引 - 按宠物ID查询
+    '''
+    CREATE INDEX idx_vector_memories_pet_id ON vector_memories (pet_id)
+    ''',
+
+    // 向量记忆表索引 - 按记忆类型查询
+    '''
+    CREATE INDEX idx_vector_memories_type ON vector_memories (type)
+    ''',
+
+    // 向量记忆表索引 - 按重要性查询
+    '''
+    CREATE INDEX idx_vector_memories_importance ON vector_memories (importance DESC)
+    ''',
+
+    // 向量记忆表索引 - 按创建时间查询
+    '''
+    CREATE INDEX idx_vector_memories_created_at ON vector_memories (created_at DESC)
+    ''',
+
+    // 向量记忆表索引 - 按过期时间查询（用于清理过期记忆）
+    '''
+    CREATE INDEX idx_vector_memories_expires_at ON vector_memories (expires_at)
+    ''',
+
+    // ==================== 提醒事件表 ====================
+    // 存储基于记忆的提醒事件（如面试提醒、重要日期提醒）
+    '''
+    CREATE TABLE alert_events (
+      id TEXT PRIMARY KEY,
+      pet_id TEXT NOT NULL,
+      memory_id TEXT NOT NULL,
+      event_type TEXT NOT NULL,
+      event_time TEXT NOT NULL,
+      remind_before INTEGER DEFAULT 60,
+      is_triggered INTEGER DEFAULT 0,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (memory_id) REFERENCES vector_memories(id) ON DELETE CASCADE
+    )
+    ''',
+
+    // 提醒事件表索引 - 按宠物ID查询
+    '''
+    CREATE INDEX idx_alert_events_pet_id ON alert_events (pet_id)
+    ''',
+
+    // 提醒事件表索引 - 按事件时间查询
+    '''
+    CREATE INDEX idx_alert_events_event_time ON alert_events (event_time)
+    ''',
+
+    // 提醒事件表索引 - 按是否已触发查询
+    '''
+    CREATE INDEX idx_alert_events_is_triggered ON alert_events (is_triggered)
     ''',
   ];
 }

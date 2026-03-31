@@ -117,12 +117,28 @@ class _ColumnsPageState extends State<ColumnsPage>
       children: [
         Container(
           color: AppColors.archiveBackground,
-          child: Column(
-            children: [
-              _buildHeroBanner(),
-              _buildSectionHeader(),
-              _buildCategoryFilter(),
-              Expanded(child: _buildColumnGrid()),
+          child: CustomScrollView(
+            slivers: [
+              // Hero Banner 横幅区域（可滚出屏幕）
+              SliverToBoxAdapter(
+                child: _buildHeroBanner(),
+              ),
+              // 区域标题（可滚出屏幕）
+              SliverToBoxAdapter(
+                child: _buildSectionHeader(),
+              ),
+              // 分类筛选标签（固定在顶部）
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: _CategoryFilterDelegate(
+                  selectedCategory: _selectedCategory,
+                  onCategorySelected: (index) {
+                    setState(() => _selectedCategory = index);
+                  },
+                ),
+              ),
+              // 专栏卡片网格
+              _buildColumnGrid(),
             ],
           ),
         ),
@@ -140,6 +156,54 @@ class _ColumnsPageState extends State<ColumnsPage>
             ),
           ),
       ],
+    );
+  }
+  
+  /// 区域标题
+  Widget _buildSectionHeader() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                '全套档案馆',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.archiveText,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '共 ${ColumnData.columns.length} 份专栏 · 持续更新中',
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: AppColors.archiveTextMuted,
+                ),
+              ),
+            ],
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.archiveCardStart,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Text(
+              '🗂️ 档案馆',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: AppColors.archiveTextMuted,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -311,139 +375,42 @@ class _ColumnsPageState extends State<ColumnsPage>
     );
   }
 
-  /// 区域标题
-  Widget _buildSectionHeader() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                '全套档案馆',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.archiveText,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                '共 ${ColumnData.columns.length} 份专栏 · 持续更新中',
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: AppColors.archiveTextMuted,
-                ),
-              ),
-            ],
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.archiveCardStart,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Text(
-              '🗂️ 档案馆',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: AppColors.archiveTextMuted,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 分类筛选标签
-  Widget _buildCategoryFilter() {
-    return SizedBox(
-      height: 36,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: ColumnData.categories.length,
-        itemBuilder: (context, index) {
-          final isSelected = index == _selectedCategory;
-          return TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0.0, end: 1.0),
-            duration: Duration(milliseconds: 200 + index * 50),
-            curve: Curves.easeOut,
-            builder: (context, value, child) {
-              return Transform.translate(
-                offset: Offset(-6 * (1 - value), 0),
-                child: Opacity(
-                  opacity: value,
-                  child: child,
-                ),
-              );
-            },
-            child: GestureDetector(
-              onTap: () => setState(() => _selectedCategory = index),
-              child: Container(
-                margin: const EdgeInsets.only(right: 8),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? AppColors.archiveAccent
-                      : AppColors.archiveAccent.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Text(
-                  ColumnData.categories[index],
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                    color: isSelected ? Colors.white : AppColors.archiveTextMuted,
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  /// 专栏卡片网格
-  /// 专栏卡片网格
+  /// 专栏卡片网格（使用 SliverGrid 支持滚动）
   Widget _buildColumnGrid() {
     // 如果正在加载购买状态，显示加载指示器
     if (_isLoadingPurchaseStatus) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(32),
-          child: CircularProgressIndicator(),
+      return SliverToBoxAdapter(
+        child: Container(
+          height: 200,
+          alignment: Alignment.center,
+          child: const CircularProgressIndicator(),
         ),
       );
     }
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 80),
-      child: GridView.builder(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
+      sliver: SliverGrid(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           mainAxisSpacing: 12,
           crossAxisSpacing: 12,
           childAspectRatio: 0.82,
         ),
-        itemCount: ColumnData.columns.length,
-        itemBuilder: (context, index) {
-          final column = ColumnData.columns[index];
-          final isPurchased = _purchasedColumnIds.contains(column.id);
-          return ColumnCard(
-            column: column,
-            index: index,
-            onPreview: () => _showPreview(column),
-            onTap: column.isOffline ? null : () => _navigateToDetail(column),
-            isPurchased: isPurchased,
-          );
-        },
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            final column = ColumnData.columns[index];
+            final isPurchased = _purchasedColumnIds.contains(column.id);
+            return ColumnCard(
+              column: column,
+              index: index,
+              onPreview: () => _showPreview(column),
+              onTap: column.isOffline ? null : () => _navigateToDetail(column),
+              isPurchased: isPurchased,
+            );
+          },
+          childCount: ColumnData.columns.length,
+        ),
       ),
     );
   }
@@ -469,5 +436,74 @@ class _ColumnsPageState extends State<ColumnsPage>
         ),
       ),
     );
+  }
+}
+
+/// 分类筛选栏的持久化头部代理
+/// 实现滚动时固定在顶部的效果
+class _CategoryFilterDelegate extends SliverPersistentHeaderDelegate {
+  final int selectedCategory;
+  final ValueChanged<int> onCategorySelected;
+
+  _CategoryFilterDelegate({
+    required this.selectedCategory,
+    required this.onCategorySelected,
+  });
+
+  static const double _filterHeight = 44.0; // 分类筛选栏高度（包含上下padding）
+
+  @override
+  double get minExtent => _filterHeight;
+
+  @override
+  double get maxExtent => _filterHeight;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return Container(
+      color: AppColors.archiveBackground,
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: SizedBox(
+        height: 36,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemCount: ColumnData.categories.length,
+          itemBuilder: (context, index) {
+            final isSelected = index == selectedCategory;
+            return GestureDetector(
+              onTap: () => onCategorySelected(index),
+              child: Container(
+                margin: const EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.archiveAccent
+                      : AppColors.archiveAccent.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Text(
+                  ColumnData.categories[index],
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                    color: isSelected ? Colors.white : AppColors.archiveTextMuted,
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant _CategoryFilterDelegate oldDelegate) {
+    return selectedCategory != oldDelegate.selectedCategory;
   }
 }

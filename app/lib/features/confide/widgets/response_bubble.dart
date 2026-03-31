@@ -53,7 +53,14 @@ class ResponseBubbleState extends State<ResponseBubble> {
     if (oldWidget.text != widget.text) {
       if (widget.enableStreaming) {
         // 流式模式下，追加新文本
-        _appendText(widget.text.substring(_displayText.length));
+        // 边界检查：确保 _displayText.length 不超过 widget.text.length
+        if (_displayText.length < widget.text.length) {
+          _appendText(widget.text.substring(_displayText.length));
+        } else if (_displayText.length > widget.text.length) {
+          // 新文本比已显示文本短，直接替换
+          _displayText = widget.text;
+        }
+        // 如果相等，无需操作
       } else {
         // 非流式模式，直接更新
         _displayText = widget.text;
