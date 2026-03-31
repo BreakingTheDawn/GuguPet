@@ -3,6 +3,8 @@ import '../../features/confide/services/ai_config_service.dart';
 import '../../features/confide/services/chat_service.dart';
 import '../../features/confide/providers/confide_provider.dart';
 import '../../features/park/services/park_unlock_service.dart';
+import '../../features/pet/providers/rag_service_provider.dart';
+import '../../data/datasources/local/database_helper.dart';
 import '../services/llm_config.dart';
 import '../services/llm_provider.dart';
 import '../services/multi_llm_service.dart';
@@ -30,6 +32,9 @@ class ServiceProvider {
   
   // 公园解锁服务（新增）
   ParkUnlockService? _parkUnlockService;
+  
+  // RAG服务提供者（新增）
+  RAGServiceProvider? _ragServiceProvider;
 
   /// 初始化服务
   /// [userId] 当前登录用户的ID，用于隔离用户数据
@@ -59,6 +64,9 @@ class ServiceProvider {
     
     // 将多模型服务传递给ChatService
     _chatService.updateMultiLLMService(_multiLLMService);
+    
+    // 初始化RAG服务
+    await _initializeRAGService();
     
     // 初始化公园解锁服务
     _initializeParkUnlockService();
@@ -105,6 +113,34 @@ class ServiceProvider {
       _parkUnlockService = null;
     }
   }
+  
+  /// 初始化RAG服务
+  Future<void> _initializeRAGService() async {
+    try {
+      debugPrint('>>> 初始化RAG服务');
+      
+      _ragServiceProvider = RAGServiceProvider();
+      
+      // 获取数据库实例
+      final database = await DatabaseHelper().database;
+      
+      // 初始化RAG服务
+      await _ragServiceProvider!.initialize(database);
+      
+      // 将检索服务注入到ChatService
+      if (_ragServiceProvider!.isReady) {
+        _chatService.updateRetrievalService(
+          _ragServiceProvider!.retrievalService,
+          petId: null, // 后续在用户登录后设置
+        );
+      }
+      
+      debugPrint('RAG服务初始化完成');
+    } catch (e) {
+      debugPrint('RAG服务初始化失败: $e');
+      _ragServiceProvider = null;
+    }
+  }
 
   /// 切换用户
   /// 调用此方法切换到新用户时，会重新加载该用户的AI配置
@@ -112,6 +148,20 @@ class ServiceProvider {
     await _aiConfigService.switchUser(userId);
     // 重新初始化多模型服务
     await _initializeMultiLLMService();
+    
+    // 更新RAG服务的宠物ID
+    if (_ragServiceProvider?.isReady == true) {
+      // 获取用户的宠物ID
+      try {
+        final pet = await repositoryProvider.petRepository.getPetByUserId(userId);
+        if (pet != null) {
+          _chatService.setCurrentPetId(pet.id);
+          debugPrint('RAG服务已更新宠物ID: ${pet.id}');
+        }
+      } catch (e) {
+        debugPrint('更新RAG服务宠物ID失败: $e');
+      }
+    }
   }
 
   /// 更新LLM服务（兼容旧代码）
@@ -183,6 +233,9 @@ class ServiceProvider {
   
   /// 获取公园解锁服务
   ParkUnlockService? get parkUnlockService => _parkUnlockService;
+  
+  /// 获取RAG服务提供者
+  RAGServiceProvider? get ragServiceProvider => _ragServiceProvider;
 
   /// 检查是否可以使用AI模式（优先检查多模型服务）
   bool get canUseAIMode {

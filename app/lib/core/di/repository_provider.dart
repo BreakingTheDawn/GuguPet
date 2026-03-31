@@ -6,6 +6,8 @@ import '../../data/repositories/job_repository.dart';
 import '../../data/repositories/job_repository_impl.dart';
 import '../../data/repositories/column_repository.dart';
 import '../../data/repositories/column_repository_impl.dart';
+import '../../data/datasources/local/database_helper.dart';
+import '../../features/pet/data/datasources/pet_local_datasource.dart';
 
 class RepositoryProvider {
   static final RepositoryProvider _instance = RepositoryProvider._internal();
@@ -37,12 +39,14 @@ class RepositoryProvider {
     return _columnRepository!;
   }
 
-  void reset() {
-    _userRepository = null;
-    _interactionRepository = null;
-    _jobRepository = null;
-    _columnRepository = null;
-  }
+  /// 获取数据库实例（异步）
+  Future<dynamic> get database async => DatabaseHelper().database;
+  
+  /// 获取宠物数据源
+  PetLocalDatasource get petDatasource => PetLocalDatasource();
+  
+  /// 获取宠物仓库（兼容旧代码）
+  dynamic get petRepository => petDatasource;
 }
 
 final repositoryProvider = RepositoryProvider();

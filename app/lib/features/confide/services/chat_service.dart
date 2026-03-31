@@ -10,6 +10,7 @@ import '../data/models/emotion_response.dart';
 import '../data/datasources/chat_local_datasource.dart';
 import 'ai_config_service.dart';
 import '../../pet/services/retrieval_service.dart';
+import '../../pet/data/models/vector_memory.dart';
 
 /// 对话模式
 enum ChatMode {
@@ -305,6 +306,14 @@ class ChatService extends ChangeNotifier {
       _currentSession = _currentSession!.addMessage(assistantMsg);
       await _localDatasource.addMessage(_currentSession!.sessionId, assistantMsg);
 
+      // === 对话后记忆存储 ===
+      await _storeConversationMemory(
+        userMessage: userMessage,
+        assistantResponse: emotionResponse.content,
+        emotion: emotionResponse.emotionName,
+      );
+      // === 记忆存储结束 ===
+
       _currentMode = ChatMode.ai;
       _isLoading = false;
       notifyListeners();
@@ -434,5 +443,164 @@ class ChatService extends ChangeNotifier {
     await _localDatasource.clearAllSessions(userId);
     _currentSession = null;
     notifyListeners();
+  }
+
+  /// 存储对话记忆到向量数据库
+  /// 在对话完成后自动调用，将重要信息存储为向量记忆
+  Future<void> _storeConversationMemory({
+    required String userMessage,
+    required String assistantResponse,
+    required String emotion,
+  }) async {
+    // 检查RAG服务是否可用
+    if (_retrievalService == null || _currentPetId == null) {
+      debugPrint('📚 RAG服务未初始化，跳过记忆存储');
+      return;
+    }
+
+    try {
+      // 1. 存储用户消息作为短期记忆
+      await _storeMemory(
+        content: '用户说: $userMessage',
+        type: MemoryType.shortTerm,
+        category: MemoryCategory.emotion,
+        importance: _calculateImportance(userMessage),
+      );
+
+      // 2. 检测是否有关键事件需要存储
+      final keyEvent = _detectKeyEvent(userMessage, assistantResponse);
+      if (keyEvent != null) {
+        await _storeMemory(
+          content: keyEvent,
+          type: MemoryType.keyEvent,
+          category: MemoryCategory.job,
+          importance: 1.0,
+        );
+        debugPrint('📚 检测到关键事件，已存储: $keyEvent');
+      }
+
+      // 3. 检测是否有用户偏好需要存储
+      final preference = _detectPreference(userMessage);
+      if (preference != null) {
+        await _storeMemory(
+          content: preference,
+          type: MemoryType.preference,
+          category: MemoryCategory.preference,
+          importance: 0.8,
+        );
+        debugPrint('📚 检测到用户偏好，已存储: $preference');
+      }
+
+      debugPrint('📚 对话记忆存储完成');
+    } catch (e) {
+      debugPrint('⚠️ 存储对话记忆失败: $e');
+    }
+  }
+
+  /// 存储单条记忆
+  Future<void> _storeMemory({
+    required String content,
+    required MemoryType type,
+    required MemoryCategory category,
+    required double importance,
+  }) async {
+    if (_retrievalService == null || _currentPetId == null) return;
+
+    try {
+      // 生成向量嵌入
+      final embedding = await _retrievalService!.embed(content);
+      if (embedding.isEmpty) {
+        debugPrint('⚠️ 生成向量嵌入失败');
+        return;
+      }
+
+      // 创建记忆对象
+      final memory = VectorMemory(
+        id: 'mem_${DateTime.now().millisecondsSinceEpoch}_${type.name}',
+        petId: _currentPetId!,
+        type: type,
+        category: category,
+        content: content,
+        embedding: embedding,
+        importance: importance,
+        createdAt: DateTime.now(),
+        expiresAt: type == MemoryType.shortTerm
+            ? DateTime.now().add(const Duration(hours: 24))
+            : null,
+      );
+
+      // 通过检索服务存储
+      await _retrievalService!.index(memory);
+    } catch (e) {
+      debugPrint('⚠️ 存储记忆失败: $e');
+    }
+  }
+
+  /// 计算消息重要性
+  double _calculateImportance(String message) {
+    // 基于消息长度和关键词判断重要性
+    var importance = 0.3;
+
+    // 长消息更重要
+    if (message.length > 100) importance += 0.2;
+    if (message.length > 200) importance += 0.1;
+
+    // 包含关键事件关键词
+    final keyEventKeywords = ['面试', 'offer', '入职', '离职', '升职', '转正'];
+    for (final keyword in keyEventKeywords) {
+      if (message.contains(keyword)) {
+        importance += 0.3;
+        break;
+      }
+    }
+
+    return importance.clamp(0.0, 1.0);
+  }
+
+  /// 检测关键事件
+  String? _detectKeyEvent(String userMessage, String assistantResponse) {
+    final keyEventPatterns = [
+      {'pattern': RegExp(r'面试'), 'template': '有面试安排'},
+      {'pattern': RegExp(r'offer|录取|录用'), 'template': '收到Offer'},
+      {'pattern': RegExp(r'入职'), 'template': '即将入职新公司'},
+      {'pattern': RegExp(r'离职|辞职'), 'template': '从公司离职'},
+      {'pattern': RegExp(r'升职|晋升'), 'template': '获得晋升'},
+      {'pattern': RegExp(r'转正'), 'template': '工作转正'},
+    ];
+
+    for (final item in keyEventPatterns) {
+      final pattern = item['pattern'] as RegExp;
+      final template = item['template'] as String;
+      
+      if (pattern.hasMatch(userMessage) || pattern.hasMatch(assistantResponse)) {
+        // 提取具体信息
+        final match = pattern.firstMatch(userMessage);
+        if (match != null) {
+          return '$template: ${userMessage.substring(0, userMessage.length > 100 ? 100 : userMessage.length)}';
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /// 检测用户偏好
+  String? _detectPreference(String message) {
+    final preferencePatterns = [
+      RegExp(r'我喜欢(.{1,20})'),
+      RegExp(r'我希望(.{1,20})'),
+      RegExp(r'我想要(.{1,20})'),
+      RegExp(r'我不喜欢(.{1,20})'),
+      RegExp(r'我讨厌(.{1,20})'),
+    ];
+
+    for (final pattern in preferencePatterns) {
+      final match = pattern.firstMatch(message);
+      if (match != null) {
+        return '用户偏好: ${match.group(0)}';
+      }
+    }
+
+    return null;
   }
 }

@@ -48,6 +48,12 @@ abstract class RetrievalService {
     required MemoryCategory category,
     double importance = 0.5,
   });
+
+  /// 获取文本的向量嵌入
+  Future<List<double>> embed(String text);
+
+  /// 緻加记忆到索引
+  Future<void> index(VectorMemory memory);
 }
 
 /// 检索服务实现
@@ -166,6 +172,16 @@ class RetrievalServiceImpl implements RetrievalService {
           : null,
     );
 
+    await _datasource.insertMemory(memory);
+  }
+
+  @override
+  Future<List<double>> embed(String text) async {
+    return await _embeddingService.embed(text);
+  }
+
+  @override
+  Future<void> index(VectorMemory memory) async {
     await _datasource.insertMemory(memory);
   }
 
