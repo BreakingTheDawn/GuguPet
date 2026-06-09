@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import '../../../core/utils/logger_service.dart';
 import 'database_migration.dart';
+import 'database_migration_runner.dart';
 
 /// SQLite数据库帮助类
 /// 采用单例模式管理数据库实例
@@ -17,7 +18,7 @@ class DatabaseHelper {
 
   // 数据库实例
   static Database? _database;
-  
+
   // 用于保证数据库初始化只执行一次的 Completer
   // 解决并发访问时的竞态条件问题
   static Completer<Database>? _completer;
@@ -25,6 +26,8 @@ class DatabaseHelper {
   // 数据库配置常量
   static const String _databaseName = 'gugupet.db';
   static const int _databaseVersion = 12;
+  static const DatabaseMigrationRunner _migrationRunner =
+      DatabaseMigrationRunner();
 
   /// 获取数据库实例
   /// 使用 Completer 确保并发安全，避免竞态条件
@@ -32,13 +35,13 @@ class DatabaseHelper {
   Future<Database> get database async {
     // 如果数据库已初始化，直接返回
     if (_database != null) return _database!;
-    
+
     // 如果正在初始化，等待完成
     if (_completer != null) return _completer!.future;
-    
+
     // 开始初始化
     _completer = Completer<Database>();
-    
+
     try {
       _database = await _initDatabase();
       _completer!.complete(_database!);
@@ -56,13 +59,14 @@ class DatabaseHelper {
   Future<Database> _initDatabase() async {
     try {
       // 获取应用文档目录
-      final Directory documentsDirectory = await getApplicationDocumentsDirectory();
-      
+      final Directory documentsDirectory =
+          await getApplicationDocumentsDirectory();
+
       // 拼接数据库完整路径
       final String path = join(documentsDirectory.path, _databaseName);
-      
+
       AppLogger.debug('[DatabaseHelper] 初始化数据库: $path');
-      
+
       // 打开数据库，如果不存在则创建
       final db = await openDatabase(
         path,
@@ -71,7 +75,7 @@ class DatabaseHelper {
         onUpgrade: _onUpgrade,
         onConfigure: _onConfigure,
       );
-      
+
       AppLogger.info('[DatabaseHelper] 数据库初始化成功，版本: $_databaseVersion');
       return db;
     } catch (e, stackTrace) {
@@ -98,7 +102,7 @@ class DatabaseHelper {
   /// 使用事务确保迁移的原子性
   Future<void> _onCreate(Database db, int version) async {
     AppLogger.debug('[DatabaseHelper] 创建数据库，目标版本: $version');
-    
+
     try {
       // 使用事务包装所有迁移脚本，确保原子性
       await db.transaction((txn) async {
@@ -106,14 +110,18 @@ class DatabaseHelper {
         for (int i = 1; i <= version; i++) {
           final migration = DatabaseMigration.getMigration(i);
           if (migration != null) {
-            AppLogger.debug('[DatabaseHelper] 执行迁移脚本 v$i，共 ${migration.length} 条SQL');
-            for (final sql in migration) {
-              await txn.execute(sql);
-            }
+            AppLogger.debug(
+              '[DatabaseHelper] 执行迁移脚本 v$i，共 ${migration.length} 条SQL',
+            );
+            await _migrationRunner.runMigrationBatch(
+              txn,
+              version: i,
+              statements: migration,
+            );
           }
         }
       });
-      
+
       AppLogger.info('[DatabaseHelper] 数据库创建成功');
     } catch (e, stackTrace) {
       AppLogger.error('[DatabaseHelper] 数据库创建失败: $e');
@@ -127,7 +135,7 @@ class DatabaseHelper {
   /// 使用事务确保迁移的原子性
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     AppLogger.debug('[DatabaseHelper] 升级数据库: v$oldVersion -> v$newVersion');
-    
+
     try {
       // 使用事务包装所有迁移脚本，确保原子性
       await db.transaction((txn) async {
@@ -135,14 +143,18 @@ class DatabaseHelper {
         for (int i = oldVersion + 1; i <= newVersion; i++) {
           final migration = DatabaseMigration.getMigration(i);
           if (migration != null) {
-            AppLogger.debug('[DatabaseHelper] 执行迁移脚本 v$i，共 ${migration.length} 条SQL');
-            for (final sql in migration) {
-              await txn.execute(sql);
-            }
+            AppLogger.debug(
+              '[DatabaseHelper] 执行迁移脚本 v$i，共 ${migration.length} 条SQL',
+            );
+            await _migrationRunner.runMigrationBatch(
+              txn,
+              version: i,
+              statements: migration,
+            );
           }
         }
       });
-      
+
       AppLogger.info('[DatabaseHelper] 数据库升级成功');
     } catch (e, stackTrace) {
       AppLogger.error('[DatabaseHelper] 数据库升级失败: $e');
@@ -170,21 +182,22 @@ class DatabaseHelper {
   /// 注意：此方法会删除所有数据，请谨慎使用
   Future<void> resetDatabase() async {
     try {
-      final Directory documentsDirectory = await getApplicationDocumentsDirectory();
+      final Directory documentsDirectory =
+          await getApplicationDocumentsDirectory();
       final String path = join(documentsDirectory.path, _databaseName);
-      
+
       AppLogger.debug('[DatabaseHelper] 开始重置数据库: $path');
-      
+
       // 先关闭连接
       await close();
-      
+
       // 删除数据库文件
       final file = File(path);
       if (await file.exists()) {
         await file.delete();
         AppLogger.info('[DatabaseHelper] 数据库文件已删除');
       }
-      
+
       AppLogger.info('[DatabaseHelper] 数据库重置成功');
     } catch (e, stackTrace) {
       AppLogger.error('[DatabaseHelper] 重置数据库失败: $e');
@@ -194,33 +207,33 @@ class DatabaseHelper {
   }
 
   // ==================== 表名常量 ====================
-  
+
   /// 用户表名
   static const String tableUsers = 'users';
-  
+
   /// 交互记录表名
   static const String tableInteractions = 'interactions';
-  
+
   /// 求职事件表名
   static const String tableJobEvents = 'job_events';
-  
+
   /// 收藏职位表名
   static const String tableFavoriteJobs = 'favorite_jobs';
-  
+
   /// 专栏购买记录表名
   static const String tablePurchasedColumns = 'purchased_columns';
-  
+
   /// 专栏收藏记录表名
   static const String tableFavoriteColumns = 'favorite_columns';
-  
+
   /// 通知消息表名
   static const String tableNotifications = 'notifications';
-  
+
   /// 通知设置表名
   static const String tableNotificationSettings = 'notification_settings';
 
   // ==================== 用户表字段常量 ====================
-  
+
   static const String columnUserId = 'user_id';
   static const String columnUserName = 'user_name';
   static const String columnJobIntention = 'job_intention';
@@ -236,7 +249,7 @@ class DatabaseHelper {
   static const String columnUpdatedAt = 'updated_at';
 
   // ==================== 交互记录表字段常量 ====================
-  
+
   static const String columnId = 'id';
   static const String columnContent = 'content';
   static const String columnActionType = 'action_type';
@@ -245,7 +258,7 @@ class DatabaseHelper {
   static const String columnPetBubble = 'pet_bubble';
 
   // ==================== 求职事件表字段常量 ====================
-  
+
   static const String columnEventType = 'event_type';
   static const String columnEventContent = 'event_content';
   static const String columnCompanyName = 'company_name';
@@ -253,7 +266,7 @@ class DatabaseHelper {
   static const String columnEventTime = 'event_time';
 
   // ==================== 收藏职位表字段常量 ====================
-  
+
   static const String columnJobId = 'job_id';
   static const String columnJobTitle = 'job_title';
   static const String columnSalaryRange = 'salary_range';
@@ -261,14 +274,14 @@ class DatabaseHelper {
   static const String columnJobTags = 'job_tags';
 
   // ==================== 专栏购买记录表字段常量 ====================
-  
+
   static const String columnColumnId = 'column_id';
   static const String columnPurchaseType = 'purchase_type';
   static const String columnPurchasePrice = 'purchase_price';
   static const String columnPurchasedAt = 'purchased_at';
 
   // ==================== 通知消息表字段常量 ====================
-  
+
   static const String columnType = 'type';
   static const String columnTitle = 'title';
   static const String columnExtraData = 'extra_data';
@@ -278,7 +291,7 @@ class DatabaseHelper {
   static const String columnSentAt = 'sent_at';
 
   // ==================== 通知设置表字段常量 ====================
-  
+
   static const String columnInterviewEnabled = 'interview_enabled';
   static const String columnJobStatusEnabled = 'job_status_enabled';
   static const String columnColumnUpdateEnabled = 'column_update_enabled';
