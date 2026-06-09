@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/platform/platform_capabilities.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
 import '../data/column_data.dart';
@@ -15,7 +16,9 @@ import '../../../features/auth/data/datasources/auth_local_datasource.dart';
 
 /// 付费专栏主页面
 class ColumnsPage extends StatefulWidget {
-  const ColumnsPage({super.key});
+  const ColumnsPage({super.key, this.capabilities});
+
+  final PlatformCapabilities? capabilities;
 
   @override
   State<ColumnsPage> createState() => _ColumnsPageState();
@@ -78,6 +81,13 @@ class _ColumnsPageState extends State<ColumnsPage>
 
   /// 加载用户购买状态
   Future<void> _loadPurchasedStatus() async {
+    // Web can browse column content, but local purchase state is SQLite-backed.
+    final capabilities = widget.capabilities ?? PlatformCapabilities.current;
+    if (!capabilities.supportsLocalSqlite) {
+      _isLoadingPurchaseStatus = false;
+      return;
+    }
+
     try {
       // 获取当前用户ID
       final authDatasource = AuthLocalDatasource();
@@ -85,13 +95,15 @@ class _ColumnsPageState extends State<ColumnsPage>
       final userId = authUser?.userId ?? 'default_user';
 
       // 获取用户已购买的专栏列表
-      final purchasedColumns =
-          await _columnRepository.getPurchasedColumns(userId);
+      final purchasedColumns = await _columnRepository.getPurchasedColumns(
+        userId,
+      );
 
       if (mounted) {
         setState(() {
-          _purchasedColumnIds =
-              purchasedColumns.map((p) => int.parse(p.columnId)).toSet();
+          _purchasedColumnIds = purchasedColumns
+              .map((p) => int.parse(p.columnId))
+              .toSet();
           _isLoadingPurchaseStatus = false;
         });
       }
@@ -120,13 +132,9 @@ class _ColumnsPageState extends State<ColumnsPage>
           child: CustomScrollView(
             slivers: [
               // Hero Banner 横幅区域（可滚出屏幕）
-              SliverToBoxAdapter(
-                child: _buildHeroBanner(),
-              ),
+              SliverToBoxAdapter(child: _buildHeroBanner()),
               // 区域标题（可滚出屏幕）
-              SliverToBoxAdapter(
-                child: _buildSectionHeader(),
-              ),
+              SliverToBoxAdapter(child: _buildSectionHeader()),
               // 分类筛选标签（固定在顶部）
               SliverPersistentHeader(
                 pinned: true,
@@ -142,12 +150,7 @@ class _ColumnsPageState extends State<ColumnsPage>
             ],
           ),
         ),
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: const BottomCTA(),
-        ),
+        Positioned(left: 0, right: 0, bottom: 0, child: const BottomCTA()),
         if (_previewColumn != null)
           Positioned.fill(
             child: PreviewModal(
@@ -158,7 +161,7 @@ class _ColumnsPageState extends State<ColumnsPage>
       ],
     );
   }
-  
+
   /// 区域标题
   Widget _buildSectionHeader() {
     return Padding(
@@ -297,10 +300,7 @@ class _ColumnsPageState extends State<ColumnsPage>
               builder: (context, value, child) {
                 return Transform.translate(
                   offset: Offset(0, 14 * (1 - value)),
-                  child: Opacity(
-                    opacity: value,
-                    child: child,
-                  ),
+                  child: Opacity(opacity: value, child: child),
                 );
               },
               child: Column(
@@ -397,20 +397,17 @@ class _ColumnsPageState extends State<ColumnsPage>
           crossAxisSpacing: 12,
           childAspectRatio: 0.82,
         ),
-        delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            final column = ColumnData.columns[index];
-            final isPurchased = _purchasedColumnIds.contains(column.id);
-            return ColumnCard(
-              column: column,
-              index: index,
-              onPreview: () => _showPreview(column),
-              onTap: column.isOffline ? null : () => _navigateToDetail(column),
-              isPurchased: isPurchased,
-            );
-          },
-          childCount: ColumnData.columns.length,
-        ),
+        delegate: SliverChildBuilderDelegate((context, index) {
+          final column = ColumnData.columns[index];
+          final isPurchased = _purchasedColumnIds.contains(column.id);
+          return ColumnCard(
+            column: column,
+            index: index,
+            onPreview: () => _showPreview(column),
+            onTap: column.isOffline ? null : () => _navigateToDetail(column),
+            isPurchased: isPurchased,
+          );
+        }, childCount: ColumnData.columns.length),
       ),
     );
   }
@@ -426,13 +423,9 @@ class _ColumnsPageState extends State<ColumnsPage>
       MaterialPageRoute(
         builder: (context) => ChangeNotifierProvider(
           create: (_) => ColumnProvider(
-            columnService: ColumnService(
-              repository: _columnRepository,
-            ),
+            columnService: ColumnService(repository: _columnRepository),
           ),
-          child: ColumnDetailPage(
-            columnId: column.id.toString(),
-          ),
+          child: ColumnDetailPage(columnId: column.id.toString()),
         ),
       ),
     );
@@ -479,7 +472,10 @@ class _CategoryFilterDelegate extends SliverPersistentHeaderDelegate {
               onTap: () => onCategorySelected(index),
               child: Container(
                 margin: const EdgeInsets.only(right: 8),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: isSelected
                       ? AppColors.archiveAccent
@@ -491,7 +487,9 @@ class _CategoryFilterDelegate extends SliverPersistentHeaderDelegate {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                    color: isSelected ? Colors.white : AppColors.archiveTextMuted,
+                    color: isSelected
+                        ? Colors.white
+                        : AppColors.archiveTextMuted,
                   ),
                 ),
               ),
