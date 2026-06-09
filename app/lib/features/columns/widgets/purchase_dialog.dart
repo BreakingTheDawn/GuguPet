@@ -100,10 +100,7 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
         builder: (context, value, child) {
           return Transform.scale(
             scale: 0.9 + (0.1 * value),
-            child: Opacity(
-              opacity: value,
-              child: child,
-            ),
+            child: Opacity(opacity: value, child: child),
           );
         },
         child: Material(
@@ -296,10 +293,7 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
           const Expanded(
             child: Text(
               '专栏价格',
-              style: TextStyle(
-                fontSize: 13,
-                color: AppColors.archiveTextMuted,
-              ),
+              style: TextStyle(fontSize: 13, color: AppColors.archiveTextMuted),
             ),
           ),
           // 价格数值
@@ -348,19 +342,15 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
                   gradient: AppColors.purchaseDialogGradient,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(
-                  Icons.star,
-                  color: Colors.white,
-                  size: 16,
-                ),
+                child: const Icon(Icons.star, color: Colors.white, size: 16),
               ),
               const SizedBox(width: 10),
               Text(
                 'VIP会员特权',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.error,
+                  color: AppColors.archiveButtonText,
                 ),
               ),
             ],
@@ -369,9 +359,9 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
           // VIP说明
           Text(
             'VIP会员可免费阅读所有专栏',
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 12,
-              color: AppColors.destructive,
+              color: AppColors.archiveButtonTextMuted,
               height: 1.4,
             ),
           ),
@@ -460,15 +450,10 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
       child: Row(
         children: [
           // 取消按钮
-          Expanded(
-            child: _buildCancelButton(context),
-          ),
+          Expanded(child: _buildCancelButton(context)),
           const SizedBox(width: 12),
           // 确认按钮
-          Expanded(
-            flex: 2,
-            child: _buildConfirmButton(context),
-          ),
+          Expanded(flex: 2, child: _buildConfirmButton(context)),
         ],
       ),
     );
@@ -502,7 +487,7 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
   Widget _buildConfirmButton(BuildContext context) {
     return _ShimmerPurchaseButton(
       text: widget.isVipUser ? '立即阅读' : '确认购买',
-      onTap: () => _handlePurchase(context),
+      onTap: _handlePurchase,
     );
   }
 
@@ -511,11 +496,11 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
   // ────────────────────────────────────────────────────────────────────────────
 
   /// 处理购买操作
-  Future<void> _handlePurchase(BuildContext ctx) async {
+  Future<void> _handlePurchase() async {
     try {
       // 显示加载提示
       showDialog(
-        context: ctx,
+        context: context,
         barrierDismissible: false,
         builder: (dialogCtx) => const Center(
           child: CircularProgressIndicator(
@@ -531,13 +516,13 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
       if (!mounted) return;
 
       // 关闭加载提示
-      Navigator.of(ctx).pop();
+      Navigator.of(context).pop();
 
       // VIP用户免费领取
       if (widget.isVipUser) {
         // 保存VIP免费领取记录到数据库
         await _saveVipPurchaseRecord();
-        
+
         if (!mounted) return;
         Navigator.of(context).pop(true);
         widget.onPurchaseSuccess?.call();
@@ -568,7 +553,7 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
     } catch (e) {
       // 检查组件是否仍然挂载
       if (!mounted) return;
-      
+
       // 关闭可能存在的加载提示
       if (Navigator.of(context).canPop()) {
         Navigator.of(context).pop();
@@ -636,9 +621,7 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
         ),
         backgroundColor: AppColors.success,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         margin: const EdgeInsets.all(16),
         duration: const Duration(seconds: 2),
       ),
@@ -658,9 +641,7 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
         ),
         backgroundColor: AppColors.destructive,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         margin: const EdgeInsets.all(16),
         duration: const Duration(seconds: 2),
       ),
@@ -691,10 +672,7 @@ class _ShimmerPurchaseButton extends StatefulWidget {
   /// 点击回调
   final VoidCallback onTap;
 
-  const _ShimmerPurchaseButton({
-    required this.text,
-    required this.onTap,
-  });
+  const _ShimmerPurchaseButton({required this.text, required this.onTap});
 
   @override
   State<_ShimmerPurchaseButton> createState() => _ShimmerPurchaseButtonState();
@@ -718,9 +696,10 @@ class _ShimmerPurchaseButtonState extends State<_ShimmerPurchaseButton>
       vsync: this,
     )..repeat();
     // 创建位移动画
-    _animation = Tween<double>(begin: -1.0, end: 2.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.linear),
-    );
+    _animation = Tween<double>(
+      begin: -1.0,
+      end: 2.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.linear));
   }
 
   @override

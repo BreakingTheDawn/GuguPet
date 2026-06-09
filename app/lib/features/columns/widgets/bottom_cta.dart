@@ -68,7 +68,10 @@ class _BottomCTAState extends State<BottomCTA>
               gradient: const LinearGradient(
                 begin: Alignment(-1, -1),
                 end: Alignment(1, 1),
-                colors: [AppColors.archiveButtonStart, AppColors.archiveButtonEnd],
+                colors: [
+                  AppColors.archiveButtonStart,
+                  AppColors.archiveButtonEnd,
+                ],
               ),
               borderRadius: BorderRadius.circular(28),
               boxShadow: [
@@ -121,7 +124,7 @@ class _BottomCTAState extends State<BottomCTA>
                       gradient: LinearGradient(
                         colors: [
                           Colors.transparent,
-                          AppColors.archiveHighlight.withValues(alpha: 0.28),
+                          AppColors.archiveHighlight.withValues(alpha: 0.14),
                           Colors.transparent,
                         ],
                       ),
@@ -152,16 +155,16 @@ class _BottomCTAState extends State<BottomCTA>
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
-                color: Colors.white,
+                color: AppColors.archiveButtonText,
                 height: 1.2,
               ),
             ),
             const SizedBox(height: 2),
             Text(
               '8册合集 · 原价 ${ColumnData.originalPrice} · 现仅 ${ColumnData.bundlePrice}',
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 11,
-                color: AppColors.archiveDecorative.withValues(alpha: 0.85),
+                color: AppColors.archiveButtonTextMuted,
               ),
             ),
           ],

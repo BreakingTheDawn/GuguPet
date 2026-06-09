@@ -108,16 +108,22 @@ class AppColors {
   static const Color archiveModalBackground = surfaceDefault;
 
   /// 档案馆按钮渐变起始色
-  static const Color archiveButtonStart = brandPrimary;
+  static const Color archiveButtonStart = Color(0xFFFFE7A3);
 
   /// 档案馆按钮渐变结束色
-  static const Color archiveButtonEnd = Color(0xFF4658D8);
+  static const Color archiveButtonEnd = accentWarm;
 
   /// 档案馆按钮阴影色
-  static const Color archiveButtonShadow = brandPrimary;
+  static const Color archiveButtonShadow = accentWarm;
+
+  /// 档案馆购买按钮主文字色
+  static const Color archiveButtonText = Color(0xFF3A2B12);
+
+  /// 档案馆购买按钮辅助文字色
+  static const Color archiveButtonTextMuted = Color(0xFF6D4B10);
 
   /// 档案馆高亮色
-  static const Color archiveHighlight = Color(0xFFFFF7E4);
+  static const Color archiveHighlight = Color(0xFFFFFFFF);
 
   /// 档案馆装饰色
   static const Color archiveDecorative = Color(0xFFFFE5A8);
@@ -317,7 +323,7 @@ class AppColors {
   static const LinearGradient purchaseDialogGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFFFFB300), Color(0xFFFF8F00)],
+    colors: [Color(0xFFF5B84B), Color(0xFFD99016)],
   );
 
   /// 成功状态渐变
