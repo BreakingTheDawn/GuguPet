@@ -14,21 +14,21 @@ import '../../pet/data/models/vector_memory.dart';
 
 /// 对话模式
 enum ChatMode {
-  ai,       // AI智能对话
-  simple,   // 简单倾诉
+  ai, // AI智能对话
+  simple, // 简单倾诉
 }
 
 /// 对话结果
 class ChatResult {
   /// 显示给用户的文本内容
   final String content;
-  
+
   /// 对话模式
   final ChatMode mode;
-  
+
   /// Token是否已耗尽
   final bool isTokenExhausted;
-  
+
   /// 情感响应（包含情感类型和纯净内容）
   final EmotionResponse? emotionResponse;
 
@@ -38,7 +38,7 @@ class ChatResult {
     this.isTokenExhausted = false,
     this.emotionResponse,
   });
-  
+
   /// 获取情感类型
   AIEmotionType get emotion => emotionResponse?.emotion ?? AIEmotionType.normal;
 }
@@ -47,13 +47,14 @@ class ChatResult {
 /// 管理对话会话和AI交互
 class ChatService extends ChangeNotifier {
   final ChatLocalDatasource _localDatasource;
+  final bool _localPersistenceEnabled;
   final AIConfigService _configService;
   LLMService? _llmService;
   MultiLLMService? _multiLLMService;
-  
+
   /// RAG检索服务（可选）
   RetrievalService? _retrievalService;
-  
+
   /// 当前宠物ID（用于RAG检索）
   String? _currentPetId;
 
@@ -61,10 +62,10 @@ class ChatService extends ChangeNotifier {
   ChatMode _currentMode = ChatMode.simple;
   bool _isLoading = false;
   String? _error;
-  
+
   /// Token是否已耗尽（用于自动切换本地模式）
   bool _tokenExhausted = false;
-  
+
   /// 流式响应回调
   Function(String chunk, bool isDone)? onStreamResponse;
 
@@ -72,7 +73,7 @@ class ChatService extends ChangeNotifier {
   ChatMode get currentMode => _currentMode;
   bool get isLoading => _isLoading;
   String? get error => _error;
-  
+
   /// 是否可以使用AI模式（优先检查多模型服务）
   bool get canUseAIMode {
     // 优先检查多模型服务
@@ -80,7 +81,9 @@ class ChatService extends ChangeNotifier {
       return true;
     }
     // 回退到旧方式
-    return _configService.isConfigured && _llmService != null && !_tokenExhausted;
+    return _configService.isConfigured &&
+        _llmService != null &&
+        !_tokenExhausted;
   }
 
   ChatService({
@@ -88,10 +91,12 @@ class ChatService extends ChangeNotifier {
     required AIConfigService configService,
     LLMService? llmService,
     MultiLLMService? multiLLMService,
-  })  : _localDatasource = localDatasource ?? ChatLocalDatasource(),
-        _configService = configService,
-        _llmService = llmService,
-        _multiLLMService = multiLLMService;
+    bool localPersistenceEnabled = true,
+  }) : _localDatasource = localDatasource ?? ChatLocalDatasource(),
+       _localPersistenceEnabled = localPersistenceEnabled,
+       _configService = configService,
+       _llmService = llmService,
+       _multiLLMService = multiLLMService;
 
   /// 更新LLM服务
   void updateLLMService(LLMService? service) {
@@ -101,7 +106,7 @@ class ChatService extends ChangeNotifier {
     _currentMode = canUseAIMode ? ChatMode.ai : ChatMode.simple;
     notifyListeners();
   }
-  
+
   /// 更新多模型LLM服务
   void updateMultiLLMService(MultiLLMService? service) {
     _multiLLMService = service;
@@ -124,13 +129,23 @@ class ChatService extends ChangeNotifier {
 
   /// 初始化或获取会话
   Future<void> initializeSession(String userId) async {
+    if (!_localPersistenceEnabled) {
+      _currentSession = ChatSession.create(
+        sessionId: 'memory_${DateTime.now().millisecondsSinceEpoch}',
+        userId: userId,
+      );
+      _currentMode = canUseAIMode ? ChatMode.ai : ChatMode.simple;
+      notifyListeners();
+      return;
+    }
+
     _currentSession = await _localDatasource.getActiveSession(userId);
-    
+
     _currentSession ??= await _localDatasource.createSession(userId);
-    
+
     // 根据配置和Token状态决定模式
     _currentMode = canUseAIMode ? ChatMode.ai : ChatMode.simple;
-    
+
     notifyListeners();
   }
 
@@ -159,9 +174,11 @@ class ChatService extends ChangeNotifier {
         content: userMessage,
         timestamp: DateTime.now(),
       );
-      
+
       _currentSession = _currentSession!.addMessage(userMsg);
-      await _localDatasource.addMessage(_currentSession!.sessionId, userMsg);
+      if (_localPersistenceEnabled) {
+        await _localDatasource.addMessage(_currentSession!.sessionId, userMsg);
+      }
 
       // 尝试AI对话（使用canUseAIMode判断，避免每次都检查配置）
       debugPrint('=== 对话模式判断 ===');
@@ -169,7 +186,7 @@ class ChatService extends ChangeNotifier {
       debugPrint('_tokenExhausted: $_tokenExhausted');
       debugPrint('_configService.isConfigured: ${_configService.isConfigured}');
       debugPrint('_llmService != null: ${_llmService != null}');
-      
+
       if (canUseAIMode) {
         debugPrint('>>> 使用AI模式');
         return await _sendAIMessage(
@@ -201,7 +218,7 @@ class ChatService extends ChangeNotifier {
     try {
       // === RAG记忆检索 ===
       List<String> retrievedMemories = memories ?? [];
-      
+
       if (_retrievalService != null && _currentPetId != null) {
         try {
           final result = await _retrievalService!.search(
@@ -210,12 +227,14 @@ class ChatService extends ChangeNotifier {
             topK: 5,
             threshold: 0.6,
           );
-          
+
           if (result.hasResults) {
             retrievedMemories = result.toContentList();
             debugPrint('📚 RAG检索到 ${result.length} 条相关记忆');
             for (var i = 0; i < result.length; i++) {
-              debugPrint('  - [相似度: ${result.scores[i].toStringAsFixed(2)}] ${result.memories[i].content}');
+              debugPrint(
+                '  - [相似度: ${result.scores[i].toStringAsFixed(2)}] ${result.memories[i].content}',
+              );
             }
           } else {
             debugPrint('📚 RAG未检索到相关记忆');
@@ -225,7 +244,7 @@ class ChatService extends ChangeNotifier {
         }
       }
       // === RAG集成结束 ===
-      
+
       // 从JSON配置构建系统提示词
       final systemPrompt = await _buildSystemPrompt(
         bondTitle: bondTitle,
@@ -236,29 +255,31 @@ class ChatService extends ChangeNotifier {
       // 从JSON配置获取历史记录限制
       final config = await AIConfigLoaderService.getConfig();
       final maxHistoryLength = config.conversation.maxHistoryLength;
-      
+
       String responseContent;
-      
+
       // 优先使用多模型服务（支持流式响应）
       if (_multiLLMService != null && _multiLLMService!.hasAvailableService) {
         debugPrint('>>> 使用多模型LLM服务');
-        
+
         // 设置流式响应回调
         _multiLLMService!.onStreamResponse = (chunk, isDone) {
           if (onStreamResponse != null) {
             onStreamResponse!(chunk, isDone);
           }
         };
-        
+
         final result = await _multiLLMService!.sendMessage(
           systemPrompt: systemPrompt,
           userMessage: userMessage,
-          conversationHistory: _currentSession!.toApiHistory(limit: maxHistoryLength),
+          conversationHistory: _currentSession!.toApiHistory(
+            limit: maxHistoryLength,
+          ),
           enableStreaming: true,
         );
-        
+
         responseContent = result.content;
-        
+
         if (!result.success) {
           // 所有模型都失败，返回降级消息
           _currentMode = ChatMode.simple;
@@ -276,7 +297,9 @@ class ChatService extends ChangeNotifier {
         final response = await _llmService!.chat(
           systemPrompt: systemPrompt,
           userMessage: userMessage,
-          conversationHistory: _currentSession!.toApiHistory(limit: maxHistoryLength),
+          conversationHistory: _currentSession!.toApiHistory(
+            limit: maxHistoryLength,
+          ),
         );
         responseContent = response.content;
       } else {
@@ -302,9 +325,14 @@ class ChatService extends ChangeNotifier {
         content: emotionResponse.content,
         timestamp: DateTime.now(),
       );
-      
+
       _currentSession = _currentSession!.addMessage(assistantMsg);
-      await _localDatasource.addMessage(_currentSession!.sessionId, assistantMsg);
+      if (_localPersistenceEnabled) {
+        await _localDatasource.addMessage(
+          _currentSession!.sessionId,
+          assistantMsg,
+        );
+      }
 
       // === 对话后记忆存储 ===
       await _storeConversationMemory(
@@ -358,18 +386,20 @@ class ChatService extends ChangeNotifier {
       content: response,
       timestamp: DateTime.now(),
     );
-    
+
     _currentSession = _currentSession!.addMessage(assistantMsg);
-    await _localDatasource.addMessage(_currentSession!.sessionId, assistantMsg);
+    if (_localPersistenceEnabled) {
+      await _localDatasource.addMessage(
+        _currentSession!.sessionId,
+        assistantMsg,
+      );
+    }
 
     _currentMode = ChatMode.simple;
     _isLoading = false;
     notifyListeners();
 
-    return ChatResult(
-      content: response,
-      mode: ChatMode.simple,
-    );
+    return ChatResult(content: response, mode: ChatMode.simple);
   }
 
   /// 构建系统提示词（使用JSON配置模板）
@@ -403,28 +433,28 @@ class ChatService extends ChangeNotifier {
   List<String> _getTemplatesForMessage(String message) {
     final confideStrings = AppStrings().confide;
     final keywords = confideStrings.emotionKeywords;
-    
+
     // 检测情绪关键词（按优先级匹配）
     if (keywords.matchesKeywords(message, keywords.positive)) {
       return confideStrings.positiveResponses;
     }
-    
+
     if (keywords.matchesKeywords(message, keywords.negative)) {
       return confideStrings.negativeResponses;
     }
-    
+
     if (keywords.matchesKeywords(message, keywords.rejected)) {
       return confideStrings.negativeResponses;
     }
-    
+
     if (keywords.matchesKeywords(message, keywords.lost)) {
       return confideStrings.negativeResponses;
     }
-    
+
     if (keywords.matchesKeywords(message, keywords.interview)) {
       return confideStrings.interviewResponses;
     }
-    
+
     // 默认回复
     return confideStrings.defaultResponses;
   }
@@ -432,7 +462,9 @@ class ChatService extends ChangeNotifier {
   /// 结束当前会话
   Future<void> endCurrentSession() async {
     if (_currentSession != null) {
-      await _localDatasource.endSession(_currentSession!.sessionId);
+      if (_localPersistenceEnabled) {
+        await _localDatasource.endSession(_currentSession!.sessionId);
+      }
       _currentSession = null;
       notifyListeners();
     }
@@ -440,7 +472,9 @@ class ChatService extends ChangeNotifier {
 
   /// 清除所有对话历史
   Future<void> clearAllHistory(String userId) async {
-    await _localDatasource.clearAllSessions(userId);
+    if (_localPersistenceEnabled) {
+      await _localDatasource.clearAllSessions(userId);
+    }
     _currentSession = null;
     notifyListeners();
   }
@@ -571,8 +605,9 @@ class ChatService extends ChangeNotifier {
     for (final item in keyEventPatterns) {
       final pattern = item['pattern'] as RegExp;
       final template = item['template'] as String;
-      
-      if (pattern.hasMatch(userMessage) || pattern.hasMatch(assistantResponse)) {
+
+      if (pattern.hasMatch(userMessage) ||
+          pattern.hasMatch(assistantResponse)) {
         // 提取具体信息
         final match = pattern.firstMatch(userMessage);
         if (match != null) {

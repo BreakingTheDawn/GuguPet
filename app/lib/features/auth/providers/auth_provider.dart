@@ -8,44 +8,44 @@ import '../data/repositories/auth_repository_impl.dart';
 /// 全局管理用户登录状态
 class AuthProvider extends ChangeNotifier {
   final AuthRepository _repository;
-  
+
   /// 当前认证状态
   AuthState _state = AuthState.loading;
-  
+
   /// 当前登录用户
   AuthUser? _currentUser;
-  
+
   /// 错误信息
   String? _errorMessage;
-  
+
   AuthProvider({AuthRepository? repository})
-      : _repository = repository ?? AuthRepositoryImpl();
-  
+    : _repository = repository ?? AuthRepositoryImpl();
+
   // ==================== Getters ====================
-  
+
   /// 当前认证状态
   AuthState get state => _state;
-  
+
   /// 当前登录用户
   AuthUser? get currentUser => _currentUser;
-  
+
   /// 是否已登录
   bool get isAuthenticated => _state == AuthState.authenticated;
-  
+
   /// 是否未登录
   bool get isUnauthenticated => _state == AuthState.unauthenticated;
-  
+
   /// 错误信息
   String? get errorMessage => _errorMessage;
-  
+
   // ==================== 公共方法 ====================
-  
+
   /// 初始化认证状态
   /// 应用启动时调用，检查是否有已登录用户
   Future<void> initialize() async {
     _state = AuthState.loading;
     notifyListeners();
-    
+
     try {
       _currentUser = await _repository.getCurrentUser();
       _state = _currentUser?.isLoggedIn == true
@@ -57,10 +57,20 @@ class AuthProvider extends ChangeNotifier {
       _currentUser = null;
       _errorMessage = '初始化认证状态失败: $e';
     }
-    
+
     notifyListeners();
   }
-  
+
+  /// 以访客身份初始化认证状态
+  ///
+  /// Web 或预览环境没有本地 SQLite 能力时使用，避免启动阶段触发本地仓储。
+  void initializeAsGuest() {
+    _state = AuthState.unauthenticated;
+    _currentUser = null;
+    _errorMessage = null;
+    notifyListeners();
+  }
+
   /// 用户注册
   /// [account] 账号（至少3个字符）
   /// [password] 密码（至少6个字符）
@@ -71,14 +81,14 @@ class AuthProvider extends ChangeNotifier {
     required String userName,
   }) async {
     _errorMessage = null;
-    
+
     try {
       final user = await _repository.register(
         account: account,
         password: password,
         userName: userName,
       );
-      
+
       if (user != null) {
         _currentUser = user;
         _state = AuthState.authenticated;
@@ -95,20 +105,20 @@ class AuthProvider extends ChangeNotifier {
       return false;
     }
   }
-  
+
   /// 用户登录
   Future<bool> login({
     required String account,
     required String password,
   }) async {
     _errorMessage = null;
-    
+
     try {
       final user = await _repository.login(
         account: account,
         password: password,
       );
-      
+
       if (user != null) {
         _currentUser = user;
         _state = AuthState.authenticated;
@@ -125,7 +135,7 @@ class AuthProvider extends ChangeNotifier {
       return false;
     }
   }
-  
+
   /// 用户登出
   Future<void> logout() async {
     try {
@@ -139,12 +149,12 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-  
+
   /// 检查账号是否存在
   Future<bool> isAccountExists(String account) async {
     return await _repository.isAccountExists(account);
   }
-  
+
   /// 清除错误信息
   void clearError() {
     _errorMessage = null;

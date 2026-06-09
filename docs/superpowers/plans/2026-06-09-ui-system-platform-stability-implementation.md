@@ -8,6 +8,8 @@
 
 **Tech Stack:** Flutter 3.38.5, Dart 3.10.4, Provider, sqflite/sqflite_common_ffi, Flutter widget tests.
 
+**Completion Record:** Implemented on 2026-06-09 in branch `codex/ui-system-platform-stability`. The completed scope includes platform-safe bootstrap, idempotent database migration runner, unified visual tokens, responsive app frame, bottom navigation refresh, five-tab UI normalization, Web local-persistence guards for UI verification, targeted Flutter tests, targeted analysis, and Browser screenshot verification. Remaining non-blocking items are tracked in `docs/技术债务记录.md`.
+
 ---
 
 ## File Structure

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'core/bootstrap/app_bootstrap.dart';
+import 'core/platform/platform_capabilities.dart';
 import 'core/theme/theme.dart';
 import 'core/di/repository_provider.dart';
 import 'core/di/service_provider.dart';
@@ -36,6 +37,8 @@ class _JobPetAppState extends State<JobPetApp> {
   late final FriendProvider _friendProvider;
   late final PostProvider _postProvider;
   late final AuthProvider _authProvider;
+  final PlatformCapabilities _platformCapabilities =
+      PlatformCapabilities.current;
 
   // 记录上一个用户ID，用于检测用户切换
   String? _lastUserId;
@@ -67,17 +70,25 @@ class _JobPetAppState extends State<JobPetApp> {
   /// 初始化应用
   Future<void> _initializeApp() async {
     // 先初始化认证状态，获取用户ID
-    await _authProvider.initialize();
+    if (_platformCapabilities.supportsLocalSqlite) {
+      await _authProvider.initialize();
+    } else {
+      _authProvider.initializeAsGuest();
+    }
 
     // 根据登录状态获取用户ID
     final userId = _authProvider.currentUser?.userId ?? 'guest_user';
 
     // 使用用户ID初始化全局服务提供者
-    await serviceProvider.initialize(userId: userId);
+    await serviceProvider.initialize(
+      userId: userId,
+      capabilities: _platformCapabilities,
+    );
 
     // 获取用户资料（用于VIP状态判断）
     UserProfile? userProfile;
-    if (_authProvider.isAuthenticated) {
+    if (_platformCapabilities.supportsLocalSqlite &&
+        _authProvider.isAuthenticated) {
       try {
         userProfile = await repositoryProvider.userRepository.getUser(userId);
       } catch (e) {
@@ -85,7 +96,9 @@ class _JobPetAppState extends State<JobPetApp> {
       }
     }
 
-    await _petProvider.initialize(userId, userProfile: userProfile);
+    if (_platformCapabilities.supportsLocalSqlite) {
+      await _petProvider.initialize(userId, userProfile: userProfile);
+    }
 
     // 初始化RAG服务的宠物ID（首次登录时设置）
     // 注意：switchUser只在用户切换时调用，首次登录需要手动设置
@@ -101,6 +114,11 @@ class _JobPetAppState extends State<JobPetApp> {
     debugPrint('🔄 用户切换: $userId');
 
     // 获取用户资料
+    if (!_platformCapabilities.supportsLocalSqlite) {
+      await serviceProvider.switchUser(userId);
+      return;
+    }
+
     UserProfile? userProfile;
     try {
       userProfile = await repositoryProvider.userRepository.getUser(userId);

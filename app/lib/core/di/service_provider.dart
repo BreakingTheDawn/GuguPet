@@ -5,6 +5,7 @@ import '../../features/confide/providers/confide_provider.dart';
 import '../../features/park/services/park_unlock_service.dart';
 import '../../features/pet/providers/rag_service_provider.dart';
 import '../../data/datasources/local/database_helper.dart';
+import '../platform/platform_capabilities.dart';
 import '../services/llm_config.dart';
 import '../services/llm_provider.dart';
 import '../services/multi_llm_service.dart';
@@ -20,38 +21,45 @@ class ServiceProvider {
 
   // AI配置服务（全局单例）
   late final AIConfigService _aiConfigService;
-  
+
   // 对话服务（全局单例）
   late final ChatService _chatService;
-  
+
   // 倾诉Provider（全局单例）
   late final ConfideProvider _confideProvider;
-  
+
   // 多模型LLM服务（新增）
   MultiLLMService? _multiLLMService;
-  
+
   // 公园解锁服务（新增）
   ParkUnlockService? _parkUnlockService;
-  
+
   // RAG服务提供者（新增）
   RAGServiceProvider? _ragServiceProvider;
 
   /// 初始化服务
   /// [userId] 当前登录用户的ID，用于隔离用户数据
-  Future<void> initialize({String? userId}) async {
+  Future<void> initialize({
+    String? userId,
+    PlatformCapabilities? capabilities,
+  }) async {
+    final platformCapabilities = capabilities ?? PlatformCapabilities.current;
     debugPrint('=== ServiceProvider初始化开始 ===');
     debugPrint('用户ID: $userId');
-    
+
     // 创建AI配置服务
     _aiConfigService = AIConfigService();
     await _aiConfigService.initialize(userId: userId);
-    
+
     debugPrint('AI配置服务初始化完成');
     debugPrint('isConfigured: ${_aiConfigService.isConfigured}');
     debugPrint('config.isEnabled: ${_aiConfigService.config.isEnabled}');
 
     // 创建对话服务
-    _chatService = ChatService(configService: _aiConfigService);
+    _chatService = ChatService(
+      configService: _aiConfigService,
+      localPersistenceEnabled: platformCapabilities.supportsLocalSqlite,
+    );
 
     // 创建倾诉Provider
     _confideProvider = ConfideProvider(
@@ -61,16 +69,16 @@ class ServiceProvider {
 
     // 初始化多模型LLM服务（新增）
     await _initializeMultiLLMService();
-    
+
     // 将多模型服务传递给ChatService
     _chatService.updateMultiLLMService(_multiLLMService);
-    
+
     // 初始化RAG服务
-    await _initializeRAGService();
-    
+    await _initializeRAGService(platformCapabilities);
+
     // 初始化公园解锁服务
     _initializeParkUnlockService();
-    
+
     debugPrint('=== ServiceProvider初始化完成 ===');
     debugPrint('canUseAIMode: $canUseAIMode');
   }
@@ -79,16 +87,18 @@ class ServiceProvider {
   Future<void> _initializeMultiLLMService() async {
     try {
       debugPrint('>>> 初始化多模型LLM服务');
-      
+
       _multiLLMService = MultiLLMService();
       await _multiLLMService!.initialize();
-      
+
       // 设置流式响应回调
       _multiLLMService!.onStreamResponse = (chunk, isDone) {
         // 这里可以通知UI更新流式内容
-        debugPrint('流式响应: ${chunk.substring(0, chunk.length > 20 ? 20 : chunk.length)}...');
+        debugPrint(
+          '流式响应: ${chunk.substring(0, chunk.length > 20 ? 20 : chunk.length)}...',
+        );
       };
-      
+
       debugPrint('多模型LLM服务初始化完成');
       debugPrint('可用模型数: ${_multiLLMService!.hasAvailableService ? '有' : '无'}');
     } catch (e) {
@@ -96,37 +106,43 @@ class ServiceProvider {
       _multiLLMService = null;
     }
   }
-  
+
   /// 初始化公园解锁服务
   void _initializeParkUnlockService() {
     try {
       debugPrint('>>> 初始化公园解锁服务');
-      
+
       _parkUnlockService = ParkUnlockService();
       _parkUnlockService!.initialize(
         userRepository: repositoryProvider.userRepository,
       );
-      
+
       debugPrint('公园解锁服务初始化完成');
     } catch (e) {
       debugPrint('公园解锁服务初始化失败: $e');
       _parkUnlockService = null;
     }
   }
-  
+
   /// 初始化RAG服务
-  Future<void> _initializeRAGService() async {
+  Future<void> _initializeRAGService(PlatformCapabilities capabilities) async {
+    if (!capabilities.supportsLocalSqlite) {
+      debugPrint('RAG服务已跳过：当前平台不支持本地SQLite。');
+      _ragServiceProvider = null;
+      return;
+    }
+
     try {
       debugPrint('>>> 初始化RAG服务');
-      
+
       _ragServiceProvider = RAGServiceProvider();
-      
+
       // 获取数据库实例
       final database = await DatabaseHelper().database;
-      
+
       // 初始化RAG服务
       await _ragServiceProvider!.initialize(database);
-      
+
       // 将检索服务注入到ChatService
       if (_ragServiceProvider!.isReady) {
         _chatService.updateRetrievalService(
@@ -134,7 +150,7 @@ class ServiceProvider {
           petId: null, // 后续在用户登录后设置
         );
       }
-      
+
       debugPrint('RAG服务初始化完成');
     } catch (e) {
       debugPrint('RAG服务初始化失败: $e');
@@ -148,12 +164,14 @@ class ServiceProvider {
     await _aiConfigService.switchUser(userId);
     // 重新初始化多模型服务
     await _initializeMultiLLMService();
-    
+
     // 更新RAG服务的宠物ID
     if (_ragServiceProvider?.isReady == true) {
       // 获取用户的宠物ID
       try {
-        final pet = await repositoryProvider.petRepository.getPetByUserId(userId);
+        final pet = await repositoryProvider.petRepository.getPetByUserId(
+          userId,
+        );
         if (pet != null) {
           _chatService.setCurrentPetId(pet.id);
           debugPrint('RAG服务已更新宠物ID: ${pet.id}');
@@ -170,13 +188,13 @@ class ServiceProvider {
     final config = _aiConfigService.config;
     debugPrint('config.isConfigured: ${config.isConfigured}');
     debugPrint('config.isEnabled: ${config.isEnabled}');
-    
+
     // 优先使用多模型服务
     if (_multiLLMService != null && _multiLLMService!.hasAvailableService) {
       debugPrint('使用多模型LLM服务');
       return;
     }
-    
+
     // 回退到旧方式
     if (config.isConfigured && config.isEnabled) {
       final llmConfig = LLMConfig(
@@ -184,11 +202,14 @@ class ServiceProvider {
         endpoint: config.endpoint,
         model: config.model,
       );
-      
+
       debugPrint('创建LLM服务 - Provider: ${config.provider}');
-      
+
       // 默认使用SDK版本（更稳定）
-      final service = LLMServiceFactory.create(LLMProvider.geminiSDK, llmConfig);
+      final service = LLMServiceFactory.create(
+        LLMProvider.geminiSDK,
+        llmConfig,
+      );
       _chatService.updateLLMService(service);
       debugPrint('LLM服务已更新（使用SDK）');
     } else {
@@ -205,10 +226,7 @@ class ServiceProvider {
     bool enableStreaming = true,
   }) async {
     if (_multiLLMService == null) {
-      return MultiModelChatResult(
-        content: 'AI服务未初始化',
-        success: false,
-      );
+      return MultiModelChatResult(content: 'AI服务未初始化', success: false);
     }
 
     return await _multiLLMService!.sendMessage(
@@ -227,13 +245,13 @@ class ServiceProvider {
 
   /// 获取倾诉Provider
   ConfideProvider get confideProvider => _confideProvider;
-  
+
   /// 获取多模型LLM服务
   MultiLLMService? get multiLLMService => _multiLLMService;
-  
+
   /// 获取公园解锁服务
   ParkUnlockService? get parkUnlockService => _parkUnlockService;
-  
+
   /// 获取RAG服务提供者
   RAGServiceProvider? get ragServiceProvider => _ragServiceProvider;
 
