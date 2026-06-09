@@ -54,6 +54,9 @@ class EmbeddingConfig {
   });
 
   bool get isConfigured => apiKey.isNotEmpty && endpoint.isNotEmpty;
+
+  /// Local deployment providers such as Ollama do not require a cloud API key.
+  bool get hasEndpoint => endpoint.isNotEmpty;
 }
 
 /// 嵌入服务工厂
@@ -70,6 +73,8 @@ class EmbeddingServiceFactory {
         return GLMEmbeddingService(config);
       case 'gemini':
         return GeminiEmbeddingService(config);
+      case 'ollama':
+        return OllamaEmbeddingService(config);
       case 'local':
         return LocalEmbeddingService(config);
       default:
@@ -78,20 +83,115 @@ class EmbeddingServiceFactory {
   }
 }
 
-/// OpenAI嵌入服务实现
+/// Ollama embedding service for locally deployed models.
+class OllamaEmbeddingService implements EmbeddingService {
+  final EmbeddingConfig _config;
+  final Dio _dio;
+
+  OllamaEmbeddingService(this._config)
+    : _dio = Dio(
+        BaseOptions(
+          connectTimeout: Duration(milliseconds: _config.timeoutMs),
+          receiveTimeout: Duration(milliseconds: _config.timeoutMs),
+          headers: {'Content-Type': 'application/json'},
+        ),
+      );
+
+  @override
+  String get providerName => 'Ollama';
+
+  @override
+  int get dimension => _config.dimension;
+
+  @override
+  Future<List<double>> embed(String text) async {
+    if (text.isEmpty) return [];
+
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        _config.endpoint,
+        data: {'model': _config.model, 'input': text},
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        return _parseSingleEmbedding(response.data!);
+      }
+      return [];
+    } on DioException catch (e) {
+      debugPrint('Ollama Embedding error: ${e.message}');
+      return [];
+    }
+  }
+
+  @override
+  Future<List<List<double>>> embedBatch(List<String> texts) async {
+    if (texts.isEmpty) return [];
+
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        _config.endpoint,
+        data: {'model': _config.model, 'input': texts},
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        final embeddings = response.data!['embeddings'] as List<dynamic>?;
+        if (embeddings != null) {
+          return embeddings
+              .map((embedding) => _toDoubleVector(embedding as List<dynamic>))
+              .toList();
+        }
+
+        final singleEmbedding = _parseSingleEmbedding(response.data!);
+        return singleEmbedding.isEmpty ? [] : [singleEmbedding];
+      }
+      return [];
+    } on DioException catch (e) {
+      debugPrint('Ollama Embedding batch error: ${e.message}');
+      return [];
+    }
+  }
+
+  @override
+  Future<bool> isAvailable() async {
+    return _config.hasEndpoint && _config.model.isNotEmpty;
+  }
+
+  // Ollama /api/embed returns `embeddings`; older /api/embeddings returns `embedding`.
+  List<double> _parseSingleEmbedding(Map<String, dynamic> data) {
+    final embeddings = data['embeddings'] as List<dynamic>?;
+    if (embeddings != null && embeddings.isNotEmpty) {
+      return _toDoubleVector(embeddings.first as List<dynamic>);
+    }
+
+    final embedding = data['embedding'] as List<dynamic>?;
+    if (embedding != null) {
+      return _toDoubleVector(embedding);
+    }
+
+    return [];
+  }
+
+  List<double> _toDoubleVector(List<dynamic> values) {
+    return values.map((value) => (value as num).toDouble()).toList();
+  }
+}
+
+/// OpenAI embedding service implementation.
 class OpenAIEmbeddingService implements EmbeddingService {
   final EmbeddingConfig _config;
   final Dio _dio;
 
   OpenAIEmbeddingService(this._config)
-      : _dio = Dio(BaseOptions(
+    : _dio = Dio(
+        BaseOptions(
           connectTimeout: Duration(milliseconds: _config.timeoutMs),
           receiveTimeout: Duration(milliseconds: _config.timeoutMs),
           headers: {
             'Authorization': 'Bearer ${_config.apiKey}',
             'Content-Type': 'application/json',
           },
-        ));
+        ),
+      );
 
   @override
   String get providerName => 'OpenAI';
@@ -106,10 +206,7 @@ class OpenAIEmbeddingService implements EmbeddingService {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
         _config.endpoint,
-        data: {
-          'model': _config.model,
-          'input': text,
-        },
+        data: {'model': _config.model, 'input': text},
       );
 
       if (response.statusCode == 200 && response.data != null) {
@@ -121,8 +218,8 @@ class OpenAIEmbeddingService implements EmbeddingService {
       }
       return [];
     } on DioException catch (e) {
-        debugPrint('OpenAI Embedding error: ${e.message}');
-        return [];
+      debugPrint('OpenAI Embedding error: ${e.message}');
+      return [];
     }
   }
 
@@ -133,10 +230,7 @@ class OpenAIEmbeddingService implements EmbeddingService {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
         _config.endpoint,
-        data: {
-          'model': _config.model,
-          'input': texts,
-        },
+        data: {'model': _config.model, 'input': texts},
       );
 
       if (response.statusCode == 200 && response.data != null) {
@@ -150,8 +244,8 @@ class OpenAIEmbeddingService implements EmbeddingService {
       }
       return [];
     } on DioException catch (e) {
-        debugPrint('OpenAI Embedding batch error: ${e.message}');
-        return [];
+      debugPrint('OpenAI Embedding batch error: ${e.message}');
+      return [];
     }
   }
 
@@ -167,14 +261,16 @@ class GLMEmbeddingService implements EmbeddingService {
   final Dio _dio;
 
   GLMEmbeddingService(this._config)
-      : _dio = Dio(BaseOptions(
+    : _dio = Dio(
+        BaseOptions(
           connectTimeout: Duration(milliseconds: _config.timeoutMs),
           receiveTimeout: Duration(milliseconds: _config.timeoutMs),
           headers: {
             'Authorization': 'Bearer ${_config.apiKey}',
             'Content-Type': 'application/json',
           },
-        ));
+        ),
+      );
 
   @override
   String get providerName => 'GLM';
@@ -189,10 +285,7 @@ class GLMEmbeddingService implements EmbeddingService {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
         _config.endpoint,
-        data: {
-          'model': _config.model,
-          'input': text,
-        },
+        data: {'model': _config.model, 'input': text},
       );
 
       if (response.statusCode == 200 && response.data != null) {
@@ -230,10 +323,12 @@ class GeminiEmbeddingService implements EmbeddingService {
   final Dio _dio;
 
   GeminiEmbeddingService(this._config)
-      : _dio = Dio(BaseOptions(
+    : _dio = Dio(
+        BaseOptions(
           connectTimeout: Duration(milliseconds: _config.timeoutMs),
           receiveTimeout: Duration(milliseconds: _config.timeoutMs),
-        ));
+        ),
+      );
 
   @override
   String get providerName => 'Gemini';
@@ -251,7 +346,9 @@ class GeminiEmbeddingService implements EmbeddingService {
         data: {
           'model': _config.model,
           'content': {
-            'parts': [{'text': text}],
+            'parts': [
+              {'text': text},
+            ],
           },
         },
       );
@@ -308,7 +405,7 @@ class LocalEmbeddingService implements EmbeddingService {
     // 这是一个简化实现，实际生产环境应使用真正的嵌入模型
     final words = _tokenize(text);
     final vector = List.generate(dimension, (i) => 0.0);
-    
+
     for (final word in words) {
       final hash = _hashWord(word);
       final index = hash % dimension;

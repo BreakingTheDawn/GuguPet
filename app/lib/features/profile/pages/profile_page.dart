@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../../../core/theme/theme.dart';
 import '../../../core/services/app_strings.dart';
 import '../../../routes/app_routes.dart';
-import '../../../shared/widgets/login_required_dialog.dart';
 import '../../auth/providers/auth_provider.dart' as app_auth;
 import '../providers/profile_provider.dart';
 import '../widgets/user_info_card.dart';

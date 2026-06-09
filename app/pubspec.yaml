@@ -53,6 +53,13 @@ dev_dependencies:
   mockito: ^5.4.4
   build_runner: ^2.4.8
 
+hooks:
+  user_defines:
+    sqlite3:
+      source: system
+      name_windows: winsqlite3
+      name: sqlite3
+
 flutter:
   uses-material-design: true
 

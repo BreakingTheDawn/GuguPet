@@ -1,208 +1,161 @@
 import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
+
+import '../../../core/services/ai_config_loader_service.dart';
+import '../data/datasources/vector_memory_datasource.dart';
+import '../data/models/retrieval_result.dart';
+import '../data/models/vector_memory.dart';
 import 'embedding_service.dart';
 import 'retrieval_service.dart';
-import '../data/datasources/vector_memory_datasource.dart';
-import '../data/models/vector_memory.dart';
-import '../data/models/retrieval_result.dart';
-import '../../../core/services/ai_config_loader_service.dart';
-import '../../../core/services/security_service.dart';
 
-/// RAG服务管理器
-/// 负责初始化和管理RAG相关的服务实例
+/// Manages the RAG service graph used by pet memory retrieval.
 class RAGServiceManager extends ChangeNotifier {
-  /// 单例实例
   static final RAGServiceManager _instance = RAGServiceManager._internal();
+
   factory RAGServiceManager() => _instance;
+
   RAGServiceManager._internal();
 
-  /// 嵌入服务实例
+  static const EmbeddingConfig _ollamaConfig = EmbeddingConfig(
+    apiKey: '',
+    endpoint: 'http://127.0.0.1:11434/api/embed',
+    model: 'qwen3-embedding:4b',
+    dimension: 2560,
+  );
+
+  static const EmbeddingConfig _localConfig = EmbeddingConfig(
+    apiKey: '',
+    endpoint: '',
+    model: 'local',
+    dimension: 384,
+  );
+
+  /// Current embedding service instance.
   EmbeddingService? _embeddingService;
 
-  /// 检索服务实例
+  /// Current retrieval service instance.
   RetrievalService? _retrievalService;
 
-  /// 数据源实例
+  /// Current vector-memory datasource.
   VectorMemoryDatasourceImpl? _datasource;
 
-  /// 是否已初始化
+  /// Whether the service graph has been initialized.
   bool _initialized = false;
 
-  /// 当前使用的嵌入提供商
-  String _currentProvider = 'local';
+  /// Current embedding provider id.
+  String _currentProvider = 'ollama';
 
-  /// 获取嵌入服务
+  /// Current embedding service.
   EmbeddingService? get embeddingService => _embeddingService;
 
-  /// 获取检索服务
+  /// Current retrieval service.
   RetrievalService? get retrievalService => _retrievalService;
 
-  /// 获取数据源
+  /// Current vector-memory datasource.
   VectorMemoryDatasourceImpl? get datasource => _datasource;
 
-  /// 是否已初始化
+  /// Whether RAG services are ready.
   bool get isInitialized => _initialized;
 
-  /// 当前提供商
+  /// Current embedding provider id.
   String get currentProvider => _currentProvider;
 
-  /// 初始化RAG服务
-  /// [database] 数据库实例
-  /// [provider] 嵌入服务提供商（openai/glm/gemini/local）
-  /// [config] 嵌入服务配置（可选，默认使用本地服务）
+  /// Initializes RAG services.
+  ///
+  /// Development defaults to local Ollama embedding. Cloud embedding providers
+  /// are only used when the caller passes an explicit provider and config.
   Future<void> initialize({
     required Database database,
-    String provider = 'local',
+    String provider = 'ollama',
     EmbeddingConfig? config,
   }) async {
     if (_initialized) {
-      debugPrint('📚 RAG服务已初始化，跳过重复初始化');
+      debugPrint(
+        'RAG service is already initialized; skipping duplicate init.',
+      );
       return;
     }
 
     try {
-      debugPrint('📚 开始初始化RAG服务...');
+      debugPrint('Starting RAG service initialization...');
 
-      // 1. 初始化数据源
+      // Build the datasource first so retrieval and writes share one database.
       _datasource = VectorMemoryDatasourceImpl(database);
-      debugPrint('  ✅ 向量记忆数据源已创建');
+      debugPrint('  Vector memory datasource created.');
 
-      // 2. 初始化嵌入服务
-      _currentProvider = provider;
-      if (config != null && config.isConfigured) {
-        _embeddingService = EmbeddingServiceFactory.create(
-          provider: provider,
-          config: config,
-        );
-      } else {
-        // 默认使用本地嵌入服务（离线可用）
-        _embeddingService = LocalEmbeddingService(
-          const EmbeddingConfig(
-            apiKey: '',
-            endpoint: '',
-            model: 'local',
-            dimension: 384,
-          ),
-        );
-        _currentProvider = 'local';
-      }
-      debugPrint('  ✅ 嵌入服务已创建: ${_embeddingService!.providerName}');
+      // Build the embedding provider. Ollama is the default local deployment.
+      final providerId = provider.toLowerCase();
+      final embeddingConfig = config ?? _defaultEmbeddingConfig(providerId);
+      _embeddingService = EmbeddingServiceFactory.create(
+        provider: providerId,
+        config: embeddingConfig,
+      );
+      _currentProvider = providerId;
+      debugPrint(
+        '  Embedding service created: ${_embeddingService!.providerName}',
+      );
 
-      // 3. 初始化检索服务
+      // Build retrieval on top of the selected embedding service.
       _retrievalService = RetrievalServiceImpl(
         embeddingService: _embeddingService!,
         datasource: _datasource!,
       );
-      debugPrint('  ✅ 检索服务已创建');
+      debugPrint('  Retrieval service created.');
 
       _initialized = true;
-      debugPrint('📚 RAG服务初始化完成');
+      debugPrint('RAG service initialization completed.');
 
       notifyListeners();
     } catch (e) {
-      debugPrint('❌ RAG服务初始化失败: $e');
+      debugPrint('RAG service initialization failed: $e');
       _initialized = false;
     }
   }
 
-  /// 使用AI配置初始化RAG服务
-  /// 从AI配置加载器中读取嵌入服务配置
+  /// Initializes RAG while respecting the local-first embedding policy.
+  ///
+  /// Chat provider credentials are not reused for embeddings. Production cloud
+  /// embedding should call [initialize] or [switchProvider] with explicit config.
   Future<void> initializeWithAIConfig({
     required Database database,
     AIConfigLoaderService? aiConfig,
   }) async {
-    // 尝试从AI配置中获取嵌入服务配置
-    EmbeddingConfig? embeddingConfig;
-    String provider = 'local';
-
-    try {
-      // 加载AI配置
-      final config = await AIConfigLoaderService.getConfig();
-      final enabledProvider = config.enabledProvider;
-      
-      if (enabledProvider != null) {
-        // 从安全存储中获取API Key
-        final apiKeyStorageKey = enabledProvider.apiKeyStorageKey;
-        String apiKey = '';
-        
-        if (apiKeyStorageKey.isNotEmpty) {
-          apiKey = await SecurityService().secureRead(apiKeyStorageKey) ?? '';
-        }
-        
-        final providerId = enabledProvider.id;
-        
-        if (apiKey.isNotEmpty) {
-          // 根据AI提供商配置嵌入服务
-          // GLM支持嵌入API: https://open.bigmodel.cn/api/paas/v4/embeddings
-          if (providerId == 'glm') {
-            embeddingConfig = EmbeddingConfig(
-              apiKey: apiKey,
-              endpoint: 'https://open.bigmodel.cn/api/paas/v4/embeddings',
-              model: 'embedding-2',  // GLM嵌入模型
-              dimension: 1024,
-            );
-            provider = 'glm';
-            debugPrint('📚 使用GLM嵌入服务');
-          } else if (providerId == 'openai') {
-            embeddingConfig = EmbeddingConfig(
-              apiKey: apiKey,
-              endpoint: 'https://api.openai.com/v1/embeddings',
-              model: 'text-embedding-3-small',
-              dimension: 1536,
-            );
-            provider = 'openai';
-            debugPrint('📚 使用OpenAI嵌入服务');
-          }
-        } else {
-          debugPrint('📚 API Key未配置，使用本地嵌入服务');
-        }
-      }
-    } catch (e) {
-      debugPrint('加载AI配置失败，使用本地嵌入服务: $e');
-    }
-
-    await initialize(
-      database: database,
-      provider: provider,
-      config: embeddingConfig,
-    );
+    await initialize(database: database);
   }
 
-  /// 切换嵌入服务提供商
+  /// Switches the embedding provider after RAG has been initialized.
   Future<void> switchProvider({
     required String provider,
     required EmbeddingConfig config,
   }) async {
     if (!_initialized || _datasource == null) {
-      debugPrint('⚠️ RAG服务未初始化，无法切换提供商');
+      debugPrint('RAG service is not initialized; provider switch skipped.');
       return;
     }
 
     try {
+      final providerId = provider.toLowerCase();
       _embeddingService = EmbeddingServiceFactory.create(
-        provider: provider,
+        provider: providerId,
         config: config,
       );
-      _currentProvider = provider;
+      _currentProvider = providerId;
 
       _retrievalService = RetrievalServiceImpl(
         embeddingService: _embeddingService!,
         datasource: _datasource!,
       );
 
-      debugPrint('📚 已切换嵌入服务提供商: ${_embeddingService!.providerName}');
+      debugPrint(
+        'Embedding provider switched: ${_embeddingService!.providerName}',
+      );
       notifyListeners();
     } catch (e) {
-      debugPrint('❌ 切换嵌入服务提供商失败: $e');
+      debugPrint('Embedding provider switch failed: $e');
     }
   }
 
-  /// 存储记忆
-  /// [petId] 宠物ID
-  /// [content] 记忆内容
-  /// [type] 记忆类型
-  /// [category] 记忆分类
-  /// [importance] 重要性（0-1）
+  /// Stores a memory with its embedding vector.
   Future<bool> storeMemory({
     required String petId,
     required String content,
@@ -210,20 +163,20 @@ class RAGServiceManager extends ChangeNotifier {
     MemoryCategory category = MemoryCategory.emotion,
     double importance = 0.5,
   }) async {
-    if (!_initialized || _retrievalService == null) {
-      debugPrint('⚠️ RAG服务未初始化，无法存储记忆');
+    if (!_initialized || _retrievalService == null || _datasource == null) {
+      debugPrint('RAG service is not initialized; memory write skipped.');
       return false;
     }
 
     try {
-      // 生成向量嵌入
+      // Generate the vector before writing so empty embeddings never persist.
       final embedding = await _embeddingService!.embed(content);
       if (embedding.isEmpty) {
-        debugPrint('⚠️ 生成向量嵌入失败');
+        debugPrint('Embedding generation failed; memory write skipped.');
         return false;
       }
 
-      // 创建记忆对象
+      // Short-term memories expire after 24 hours; other memory types persist.
       final memory = VectorMemory(
         id: 'mem_${DateTime.now().millisecondsSinceEpoch}',
         petId: petId,
@@ -238,17 +191,16 @@ class RAGServiceManager extends ChangeNotifier {
             : null,
       );
 
-      // 存储到数据库
       await _datasource!.insertMemory(memory);
-      debugPrint('📚 记忆已存储: ${memory.id}');
+      debugPrint('Memory stored: ${memory.id}');
       return true;
     } catch (e) {
-      debugPrint('❌ 存储记忆失败: $e');
+      debugPrint('Memory write failed: $e');
       return false;
     }
   }
 
-  /// 检索相关记忆
+  /// Searches memories relevant to the query for a single pet.
   Future<RetrievalResult> search({
     required String query,
     required String petId,
@@ -256,11 +208,11 @@ class RAGServiceManager extends ChangeNotifier {
     double threshold = 0.6,
   }) async {
     if (!_initialized || _retrievalService == null) {
-      debugPrint('⚠️ RAG服务未初始化，返回空结果');
+      debugPrint('RAG service is not initialized; returning empty result.');
       return RetrievalResult.empty();
     }
 
-    return await _retrievalService!.search(
+    return _retrievalService!.search(
       query: query,
       petId: petId,
       topK: topK,
@@ -268,20 +220,36 @@ class RAGServiceManager extends ChangeNotifier {
     );
   }
 
-  /// 清理过期记忆
+  /// Removes expired memories for a pet.
   Future<void> cleanExpiredMemories(String petId) async {
     if (_datasource == null) return;
     await _datasource!.cleanExpiredMemories(petId);
-    debugPrint('📚 已清理过期记忆: $petId');
+    debugPrint('Expired memories cleaned: $petId');
   }
 
-  /// 释放资源
+  /// Releases service references.
   @override
   void dispose() {
     _embeddingService = null;
     _retrievalService = null;
     _datasource = null;
     _initialized = false;
+    _currentProvider = 'ollama';
     super.dispose();
+  }
+
+  /// Returns the built-in config for local development providers.
+  EmbeddingConfig _defaultEmbeddingConfig(String provider) {
+    switch (provider) {
+      case 'ollama':
+        return _ollamaConfig;
+      case 'local':
+        return _localConfig;
+      default:
+        throw EmbeddingException(
+          'Embedding config is required for provider: $provider',
+          provider: provider,
+        );
+    }
   }
 }

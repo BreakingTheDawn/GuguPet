@@ -217,7 +217,7 @@ class NotificationService {
     try {
       final daysLeft = expireDate.difference(DateTime.now()).inDays;
       final content = daysLeft > 0
-          ? '您的VIP会员将在${daysLeft}天后到期，请及时续费'
+          ? '您的VIP会员将在$daysLeft天后到期，请及时续费'
           : '您的VIP会员已到期，续费可继续享受会员权益';
 
       final notification = Notification(

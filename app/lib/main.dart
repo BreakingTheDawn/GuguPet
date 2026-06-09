@@ -149,6 +149,39 @@ class _JobPetAppState extends State<JobPetApp> {
     }
     
     await _petProvider.initialize(userId, userProfile: userProfile);
+
+    // 初始化RAG服务的宠物ID（首次登录时设置）
+    // 注意：switchUser只在用户切换时调用，首次登录需要手动设置
+    if (_petProvider.pet != null) {
+      serviceProvider.chatService.setCurrentPetId(_petProvider.pet!.petId);
+      debugPrint('📚 RAG服务宠物ID已设置: ${_petProvider.pet!.petId}');
+    }
+  }
+
+  /// 处理用户切换
+  /// 异步更新AI配置、RAG服务宠物ID和宠物提供者
+  Future<void> _handleUserSwitch(String userId) async {
+    debugPrint('🔄 用户切换: $userId');
+
+    // 获取用户资料
+    UserProfile? userProfile;
+    try {
+      userProfile = await repositoryProvider.userRepository.getUser(userId);
+    } catch (e) {
+      debugPrint('获取用户资料失败: $e');
+    }
+
+    // 重新初始化宠物提供者
+    await _petProvider.initialize(userId, userProfile: userProfile);
+
+    // 更新AI配置和RAG服务宠物ID
+    await serviceProvider.switchUser(userId);
+
+    // 确保RAG服务宠物ID已设置（双重保障）
+    if (_petProvider.pet != null) {
+      serviceProvider.chatService.setCurrentPetId(_petProvider.pet!.petId);
+      debugPrint('📚 用户切换后RAG服务宠物ID已更新: ${_petProvider.pet!.petId}');
+    }
   }
 
   @override
@@ -164,14 +197,14 @@ class _JobPetAppState extends State<JobPetApp> {
             builder: (context, child) {
               // 获取当前用户ID
               final currentUserId = _authProvider.currentUser?.userId ?? 'guest_user';
-              
+
               // 在首次初始化后，监听用户切换
               if (_lastUserId != null && _lastUserId != currentUserId) {
-                // 用户切换了，刷新AI配置
-                serviceProvider.switchUser(currentUserId);
+                // 用户切换了，异步刷新配置和宠物数据
+                _handleUserSwitch(currentUserId);
               }
               _lastUserId = currentUserId;
-              
+
               return MultiProvider(
                 providers: [
                   ChangeNotifierProvider<AuthProvider>.value(value: _authProvider),

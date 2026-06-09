@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:jobpet/features/pet/data/datasources/vector_memory_datasource.dart';
 import 'package:jobpet/features/pet/data/models/vector_memory.dart';
 
