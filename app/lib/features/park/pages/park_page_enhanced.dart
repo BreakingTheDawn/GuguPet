@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/theme/theme.dart';
 import '../../../core/services/app_strings.dart';
 import '../../../routes/app_routes.dart';
 import '../../../shared/widgets/login_required_dialog.dart';
@@ -47,7 +48,7 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
   @override
   void initState() {
     super.initState();
-    
+
     // 初始化数据
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeData();
@@ -57,27 +58,27 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
   /// 初始化数据
   void _initializeData() {
     final authProvider = context.read<AuthProvider>();
-    
+
     // 检查登录状态，未登录时弹出登录提示
     if (!authProvider.isAuthenticated) {
       LoginGuard.checkSimple(context, featureName: '公园社交');
       return;
     }
-    
+
     final parkProvider = context.read<ParkProvider>();
     final friendProvider = context.read<FriendProvider>();
     final postProvider = context.read<PostProvider>();
-    
+
     // 设置当前用户（使用登录用户的ID和名称）
     final userId = authProvider.currentUser?.userId ?? 'current_user';
     final userName = authProvider.currentUser?.userName ?? '求职者';
-    
+
     friendProvider.setCurrentUserId(userId, userName: userName);
     postProvider.setCurrentUser(userId, userName);
-    
+
     // 加载公园用户
     parkProvider.loadParkUsers();
-    
+
     // 加载好友列表
     friendProvider.loadFriends();
   }
@@ -93,13 +94,13 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
         children: [
           // 背景渐变
           _buildBackground(),
-          
+
           // 主要内容区域（用户卡片）
           _buildMainContent(),
-          
+
           // 区域头部
           _buildZoneHeader(),
-          
+
           // 区域选择菜单（位于用户卡片之上）
           if (_showZoneMenu) _buildZoneMenu(),
         ],
@@ -110,7 +111,7 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
   /// 构建背景
   Widget _buildBackground() {
     final zoneColor = _zones[_selectedZone]['color'] as Color;
-    
+
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -118,10 +119,10 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
           end: Alignment.bottomCenter,
           stops: const [0, 0.45, 0.45, 1],
           colors: [
-            zoneColor.withValues(alpha: 0.3),
-            zoneColor.withValues(alpha: 0.1),
-            Colors.green.shade100,
-            Colors.green.shade50,
+            zoneColor.withValues(alpha: 0.20),
+            AppColors.brandSoft.withValues(alpha: 0.42),
+            AppColors.backgroundSubtle,
+            AppColors.backgroundDefault,
           ],
         ),
       ),
@@ -137,12 +138,15 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
       child: Container(
         padding: const EdgeInsets.fromLTRB(20, 48, 20, 16),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.9),
+          color: AppColors.surfaceFill,
+          border: const Border(
+            bottom: BorderSide(color: AppColors.borderDefault),
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
+              color: AppColors.textDefault.withValues(alpha: 0.06),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
@@ -168,27 +172,27 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
                 ],
               ),
             ),
-            
+
             const Spacer(),
-            
+
             // 消息按钮
             _buildHeaderButton(
               icon: Icons.chat_bubble_outline,
               count: 3, // TODO: 从通知系统获取未读消息数
               onTap: () => _navigateToNotifications(),
             ),
-            
+
             const SizedBox(width: 12),
-            
+
             // 好友按钮
             _buildHeaderButton(
               icon: Icons.people_outline,
               count: context.watch<FriendProvider>().pendingCount,
               onTap: () => _navigateToFriendList(),
             ),
-            
+
             const SizedBox(width: 12),
-            
+
             // 动态按钮
             _buildHeaderButton(
               icon: Icons.article_outlined,
@@ -213,10 +217,10 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.grey.shade100,
+              color: AppColors.iconFill,
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, size: 22),
+            child: Icon(icon, size: 22, color: AppColors.iconDefault),
           ),
           if (count != null && count > 0)
             Positioned(
@@ -271,15 +275,22 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
                 final zone = _zones[index];
                 final isSelected = index == _selectedZone;
                 final zoneColor = zone['color'] as Color;
-                
+
                 return InkWell(
                   onTap: () => _handleZoneSwitch(index),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 14,
+                    ),
                     decoration: BoxDecoration(
-                      color: isSelected ? zoneColor.withValues(alpha: 0.1) : null,
+                      color: isSelected
+                          ? zoneColor.withValues(alpha: 0.1)
+                          : null,
                       border: index < _zones.length - 1
-                          ? Border(bottom: BorderSide(color: Colors.grey.shade100))
+                          ? Border(
+                              bottom: BorderSide(color: Colors.grey.shade100),
+                            )
                           : null,
                     ),
                     child: Row(
@@ -299,28 +310,28 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
                             ),
                           ),
                         ),
-                        
+
                         const SizedBox(width: 12),
-                        
+
                         // 区域名称
                         Expanded(
                           child: Text(
                             zone['name'] as String,
                             style: TextStyle(
                               fontSize: 15,
-                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                              color: isSelected ? zoneColor : Colors.grey.shade700,
+                              fontWeight: isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.w400,
+                              color: isSelected
+                                  ? zoneColor
+                                  : Colors.grey.shade700,
                             ),
                           ),
                         ),
-                        
+
                         // 选中标识
                         if (isSelected)
-                          Icon(
-                            Icons.check_circle,
-                            color: zoneColor,
-                            size: 22,
-                          ),
+                          Icon(Icons.check_circle, color: zoneColor, size: 22),
                       ],
                     ),
                   ),
@@ -340,15 +351,15 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
       setState(() => _showZoneMenu = false);
       return;
     }
-    
+
     final zoneName = _zones[index]['name'] as String;
     final parkProvider = context.read<ParkProvider>();
-    
+
     setState(() {
       _selectedZone = index;
       _showZoneMenu = false;
     });
-    
+
     // 通知Provider切换区域
     parkProvider.switchZone(zoneName);
   }
@@ -378,9 +389,9 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
               );
             },
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // 用户列表
           Expanded(
             child: Consumer<ParkProvider>(
@@ -388,11 +399,11 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
                 if (provider.isLoading) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                
+
                 if (provider.parkUsers.isEmpty) {
                   return _buildEmptyState();
                 }
-                
+
                 return ListView.builder(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -408,7 +419,7 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
               },
             ),
           ),
-          
+
           const SizedBox(height: 80),
         ],
       ),
@@ -421,18 +432,11 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.pets,
-            size: 64,
-            color: Colors.grey.shade300,
-          ),
+          Icon(Icons.pets, size: 64, color: Colors.grey.shade300),
           const SizedBox(height: 16),
           Text(
             AppStrings().park.noUsersInZone,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade500,
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
           ),
         ],
       ),
@@ -447,9 +451,9 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
   Future<void> _showUserInteraction(ParkUser user) async {
     final friendProvider = context.read<FriendProvider>();
     final isFriend = await friendProvider.isFriend(user.id);
-    
+
     if (!mounted) return;
-    
+
     InteractionSheet.show(
       context: context,
       targetUser: user,
@@ -465,17 +469,15 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
   /// 处理互动
   Future<void> _handleInteraction(ParkUser user, InteractionType type) async {
     final parkProvider = context.read<ParkProvider>();
-    
-    await parkProvider.sendInteraction(
-      'current_user',
-      user.id,
-      type,
-    );
-    
+
+    await parkProvider.sendInteraction('current_user', user.id, type);
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('${AppStrings().park.youAction}${_getInteractionText(type)}${user.name}'),
+          content: Text(
+            '${AppStrings().park.youAction}${_getInteractionText(type)}${user.name}',
+          ),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -499,17 +501,21 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
   /// 处理添加好友
   Future<void> _handleAddFriend(ParkUser user) async {
     final friendProvider = context.read<FriendProvider>();
-    
+
     final success = await friendProvider.sendFriendRequest(
       user.id,
       user.name,
       targetUserTitle: user.title,
     );
-    
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(success ? AppStrings().park.friendRequestSent : AppStrings().park.friendRequestFailed),
+          content: Text(
+            success
+                ? AppStrings().park.friendRequestSent
+                : AppStrings().park.friendRequestFailed,
+          ),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -521,10 +527,11 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
     // TODO: 跳转到用户动态页面
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(AppStrings().getStringWithParams(
-          AppStrings().park.viewUserPosts,
-          {'userName': user.name}
-        )),
+        content: Text(
+          AppStrings().getStringWithParams(AppStrings().park.viewUserPosts, {
+            'userName': user.name,
+          }),
+        ),
         duration: const Duration(seconds: 2),
       ),
     );
@@ -545,7 +552,7 @@ class _ParkPageEnhancedState extends State<ParkPageEnhanced> {
       MaterialPageRoute(builder: (context) => const PostFeedPage()),
     );
   }
-  
+
   /// 跳转到消息通知页面
   void _navigateToNotifications() {
     Navigator.pushNamed(context, AppRoutes.notificationCenter);

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/theme/theme.dart';
 import '../../shared/widgets/widgets.dart';
 import '../../features/confide/pages/confide_page.dart';
 import '../../features/jobs/pages/jobs_page.dart';
@@ -44,16 +45,23 @@ class _HomePageState extends State<HomePage> {
     NavItem(label: '倾诉室', icon: Icons.pets_outlined, activeIcon: Icons.pets),
     NavItem(label: '求职', icon: Icons.work_outline, activeIcon: Icons.work),
     NavItem(label: '公园', icon: Icons.park_outlined, activeIcon: Icons.park),
-    NavItem(label: '专栏', icon: Icons.menu_book_outlined, activeIcon: Icons.menu_book),
+    NavItem(
+      label: '专栏',
+      icon: Icons.menu_book_outlined,
+      activeIcon: Icons.menu_book,
+    ),
     NavItem(label: '我的', icon: Icons.person_outline, activeIcon: Icons.person),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 200),
-        child: _pages[_currentIndex],
+      backgroundColor: AppColors.backgroundDefault,
+      body: AppResponsiveFrame(
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 200),
+          child: _pages[_currentIndex],
+        ),
       ),
       bottomNavigationBar: AppBottomNavBar(
         currentIndex: _currentIndex,

@@ -1,23 +1,20 @@
 import 'package:flutter/material.dart';
+
 import '../../core/theme/theme.dart';
 
 class NavItem {
-  final String label;
-  final IconData icon;
-  final IconData activeIcon;
-
   const NavItem({
     required this.label,
     required this.icon,
     required this.activeIcon,
   });
+
+  final String label;
+  final IconData icon;
+  final IconData activeIcon;
 }
 
 class AppBottomNavBar extends StatelessWidget {
-  final int currentIndex;
-  final ValueChanged<int> onTap;
-  final List<NavItem> items;
-
   const AppBottomNavBar({
     super.key,
     required this.currentIndex,
@@ -25,56 +22,86 @@ class AppBottomNavBar extends StatelessWidget {
     required this.items,
   });
 
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+  final List<NavItem> items;
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: AppSpacing.navBarHeight,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.85),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, -1),
+    return SafeArea(
+      top: false,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: AppColors.surfaceFill,
+          border: const Border(
+            top: BorderSide(color: AppColors.borderDefault, width: 1),
           ),
-        ],
-        border: Border(
-          top: BorderSide(
-            color: Colors.black.withValues(alpha: 0.07),
-            width: 1,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.textDefault.withValues(alpha: 0.08),
+              blurRadius: 18,
+              offset: const Offset(0, -6),
+            ),
+          ],
+        ),
+        child: SizedBox(
+          height: AppSpacing.navBarHeight,
+          child: Row(
+            children: List.generate(items.length, (index) {
+              final item = items[index];
+              final isActive = index == currentIndex;
+
+              return Expanded(
+                child: InkResponse(
+                  onTap: () => onTap(index),
+                  radius: 32,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 180),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isActive
+                              ? AppColors.iconFill
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.radiusFull,
+                          ),
+                        ),
+                        child: Icon(
+                          isActive ? item.activeIcon : item.icon,
+                          size: 22,
+                          color: isActive
+                              ? AppColors.iconDefault
+                              : AppColors.iconSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        item.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: isActive
+                              ? FontWeight.w700
+                              : FontWeight.w500,
+                          color: isActive
+                              ? AppColors.textDefault
+                              : AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
           ),
         ),
-      ),
-      child: Row(
-        children: List.generate(items.length, (index) {
-          final item = items[index];
-          final isActive = index == currentIndex;
-
-          return Expanded(
-            child: InkWell(
-              onTap: () => onTap(index),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    isActive ? item.activeIcon : item.icon,
-                    size: 22,
-                    color: isActive ? AppColors.indigo500 : AppColors.mutedForeground,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    item.label,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-                      color: isActive ? AppColors.indigo500 : AppColors.mutedForeground,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }),
       ),
     );
   }

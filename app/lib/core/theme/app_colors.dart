@@ -3,63 +3,80 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  static const Color background = Color(0xFFFFFFFF);
-  static const Color foreground = Color(0xFF030213);
+  // Core semantic tokens approved for the companion workbench direction.
+  static const Color backgroundDefault = Color(0xFFF8F7FC);
+  static const Color backgroundSubtle = Color(0xFFF1F3FA);
+  static const Color textDefault = Color(0xFF202136);
+  static const Color textSecondary = Color(0xFF71758A);
+  static const Color textTertiary = Color(0xFFA1A4B5);
+  static const Color textInverse = Color(0xFFFFFFFF);
+  static const Color textFill = Color(0xFFEEF1FF);
+  static const Color iconDefault = Color(0xFF5F6FEB);
+  static const Color iconSecondary = Color(0xFF7B7E91);
+  static const Color iconFill = Color(0xFFEEF1FF);
+  static const Color surfaceDefault = Color(0xFFFFFFFF);
+  static const Color surfaceSecondary = Color(0xFFF4F5FB);
+  static const Color surfaceFill = Color(0xCCFFFFFF);
+  static const Color brandPrimary = Color(0xFF5F6FEB);
+  static const Color brandSoft = Color(0xFFDDE3FF);
+  static const Color accentWarm = Color(0xFFF5B84B);
+  static const Color accentGrowth = Color(0xFF59C783);
+  static const Color borderDefault = Color(0xFFE4E6EF);
+  static const Color dividerDefault = Color(0xFFECEEF5);
 
-  static const Color primary = Color(0xFF030213);
-  static const Color primaryForeground = Color(0xFFFFFFFF);
+  static const Color background = backgroundDefault;
+  static const Color foreground = textDefault;
 
-  static const Color secondary = Color(0xFFF5F5FA);
-  static const Color secondaryForeground = Color(0xFF030213);
+  static const Color primary = brandPrimary;
+  static const Color primaryForeground = textInverse;
 
-  static const Color muted = Color(0xFFECECF0);
-  static const Color mutedForeground = Color(0xFF717182);
+  static const Color secondary = surfaceSecondary;
+  static const Color secondaryForeground = textDefault;
 
-  static const Color accent = Color(0xFFE9EBEF);
-  static const Color accentForeground = Color(0xFF030213);
+  static const Color muted = backgroundSubtle;
+  static const Color mutedForeground = textSecondary;
+
+  static const Color accent = brandSoft;
+  static const Color accentForeground = brandPrimary;
 
   static const Color destructive = Color(0xFFD4183D);
   static const Color destructiveForeground = Color(0xFFFFFFFF);
 
-  static const Color border = Color(0x1A000000);
+  static const Color border = borderDefault;
   static const Color input = Colors.transparent;
-  static const Color inputBackground = Color(0xFFF3F3F5);
+  static const Color inputBackground = surfaceSecondary;
 
-  static const Color success = Color(0xFF5ABE8A);
-  static const Color warning = Color(0xFFF5A840);
+  static const Color success = accentGrowth;
+  static const Color warning = accentWarm;
   static const Color info = Color(0xFF5A8AE8);
 
-  static const Color cardBackground = Color(0xFFFFFFFF);
-  static const Color divider = Color(0x0F000000);
+  static const Color cardBackground = surfaceDefault;
+  static const Color divider = dividerDefault;
 
-  static const Color indigo50 = Color(0xFFE8E8F8);
-  static const Color indigo200 = Color(0xFFB8B8E8);
-  static const Color indigo400 = Color(0xFF7C8AE8);
-  static const Color indigo500 = Color(0xFF667EEA);
+  static const Color indigo50 = brandSoft;
+  static const Color indigo200 = Color(0xFFBFC8FF);
+  static const Color indigo400 = Color(0xFF8390F3);
+  static const Color indigo500 = brandPrimary;
   static const Color purple200 = Color(0xFFC8C0E8);
   static const Color purple500 = Color(0xFF764BA2);
 
   static const LinearGradient primaryGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [indigo500, purple500],
+    colors: [brandPrimary, accentGrowth],
   );
 
   static const LinearGradient confideBackground = LinearGradient(
     begin: Alignment(-1, -1),
     end: Alignment(1, 1),
     stops: [0.0, 0.45, 1.0],
-    colors: [
-      Color(0xFFFFF8EF),
-      Color(0xFFEEF2FF),
-      Color(0xFFF0EBFF),
-    ],
+    colors: [backgroundDefault, brandSoft, Color(0xFFFFF7E4)],
   );
 
   static const LinearGradient statsHeaderGradient = LinearGradient(
     begin: Alignment(-0.5, -1),
     end: Alignment(0.5, 1),
-    colors: [indigo500, purple500],
+    colors: [brandPrimary, accentGrowth],
   );
 
   // ═══════════════════════════════════════════════════════════
@@ -67,73 +84,73 @@ class AppColors {
   // ═══════════════════════════════════════════════════════════
 
   /// 档案馆主背景色
-  static const Color archiveBackground = Color(0xFFF7F4EF);
+  static const Color archiveBackground = backgroundDefault;
 
   /// 档案馆卡片渐变起始色
-  static const Color archiveCardStart = Color(0xFFEDD8A8);
+  static const Color archiveCardStart = Color(0xFFFFF2CC);
 
   /// 档案馆卡片渐变结束色
-  static const Color archiveCardEnd = Color(0xFFE3C47E);
+  static const Color archiveCardEnd = brandSoft;
 
   /// 档案馆强调色（深棕色）
-  static const Color archiveAccent = Color(0xFF8B5A2A);
+  static const Color archiveAccent = brandPrimary;
 
   /// 档案馆深色强调
-  static const Color archiveAccentDark = Color(0xFF5A3318);
+  static const Color archiveAccentDark = textDefault;
 
   /// 档案馆文字颜色
-  static const Color archiveText = Color(0xFF2A1A08);
+  static const Color archiveText = textDefault;
 
   /// 档案馆次要文字颜色
-  static const Color archiveTextMuted = Color(0xFF8A6A40);
+  static const Color archiveTextMuted = textSecondary;
 
   /// 档案馆弹窗背景
-  static const Color archiveModalBackground = Color(0xFFFDFAF4);
+  static const Color archiveModalBackground = surfaceDefault;
 
   /// 档案馆按钮渐变起始色
-  static const Color archiveButtonStart = Color(0xFF7A5030);
+  static const Color archiveButtonStart = brandPrimary;
 
   /// 档案馆按钮渐变结束色
-  static const Color archiveButtonEnd = Color(0xFF5A3318);
+  static const Color archiveButtonEnd = Color(0xFF4658D8);
 
   /// 档案馆按钮阴影色
-  static const Color archiveButtonShadow = Color(0xFF5A3218);
+  static const Color archiveButtonShadow = brandPrimary;
 
   /// 档案馆高亮色
-  static const Color archiveHighlight = Color(0xFFFFF0D0);
+  static const Color archiveHighlight = Color(0xFFFFF7E4);
 
   /// 档案馆装饰色
-  static const Color archiveDecorative = Color(0xFFFFDCB4);
+  static const Color archiveDecorative = Color(0xFFFFE5A8);
 
   /// 档案馆边框色
-  static const Color archiveBorder = Color(0xFFA0783C);
+  static const Color archiveBorder = borderDefault;
 
   /// 档案馆深色文字
-  static const Color archiveTextDark = Color(0xFF2A1A0A);
+  static const Color archiveTextDark = textDefault;
 
   /// 档案馆中等文字色
-  static const Color archiveTextMedium = Color(0xFFA08050);
+  static const Color archiveTextMedium = textSecondary;
 
   /// 档案馆图标色
-  static const Color archiveIcon = Color(0xFFC0A880);
+  static const Color archiveIcon = iconSecondary;
 
   /// 档案馆内容文字色
-  static const Color archiveContentText = Color(0xFF4A3A2A);
+  static const Color archiveContentText = textDefault;
 
   /// 档案馆详情按钮起始色
-  static const Color archiveDetailButtonStart = Color(0xFF8B6040);
+  static const Color archiveDetailButtonStart = brandPrimary;
 
   /// 档案馆详情按钮结束色
-  static const Color archiveDetailButtonEnd = Color(0xFF6A4020);
+  static const Color archiveDetailButtonEnd = Color(0xFF4658D8);
 
   /// 离线状态背景色
   static const Color offlineBackground = Color(0xFFF5F5F5);
 
   /// 档案馆卡片阴影色
-  static const Color archiveCardShadow = Color(0xFF644614);
+  static const Color archiveCardShadow = brandPrimary;
 
   /// 档案馆卡片边框色
-  static const Color archiveCardBorder = Color(0xFFB4823C);
+  static const Color archiveCardBorder = borderDefault;
 
   /// 收藏红色
   static const Color favoriteRed = Color(0xFFE53935);
@@ -280,7 +297,7 @@ class AppColors {
   static const Color pageGradientStart = Color(0xFFF8F7FC);
 
   /// 页面渐变结束色
-  static const Color pageGradientEnd = Color(0xFFEEE8F5);
+  static const Color pageGradientEnd = backgroundSubtle;
 
   /// 加载指示器颜色
   static const Color loadingIndicator = Color(0xFF6366F1);

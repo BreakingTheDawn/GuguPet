@@ -27,6 +27,6 @@ class AppSpacing {
   static const double buttonHeightLg = 48.0;
 
   static const double inputHeight = 48.0;
-  static const double navBarHeight = 64.0;
+  static const double navBarHeight = 72.0;
   static const double appBarHeight = 56.0;
 }

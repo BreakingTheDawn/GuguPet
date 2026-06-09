@@ -21,10 +21,10 @@ class JobsPage extends StatefulWidget {
 class _JobsPageState extends State<JobsPage> {
   // 搜索控制器
   final _searchController = TextEditingController();
-  
+
   // 滚动控制器（用于分页加载）
   final _scrollController = ScrollController();
-  
+
   // 筛选状态Provider
   late final JobFilterProvider _filterProvider;
 
@@ -35,19 +35,19 @@ class _JobsPageState extends State<JobsPage> {
   void initState() {
     super.initState();
     _filterProvider = JobFilterProvider();
-    
+
     // 监听滚动事件，实现分页加载
     _scrollController.addListener(_onScroll);
-    
+
     // 页面加载后获取职位数据
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadJobs();
     });
   }
-  
+
   /// 滚动监听，检测是否滚动到底部
   void _onScroll() {
-    if (_scrollController.position.pixels >= 
+    if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
       // 距离底部200像素时开始加载更多
       const userId = 'default_user';
@@ -77,14 +77,15 @@ class _JobsPageState extends State<JobsPage> {
       child: Consumer2<JobsProvider, JobFilterProvider>(
         builder: (context, jobsProvider, filterProvider, child) {
           return Container(
-            color: const Color(0xFFF5F5F8),
+            color: AppColors.backgroundDefault,
             child: Column(
               children: [
                 _buildHeader(jobsProvider),
                 _buildSearchBar(filterProvider),
                 _buildCategories(jobsProvider),
                 // 显示筛选标签
-                if (filterProvider.hasAnyFilter) _buildFilterTags(filterProvider),
+                if (filterProvider.hasAnyFilter)
+                  _buildFilterTags(filterProvider),
                 Expanded(child: _buildJobList(jobsProvider, filterProvider)),
               ],
             ),
@@ -98,9 +99,7 @@ class _JobsPageState extends State<JobsPage> {
   Widget _buildHeader(JobsProvider provider) {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 48, 20, 16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F8).withValues(alpha: 0.92),
-      ),
+      decoration: BoxDecoration(color: AppColors.surfaceFill),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -120,20 +119,28 @@ class _JobsPageState extends State<JobsPage> {
                   Text(
                     AppStrings().jobs.newToday,
                     style: AppTypography.headingSmall.copyWith(
-                      color: const Color(0xFF3A3A5A),
+                      color: AppColors.textDefault,
                     ),
                   ),
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFF6450C8).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                      borderRadius: BorderRadius.circular(
+                        AppSpacing.radiusFull,
+                      ),
                     ),
                     child: Text(
-                      AppStrings().getStringWithParams(AppStrings().jobs.jobsCount, {'count': '${provider.newJobsCount}'}),
+                      AppStrings().getStringWithParams(
+                        AppStrings().jobs.jobsCount,
+                        {'count': '${provider.newJobsCount}'},
+                      ),
                       style: AppTypography.caption.copyWith(
-                        color: const Color(0xFF6450C8),
+                        color: AppColors.brandPrimary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -145,14 +152,14 @@ class _JobsPageState extends State<JobsPage> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.surfaceDefault,
               borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
               boxShadow: AppShadows.button,
             ),
             child: const Icon(
               Icons.notifications_outlined,
               size: 20,
-              color: Color(0xFF5A5A7A),
+              color: AppColors.iconSecondary,
             ),
           ),
         ],
@@ -170,8 +177,9 @@ class _JobsPageState extends State<JobsPage> {
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.surfaceDefault,
                 borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                border: Border.all(color: AppColors.borderDefault),
                 boxShadow: AppShadows.input,
               ),
               child: TextField(
@@ -182,11 +190,17 @@ class _JobsPageState extends State<JobsPage> {
                 decoration: InputDecoration(
                   hintText: AppStrings().jobs.searchPlaceholder,
                   hintStyle: AppTypography.bodyMedium.copyWith(
-                    color: const Color(0xFFC0C0D0),
+                    color: AppColors.textTertiary,
                   ),
-                  prefixIcon: const Icon(Icons.search, color: Color(0xFFC0C0D0)),
+                  prefixIcon: const Icon(
+                    Icons.search,
+                    color: AppColors.iconSecondary,
+                  ),
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
                 ),
               ),
             ),
@@ -199,10 +213,11 @@ class _JobsPageState extends State<JobsPage> {
               duration: const Duration(milliseconds: 200),
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: filterProvider.hasAnyFilter 
-                    ? AppColors.indigo500 
-                    : Colors.white,
+                color: filterProvider.hasAnyFilter
+                    ? AppColors.brandPrimary
+                    : AppColors.surfaceDefault,
                 borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                border: Border.all(color: AppColors.borderDefault),
                 boxShadow: AppShadows.button,
               ),
               child: Stack(
@@ -210,9 +225,9 @@ class _JobsPageState extends State<JobsPage> {
                   Icon(
                     Icons.tune,
                     size: 20,
-                    color: filterProvider.hasAnyFilter 
-                        ? Colors.white 
-                        : const Color(0xFF5A5A7A),
+                    color: filterProvider.hasAnyFilter
+                        ? Colors.white
+                        : AppColors.iconSecondary,
                   ),
                   // 筛选数量指示器
                   if (filterProvider.filterCount > 0)
@@ -222,8 +237,8 @@ class _JobsPageState extends State<JobsPage> {
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
-                          color: filterProvider.hasAnyFilter 
-                              ? Colors.white 
+                          color: filterProvider.hasAnyFilter
+                              ? Colors.white
                               : AppColors.indigo500,
                           shape: BoxShape.circle,
                         ),
@@ -234,8 +249,8 @@ class _JobsPageState extends State<JobsPage> {
                         child: Text(
                           '${filterProvider.filterCount}',
                           style: AppTypography.caption.copyWith(
-                            color: filterProvider.hasAnyFilter 
-                                ? AppColors.indigo500 
+                            color: filterProvider.hasAnyFilter
+                                ? AppColors.indigo500
                                 : Colors.white,
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
@@ -269,7 +284,10 @@ class _JobsPageState extends State<JobsPage> {
               onTap: () => setState(() => filterProvider.resetAll()),
               child: Container(
                 margin: const EdgeInsets.only(left: 8),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.muted,
                   borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
@@ -294,7 +312,7 @@ class _JobsPageState extends State<JobsPage> {
               ),
             );
           }
-          
+
           // 筛选标签
           final tag = filterProvider.activeFilterTags[index];
           return GestureDetector(
@@ -320,11 +338,7 @@ class _JobsPageState extends State<JobsPage> {
                     ),
                   ),
                   const SizedBox(width: 4),
-                  Icon(
-                    Icons.close,
-                    size: 14,
-                    color: AppColors.indigo500,
-                  ),
+                  Icon(Icons.close, size: 14, color: AppColors.indigo500),
                 ],
               ),
             ),
@@ -363,14 +377,16 @@ class _JobsPageState extends State<JobsPage> {
               margin: const EdgeInsets.only(right: 10),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: isSelected ? const Color(0xFF6450C8) : Colors.white,
+                color: isSelected
+                    ? AppColors.brandPrimary
+                    : AppColors.surfaceDefault,
                 borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
                 boxShadow: isSelected ? AppShadows.button : null,
               ),
               child: Text(
                 _categories[index],
                 style: AppTypography.labelSmall.copyWith(
-                  color: isSelected ? Colors.white : const Color(0xFF5A5A7A),
+                  color: isSelected ? Colors.white : AppColors.textSecondary,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                 ),
               ),
@@ -382,17 +398,20 @@ class _JobsPageState extends State<JobsPage> {
   }
 
   /// 构建职位列表
-  Widget _buildJobList(JobsProvider provider, JobFilterProvider filterProvider) {
+  Widget _buildJobList(
+    JobsProvider provider,
+    JobFilterProvider filterProvider,
+  ) {
     // 加载中状态
     if (provider.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    
+
     // 错误状态
     if (provider.error != null) {
       return _buildErrorState(provider.error!);
     }
-    
+
     // 空状态
     if (provider.jobs.isEmpty) {
       return _buildEmptyState();
@@ -412,7 +431,7 @@ class _JobsPageState extends State<JobsPage> {
         if (index == filteredJobs.length) {
           return _buildLoadingMoreIndicator();
         }
-        
+
         final job = filteredJobs[index];
         return JobCard(
           job: job.toCardMap(),
@@ -421,7 +440,7 @@ class _JobsPageState extends State<JobsPage> {
       },
     );
   }
-  
+
   /// 构建加载更多指示器
   Widget _buildLoadingMoreIndicator() {
     return Container(
@@ -441,10 +460,7 @@ class _JobsPageState extends State<JobsPage> {
             SizedBox(width: 12),
             Text(
               '加载更多职位...',
-              style: TextStyle(
-                color: AppColors.mutedForeground,
-                fontSize: 14,
-              ),
+              style: TextStyle(color: AppColors.mutedForeground, fontSize: 14),
             ),
           ],
         ),
@@ -460,9 +476,17 @@ class _JobsPageState extends State<JobsPage> {
         children: [
           Icon(Icons.error_outline, size: 64, color: AppColors.mutedForeground),
           const SizedBox(height: 16),
-          Text(AppStrings().common.loadFailed, style: AppTypography.bodyMedium.copyWith(color: AppColors.mutedForeground)),
+          Text(
+            AppStrings().common.loadFailed,
+            style: AppTypography.bodyMedium.copyWith(
+              color: AppColors.mutedForeground,
+            ),
+          ),
           const SizedBox(height: 8),
-          TextButton(onPressed: _loadJobs, child: Text(AppStrings().common.retry)),
+          TextButton(
+            onPressed: _loadJobs,
+            child: Text(AppStrings().common.retry),
+          ),
         ],
       ),
     );
@@ -474,9 +498,18 @@ class _JobsPageState extends State<JobsPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.work_off_outlined, size: 64, color: AppColors.mutedForeground),
+          Icon(
+            Icons.work_off_outlined,
+            size: 64,
+            color: AppColors.mutedForeground,
+          ),
           const SizedBox(height: 16),
-          Text(AppStrings().jobs.noJobs, style: AppTypography.bodyMedium.copyWith(color: AppColors.mutedForeground)),
+          Text(
+            AppStrings().jobs.noJobs,
+            style: AppTypography.bodyMedium.copyWith(
+              color: AppColors.mutedForeground,
+            ),
+          ),
         ],
       ),
     );
@@ -545,7 +578,11 @@ class _JobsPageState extends State<JobsPage> {
                   // 工作地点
                   Row(
                     children: [
-                      Icon(Icons.location_on_outlined, size: 16, color: AppColors.mutedForeground),
+                      Icon(
+                        Icons.location_on_outlined,
+                        size: 16,
+                        color: AppColors.mutedForeground,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         job.location,
@@ -563,15 +600,17 @@ class _JobsPageState extends State<JobsPage> {
                       runSpacing: 8,
                       children: job.tags!.map<Widget>((tag) {
                         return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFF5F5F8),
-                            borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                            borderRadius: BorderRadius.circular(
+                              AppSpacing.radiusFull,
+                            ),
                           ),
-                          child: Text(
-                            tag,
-                            style: AppTypography.caption,
-                          ),
+                          child: Text(tag, style: AppTypography.caption),
                         );
                       }).toList(),
                     ),
@@ -601,14 +640,18 @@ class _JobsPageState extends State<JobsPage> {
                         child: Container(
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: provider.isFavorited(job.id) 
+                            color: provider.isFavorited(job.id)
                                 ? const Color(0xFFE8805A).withValues(alpha: 0.1)
                                 : const Color(0xFFF5F5F8),
-                            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                            borderRadius: BorderRadius.circular(
+                              AppSpacing.radiusLg,
+                            ),
                           ),
                           child: Icon(
-                            provider.isFavorited(job.id) ? Icons.favorite : Icons.favorite_border,
-                            color: provider.isFavorited(job.id) 
+                            provider.isFavorited(job.id)
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                            color: provider.isFavorited(job.id)
                                 ? const Color(0xFFE8805A)
                                 : AppColors.mutedForeground,
                           ),
@@ -618,7 +661,8 @@ class _JobsPageState extends State<JobsPage> {
                       // 跳转按钮
                       Expanded(
                         child: ElevatedButton.icon(
-                          onPressed: job.sourceUrl != null && job.sourceUrl!.isNotEmpty
+                          onPressed:
+                              job.sourceUrl != null && job.sourceUrl!.isNotEmpty
                               ? () => _openSourceUrl(job.sourceUrl!)
                               : null,
                           icon: const Icon(Icons.open_in_new, size: 18),
@@ -629,7 +673,9 @@ class _JobsPageState extends State<JobsPage> {
                             disabledBackgroundColor: AppColors.muted,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                              borderRadius: BorderRadius.circular(
+                                AppSpacing.radiusLg,
+                              ),
                             ),
                           ),
                         ),
@@ -649,13 +695,17 @@ class _JobsPageState extends State<JobsPage> {
   void _handleToggleFavorite(Job job, JobsProvider provider) async {
     // TODO: 从用户状态获取真实用户ID
     const userId = 'default_user';
-    
+
     await provider.toggleFavorite(userId, job);
-    
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(provider.isFavorited(job.id) ? AppStrings().jobs.addedToFavorite : AppStrings().jobs.removedFromFavorite),
+          content: Text(
+            provider.isFavorited(job.id)
+                ? AppStrings().jobs.addedToFavorite
+                : AppStrings().jobs.removedFromFavorite,
+          ),
           duration: const Duration(seconds: 1),
         ),
       );

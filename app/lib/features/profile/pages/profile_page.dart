@@ -61,7 +61,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F7FC),
+      backgroundColor: AppColors.backgroundDefault,
       body: Consumer2<app_auth.AuthProvider, ProfileProvider>(
         builder: (context, authProvider, profileProvider, child) {
           return CustomScrollView(
@@ -86,7 +86,7 @@ class _ProfilePageState extends State<ProfilePage> {
       floating: false,
       pinned: false,
       elevation: 0,
-      backgroundColor: const Color(0xFFF8F7FC),
+      backgroundColor: AppColors.backgroundDefault,
       actions: [
         // 已登录时显示登出按钮
         if (authProvider.isAuthenticated)
@@ -134,7 +134,8 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
     // 已登录状态 - 显示错误状态
-    if (profileProvider.errorMessage != null && profileProvider.userProfile == null) {
+    if (profileProvider.errorMessage != null &&
+        profileProvider.userProfile == null) {
       return _buildErrorState(profileProvider);
     }
 
@@ -164,14 +165,15 @@ class _ProfilePageState extends State<ProfilePage> {
             Container(
               padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
-                color: AppColors.indigo500.withValues(alpha: 0.1),
+                color: AppColors.iconFill,
                 borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                border: Border.all(color: AppColors.borderDefault),
               ),
               child: Row(
                 children: [
                   Icon(
                     Icons.info_outline,
-                    color: AppColors.indigo500,
+                    color: AppColors.iconDefault,
                     size: AppSpacing.iconMd,
                   ),
                   const SizedBox(width: AppSpacing.sm),
@@ -179,7 +181,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     child: Text(
                       '登录后可查看求职数据统计、收藏职位等功能',
                       style: AppTypography.bodySmall.copyWith(
-                        color: AppColors.indigo500,
+                        color: AppColors.textDefault,
                       ),
                     ),
                   ),
@@ -283,7 +285,9 @@ class _ProfilePageState extends State<ProfilePage> {
       MenuItem(
         icon: Icons.send_outlined,
         title: '投递记录',
-        badgeCount: provider.submissionCount > 0 ? provider.submissionCount : null,
+        badgeCount: provider.submissionCount > 0
+            ? provider.submissionCount
+            : null,
         onTap: () => _handleNavigateToSubmissions(),
       ),
       MenuItem(
@@ -318,11 +322,7 @@ class _ProfilePageState extends State<ProfilePage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.error_outline,
-            size: 64,
-            color: AppColors.mutedForeground,
-          ),
+          Icon(Icons.error_outline, size: 64, color: AppColors.mutedForeground),
           const SizedBox(height: AppSpacing.md),
           Text(
             provider.errorMessage ?? '加载失败',
@@ -373,9 +373,7 @@ class _ProfilePageState extends State<ProfilePage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('确认退出'),
         content: const Text('确定要退出登录吗？退出后部分功能将无法使用。'),
         actions: [
@@ -396,6 +394,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
     if (confirmed == true) {
       await authProvider.logout();
+      if (!mounted) return;
       // 清空个人资料数据
       context.read<ProfileProvider>().clearUserData();
       if (mounted) {
@@ -426,7 +425,7 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
       ),
     );
-    
+
     // 如果保存成功，刷新数据
     if (result == true && mounted) {
       provider.refresh();
@@ -452,14 +451,12 @@ class _ProfilePageState extends State<ProfilePage> {
     final provider = context.read<ProfileProvider>();
     final isVip = provider.isVip;
     final vipExpireTime = provider.vipExpireTime;
-    
+
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => VipUpgradePage(
-          isVip: isVip,
-          vipExpireTime: vipExpireTime,
-        ),
+        builder: (context) =>
+            VipUpgradePage(isVip: isVip, vipExpireTime: vipExpireTime),
       ),
     );
   }
@@ -468,11 +465,9 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _handleNavigateToJobIntention() async {
     final result = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(
-        builder: (context) => const JobIntentionPage(),
-      ),
+      MaterialPageRoute(builder: (context) => const JobIntentionPage()),
     );
-    
+
     // 如果保存成功，刷新数据
     if (result == true && mounted) {
       context.read<ProfileProvider>().refresh();
@@ -509,9 +504,7 @@ class _ProfilePageState extends State<ProfilePage> {
   void _handleNavigateToSettings() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const SettingsPage(),
-      ),
+      MaterialPageRoute(builder: (context) => const SettingsPage()),
     );
   }
 }
